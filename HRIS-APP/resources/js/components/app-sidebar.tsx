@@ -32,6 +32,11 @@ const mainNavItems: NavItem[] = [
         icon: SquareLibrary,
     },
     {
+        title: 'Applicant',
+        href: applicant(),
+        icon: FileUser,
+    },
+    {
         title: 'Interview Schedule',
         href: interviewSchedule(),
         icon: CalendarClock,
@@ -40,11 +45,6 @@ const mainNavItems: NavItem[] = [
         title: 'Employee',
         href: employee(),
         icon: IdCardLanyard,
-    },
-    {
-        title: 'Applicant',
-        href: applicant(),
-        icon: FileUser,
     },
 ];
 

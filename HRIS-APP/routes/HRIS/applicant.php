@@ -8,6 +8,7 @@ Route::prefix('HRIS')->group(function () {
     Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('applicant', [ApplicantController::class, 'index'])->name('applicant.index');
+        Route::get('applicant/{id}', [ApplicantController::class, 'show'])->name('applicant.show');
 
         // Route::redirect('settings', '/settings/profile');
         // Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');

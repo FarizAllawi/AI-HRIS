@@ -1,13 +1,19 @@
 <?php
 
-use App\Http\Controllers\HRIS\JobPostingController;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
+
+use App\Http\Controllers\HRIS\JobPostingController;
+// use App\Models\JobPosting;
+
 
 Route::prefix('HRIS')->group(function () {
 
     Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('job-posting', [JobPostingController::class, 'index'])->name('job-posting.index');
+        Route::get('job-posting/create', [JobPostingController::class, 'create'])->name('job-posting.create');
+        Route::get('job-posting/{id}', [JobPostingController::class, 'show'])->name('job-posting.show');
+        Route::get('job-posting/{jobPosting}/edit', [JobPostingController::class, 'edit'])->name('job-posting.edit');
+        // Route::post('job-post
 
         // Route::redirect('settings', '/settings/profile');
         // Route::patch('settings/profile', [ProfileController::class, 'update'])->name('profile.update');

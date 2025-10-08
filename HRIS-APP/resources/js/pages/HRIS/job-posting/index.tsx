@@ -1,8 +1,15 @@
-import { PlaceholderPattern } from '@/components/ui/placeholder-pattern';
-import AppLayout from '@/layouts/app-layout';
+import { useState } from 'react';
+import { Head, router } from '@inertiajs/react';
+
 import { index as jobPosting } from '@/routes/job-posting';
 import { type BreadcrumbItem } from '@/types';
-import { Head } from '@inertiajs/react';
+
+import AppLayout from '@/layouts/app-layout';
+import HrisContentLayout from '@/components/HRIS/hris-content-Layout';
+
+import { JobPostingTable } from '@/components/HRIS/job-posting';
+import { dummyJobPostings } from '@/data/job-postings';
+import { JobPosting } from '@/types/job-posting';
 
 const breadcrumbs: BreadcrumbItem[] = [
     {
@@ -11,26 +18,50 @@ const breadcrumbs: BreadcrumbItem[] = [
     },
 ];
 
-export default function JobPosting() {
+export default function JobPostingIndex() {
+    const [jobPostings] = useState<JobPosting[]>(dummyJobPostings);
+
+    const handleCreateNew = () => {
+        router.visit('/HRIS/job-posting/create', { method: 'get'});
+    };
+
+    const handleView = (jobPosting: JobPosting) => {
+        console.log('View job posting:', jobPosting.id);
+        // TODO: Navigate to view job posting page
+    };
+
+    const handleEdit = (jobPosting: JobPosting) => {
+        console.log('Edit job posting:', jobPosting.id);
+        // TODO: Navigate to edit job posting page
+    };
+
+    const handleDelete = (jobPosting: JobPosting) => {
+        console.log('Delete job posting:', jobPosting.id);
+        // TODO: Implement delete functionality
+    };
+
+    const handleToggleStatus = (jobPosting: JobPosting) => {
+        console.log('Toggle status for job posting:', jobPosting.id);
+        // TODO: Implement toggle status functionality
+    };
+
     return (
         <AppLayout breadcrumbs={breadcrumbs}>
             <Head title="Job Posting" />
-            <div className="flex h-full flex-1 flex-col gap-4 overflow-x-auto rounded-xl p-4">
-                <div className="grid auto-rows-min gap-4 md:grid-cols-3">
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                    <div className="relative aspect-video overflow-hidden rounded-xl border border-sidebar-border/70 dark:border-sidebar-border">
-                        <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                    </div>
-                </div>
-                <div className="relative min-h-[100vh] flex-1 overflow-hidden rounded-xl border border-sidebar-border/70 md:min-h-min dark:border-sidebar-border">
-                    <PlaceholderPattern className="absolute inset-0 size-full stroke-neutral-900/20 dark:stroke-neutral-100/20" />
-                </div>
-            </div>
+            <HrisContentLayout
+                title='Job Posting'
+                description='Manage and track all job postings in your organization.'
+                createTitle='Create New Job Posting'
+                onCreateNew={handleCreateNew}
+            >
+                <JobPostingTable
+                    jobPostings={jobPostings}
+                    onView={handleView}
+                    onEdit={handleEdit}
+                    onDelete={handleDelete}
+                    onToggleStatus={handleToggleStatus}
+                />
+            </HrisContentLayout>
         </AppLayout>
     );
 }
