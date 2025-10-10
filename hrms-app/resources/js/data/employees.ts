@@ -1,0 +1,57 @@
+import type { EmployeeRecord } from '@/components/HRMS/employee/types';
+
+export const employeesMock: EmployeeRecord[] = [
+  {
+    id: 'E-10001',
+    fullName: 'Alice Johnson',
+    jobTitle: 'Marketing Manager',
+    department: 'Marketing',
+    location: 'New York',
+    status: 'active',
+    dateOfHire: '2019-04-15',
+    managerName: 'Bob Lee',
+    contactEmail: 'alice@example.com',
+    contactPhone: '+1 (212) 555‑0101',
+    employmentType: 'permanent',
+    workSchedule: 'full_time',
+  },
+  {
+    id: 'E-10002',
+    fullName: 'David Kim',
+    jobTitle: 'Software Engineer',
+    department: 'IT',
+    location: 'Remote',
+    status: 'on_leave',
+    dateOfHire: '2021-07-01',
+    managerName: 'Sarah Park',
+    contactEmail: 'david@example.com',
+    employmentType: 'permanent',
+    workSchedule: 'remote',
+  },
+  {
+    id: 'E-10003',
+    fullName: 'Maria Garcia',
+    jobTitle: 'HR Specialist',
+    department: 'Human Resources',
+    location: 'Jakarta',
+    status: 'probation',
+    dateOfHire: '2025-01-12',
+    managerName: 'Andre Setiawan',
+    contactEmail: 'maria@example.com',
+    employmentType: 'permanent',
+    workSchedule: 'full_time',
+  },
+  {
+    id: 'E-10004',
+    fullName: 'John Smith',
+    jobTitle: 'Data Analyst',
+    department: 'Analytics',
+    location: 'Bandung',
+    status: 'inactive',
+    dateOfHire: '2022-05-09',
+    managerName: 'Rina Kurnia',
+    contactEmail: 'john.smith@example.com',
+  },
+];
+
+

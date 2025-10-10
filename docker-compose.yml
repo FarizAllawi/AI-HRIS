@@ -1,0 +1,78 @@
+version: "3.9"
+
+services:
+  # ------------------------
+  # Laravel HRMS App
+  # ------------------------
+  hmrs:
+    build:
+      context: ./hrms-app
+      dockerfile: Dockerfile
+    env_file:
+      - ./hrms-app/.env
+    volumes:
+      - ./hrms-app:/var/www/html
+    depends_on:
+      - redis
+      # - postgres
+    networks:
+      - backend
+
+  # ------------------------
+  # IndoBERT AI Service
+  # ------------------------
+  ai-service:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    env_file:
+      - ./ai-service/.env
+    volumes:
+      - ./ai-service/src:/app
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  celery-worker:
+    build:
+      context: ./ai-service
+      dockerfile: Dockerfile
+    command: >
+      celery -A celery_app.celery_app worker
+      --loglevel=info
+      --concurrency=2
+    volumes:
+      - ./ai-service/src:/app
+    depends_on:
+      - redis
+    networks:
+      - backend
+
+  # ------------------------
+  # Redis Queue
+  # ------------------------
+  redis:
+    image: redis:7-alpine
+    networks:
+      - backend
+
+  # ------------------------
+  # PostgreSQL Database
+  # ------------------------
+  # postgres:
+  #   image: postgres:16-alpine
+  #   environment:
+  #     POSTGRES_USER: postgres
+  #     POSTGRES_PASSWORD: postgres
+  #     POSTGRES_DB: HRMS_db
+  #   volumes:
+  #     - pgdata:/var/lib/postgresql/data
+  #   networks:
+  #     - backend
+
+networks:
+  backend:
+
+# volumes:
+#   pgdata:

@@ -1,0 +1,8 @@
+/venv
+/src/uploads
+.env
+/.fleet
+/.idea
+/.nova
+/.vscode
+/.zed
