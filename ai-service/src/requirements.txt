@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+celery
+redis
+pandas
+python-multipart
+transformers
+sentence-transformers
+httpx
