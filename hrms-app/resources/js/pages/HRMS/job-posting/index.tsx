@@ -5,7 +5,7 @@ import { index as jobPosting } from '@/routes/job-posting';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';
-import HRMSContentLayout from '@/components/HRMS/HRMS-content-Layout';
+import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
 
 import { JobPostingTable } from '@/components/HRMS/job-posting';
 import { dummyJobPostings } from '@/data/job-postings';

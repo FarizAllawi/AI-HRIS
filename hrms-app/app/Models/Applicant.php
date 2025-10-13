@@ -7,26 +7,21 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
-class JobPosting extends Model
+class Applicant extends Model
 {
     use HasFactory, HasUuids, SoftDeletes;
 
     protected $fillable = [
-        'title',
-        'description',
-        'location',
-        'departments',
-        'requirements',
-        'responsibilities',
-        'salary',
-        'benefits',
-        'type',
-        'status',
+        'user_id',
+        'email',
+        'phone',
+        'portfolio_link',
+        'resume_file',
     ];
 
-    public function questions()
+    public function user()
     {
-        return $this->hasMany(JobPostingQuestion::class);
+        return $this->belongsTo(User::class);
     }
 
     public function appliedJobs()

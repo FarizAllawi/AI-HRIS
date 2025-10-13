@@ -4,7 +4,7 @@ import { type BreadcrumbItem } from '@/types';
 
 
 import AppLayout from '@/layouts/app-layout';
-import HRMSContentLayout from '@/components/HRMS/HRMS-content-Layout';
+import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
 import InterviewScheduleDataTable, { type InterviewScheduleItem } from '@/components/HRMS/interview-schedule/interview-schedule-data-table';
 
 const breadcrumbs: BreadcrumbItem[] = [

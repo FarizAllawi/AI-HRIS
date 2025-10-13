@@ -2,7 +2,7 @@ import { Head } from '@inertiajs/react';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';
-import HRMSContentLayout from '@/components/HRMS/HRMS-content-Layout';
+import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
 import JobPostingForm from '@/components/HRMS/job-posting/JobPostingForm';
 
 export default function JobPostingDetail() {

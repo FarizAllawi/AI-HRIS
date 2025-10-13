@@ -1,4 +1,4 @@
-import HRMSContentLayout from '@/components/HRMS/HRMS-content-Layout';
+import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
 import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
 import { Head } from '@inertiajs/react';

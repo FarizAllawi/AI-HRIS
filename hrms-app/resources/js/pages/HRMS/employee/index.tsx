@@ -3,7 +3,7 @@ import { index as employee } from '@/routes/employee';
 import { type BreadcrumbItem } from '@/types';
 
 import AppLayout from '@/layouts/app-layout';
-import HRMSContentLayout from '@/components/HRMS/HRMS-content-Layout';
+import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
 import { EmployeeTable } from '@/components/HRMS/employee/employee-table';
 import type { EmployeeRecord } from '@/components/HRMS/employee/types';
 import { employeesMock } from '@/data/employees';
