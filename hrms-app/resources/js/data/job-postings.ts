@@ -6,12 +6,13 @@ export const dummyJobPostings: JobPosting[] = [
     title: 'Senior Software Engineer',
     dateCreated: '2024-01-15',
     publishedStatus: 'published',
-    description: 'We are looking for a senior software engineer to join our development team.',
+    description:
+      'We are looking for a senior software engineer to join our development team.',
     department: 'Engineering',
     location: 'Remote',
     salary: '$80,000 - $120,000',
     requirements: ['5+ years experience', 'React/Node.js', 'TypeScript'],
-    benefits: ['Health Insurance', '401k', 'Flexible Hours']
+    benefits: ['Health Insurance', '401k', 'Flexible Hours'],
   },
   {
     id: 'JP-002',
@@ -22,8 +23,12 @@ export const dummyJobPostings: JobPosting[] = [
     department: 'Marketing',
     location: 'New York, NY',
     salary: '$60,000 - $80,000',
-    requirements: ['3+ years marketing experience', 'Digital marketing', 'Analytics'],
-    benefits: ['Health Insurance', 'Dental', 'Vision']
+    requirements: [
+      '3+ years marketing experience',
+      'Digital marketing',
+      'Analytics',
+    ],
+    benefits: ['Health Insurance', 'Dental', 'Vision'],
   },
   {
     id: 'JP-003',
@@ -34,20 +39,25 @@ export const dummyJobPostings: JobPosting[] = [
     department: 'Human Resources',
     location: 'Chicago, IL',
     salary: '$45,000 - $60,000',
-    requirements: ['2+ years HR experience', 'HRMS knowledge', 'Communication skills'],
-    benefits: ['Health Insurance', 'PTO', 'Professional Development']
+    requirements: [
+      '2+ years HR experience',
+      'HRMS knowledge',
+      'Communication skills',
+    ],
+    benefits: ['Health Insurance', 'PTO', 'Professional Development'],
   },
   {
     id: 'JP-004',
     title: 'Data Analyst',
     dateCreated: '2024-02-01',
     publishedStatus: 'archived',
-    description: 'Analyze data and provide insights to support business decisions.',
+    description:
+      'Analyze data and provide insights to support business decisions.',
     department: 'Analytics',
     location: 'San Francisco, CA',
     salary: '$55,000 - $75,000',
     requirements: ['SQL proficiency', 'Python/R', 'Statistical analysis'],
-    benefits: ['Health Insurance', '401k', 'Stock Options']
+    benefits: ['Health Insurance', '401k', 'Stock Options'],
   },
   {
     id: 'JP-005',
@@ -58,8 +68,12 @@ export const dummyJobPostings: JobPosting[] = [
     department: 'Product',
     location: 'Austin, TX',
     salary: '$90,000 - $130,000',
-    requirements: ['5+ years product management', 'Agile methodology', 'User research'],
-    benefits: ['Health Insurance', '401k', 'Unlimited PTO']
+    requirements: [
+      '5+ years product management',
+      'Agile methodology',
+      'User research',
+    ],
+    benefits: ['Health Insurance', '401k', 'Unlimited PTO'],
   },
   {
     id: 'JP-006',
@@ -71,7 +85,7 @@ export const dummyJobPostings: JobPosting[] = [
     location: 'Seattle, WA',
     salary: '$70,000 - $95,000',
     requirements: ['3+ years UX design', 'Figma/Sketch', 'User research'],
-    benefits: ['Health Insurance', 'Dental', 'Design Tools Budget']
+    benefits: ['Health Insurance', 'Dental', 'Design Tools Budget'],
   },
   {
     id: 'JP-007',
@@ -83,7 +97,7 @@ export const dummyJobPostings: JobPosting[] = [
     location: 'Remote',
     salary: '$85,000 - $115,000',
     requirements: ['AWS/Azure experience', 'Docker/Kubernetes', 'CI/CD'],
-    benefits: ['Health Insurance', '401k', 'Home Office Budget']
+    benefits: ['Health Insurance', '401k', 'Home Office Budget'],
   },
   {
     id: 'JP-008',
@@ -94,8 +108,11 @@ export const dummyJobPostings: JobPosting[] = [
     department: 'Sales',
     location: 'Miami, FL',
     salary: '$50,000 - $70,000 + Commission',
-    requirements: ['2+ years sales experience', 'CRM knowledge', 'Communication skills'],
-    benefits: ['Health Insurance', 'Commission', 'Car Allowance']
-  }
+    requirements: [
+      '2+ years sales experience',
+      'CRM knowledge',
+      'Communication skills',
+    ],
+    benefits: ['Health Insurance', 'Commission', 'Car Allowance'],
+  },
 ];
-

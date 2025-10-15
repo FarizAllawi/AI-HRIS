@@ -10,6 +10,7 @@ Route::get('/', function () {
 
 Route::get('/job-posting', [JobPostingPublicController::class, 'index'])->name('job-posting-public.index');
 Route::get('/job-posting/{jobPosting}', [JobPostingPublicController::class, 'show'])->name('job-posting-public.show');
+Route::post('/job-posting/{jobPosting}/apply', [JobPostingPublicController::class, 'apply'])->name('job-posting-public.apply')->middleware('auth');
 
 Route::prefix('HRMS')->group(function() {
     Route::middleware(['auth', 'verified'])->group(function () {
@@ -26,4 +27,3 @@ require __DIR__.'/HRMS/job-posting.php';
 require __DIR__.'/HRMS/applicant.php';
 require __DIR__.'/HRMS/employee.php';
 require __DIR__.'/HRMS/interview-schedule.php';
-

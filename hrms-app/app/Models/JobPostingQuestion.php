@@ -13,7 +13,8 @@ class JobPostingQuestion extends Model
 
     protected $fillable = [
         'job_posting_id',
-        'questions',
+        'question',
+        'description',
         'weight',
     ];
 

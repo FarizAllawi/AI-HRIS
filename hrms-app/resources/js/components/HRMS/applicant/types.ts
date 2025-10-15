@@ -1,17 +1,26 @@
 export type InterviewStatus =
-  | "invited"
-  | "scheduled"
-  | "completed"
-  | "no_show"
-  | "cancelled"
-  | "proposed"
-  | "tbd";
+  | 'invited'
+  | 'scheduled'
+  | 'completed'
+  | 'no_show'
+  | 'cancelled'
+  | 'proposed'
+  | 'tbd';
 
-export type CandidateResponse = "accepted" | "proposed" | "no_response" | "declined";
+export type CandidateResponse =
+  | 'accepted'
+  | 'proposed'
+  | 'no_response'
+  | 'declined';
 
-export type InterviewType = "phone" | "video" | "in_person" | "tbd";
+export type InterviewType = 'phone' | 'video' | 'in_person' | 'tbd';
 
-export type ApplicationStatus = "new" | "in_review" | "rejected" | "hired" | "withdrawn";
+export type ApplicationStatus =
+  | 'new'
+  | 'in_review'
+  | 'rejected'
+  | 'hired'
+  | 'withdrawn';
 
 export interface ApplicantRecord {
   id: string;
@@ -30,7 +39,7 @@ export interface ApplicantRecord {
   profileUrl?: string;
   resumeUrl?: string;
   applicationStatus?: ApplicationStatus;
-  feedbackStatus?: "pending" | "submitted" | "n/a";
+  feedbackStatus?: 'pending' | 'submitted' | 'n/a';
   resumeScore?: number; // 0-100
   referralSource?: string;
 }
@@ -40,5 +49,3 @@ export interface ApplicantTableHandlers {
   onSchedule?: (applicant: ApplicantRecord) => void;
   onInvite?: (applicant: ApplicantRecord) => void;
 }
-
-

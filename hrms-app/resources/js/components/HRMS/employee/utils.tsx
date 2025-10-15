@@ -2,7 +2,13 @@ import { Badge } from '@/components/ui/badge';
 import type { EmploymentStatus } from './types';
 
 export function getStatusBadge(status: EmploymentStatus) {
-  const map: Record<EmploymentStatus, { label: string; variant?: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  const map: Record<
+    EmploymentStatus,
+    {
+      label: string;
+      variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+    }
+  > = {
     active: { label: 'Active', variant: 'default' },
     on_leave: { label: 'On Leave', variant: 'secondary' },
     terminated: { label: 'Terminated', variant: 'destructive' },
@@ -28,5 +34,3 @@ export function initials(fullName: string) {
     .map((n) => n[0]?.toUpperCase() ?? '')
     .join('');
 }
-
-

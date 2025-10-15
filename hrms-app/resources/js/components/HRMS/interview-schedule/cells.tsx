@@ -1,17 +1,35 @@
-import { IconCheck, IconMessage } from '@tabler/icons-react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { IconCheck, IconMessage } from '@tabler/icons-react';
 import type { Interviewer } from './types';
 
-export function InterviewersCell({ interviewers }: { interviewers?: Interviewer[] }) {
-  if (!interviewers || interviewers.length === 0) return <span className="text-muted-foreground">–</span>;
+export function InterviewersCell({
+  interviewers,
+}: {
+  interviewers?: Interviewer[];
+}) {
+  if (!interviewers || interviewers.length === 0)
+    return <span className="text-muted-foreground">–</span>;
   return (
     <div className="flex items-center gap-2">
       <div className="flex -space-x-2">
         {interviewers.slice(0, 3).map((person) => (
-          <Avatar key={person.id} className="ring-background size-6 ring-2">
-            <AvatarImage src={person.avatarUrl ?? undefined} alt={person.name} />
-            <AvatarFallback>{person.name.split(' ').map((n) => n[0]).join('').slice(0, 2)}</AvatarFallback>
+          <Avatar key={person.id} className="size-6 ring-2 ring-background">
+            <AvatarImage
+              src={person.avatarUrl ?? undefined}
+              alt={person.name}
+            />
+            <AvatarFallback>
+              {person.name
+                .split(' ')
+                .map((n) => n[0])
+                .join('')
+                .slice(0, 2)}
+            </AvatarFallback>
           </Avatar>
         ))}
       </div>
@@ -23,7 +41,11 @@ export function InterviewersCell({ interviewers }: { interviewers?: Interviewer[
   );
 }
 
-export function FeedbackCell({ feedbackStatus }: { feedbackStatus?: 'submitted' | 'pending' | 'none' }) {
+export function FeedbackCell({
+  feedbackStatus,
+}: {
+  feedbackStatus?: 'submitted' | 'pending' | 'none';
+}) {
   switch (feedbackStatus) {
     case 'submitted':
       return (
@@ -58,5 +80,3 @@ export function FeedbackCell({ feedbackStatus }: { feedbackStatus?: 'submitted' 
       );
   }
 }
-
-

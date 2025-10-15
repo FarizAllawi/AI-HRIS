@@ -53,5 +53,3 @@ export const employeesMock: EmployeeRecord[] = [
     contactEmail: 'john.smith@example.com',
   },
 ];
-
-

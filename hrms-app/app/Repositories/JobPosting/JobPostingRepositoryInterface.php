@@ -1,22 +1,19 @@
-<?php 
+<?php
 
 namespace App\Repositories\JobPosting;
 
-use App\Models\JobPosting;
+use App\Repositories\Contracts\BaseRepositoryInterface;
 
-interface JobPostingRepositoryInterface
+interface JobPostingRepositoryInterface extends BaseRepositoryInterface
 {
-    public function paginate(array $filter);
+    // You can define extra JobPosting-specific methods here if needed.
 
-    public function find(JobPosting $jobPosting);
-
-    public function create($data);
-
-    public function update($data);
-
-    public function delete(JobPosting $jobPosting);
-
-    public function permanentDelete(JobPosting $jobPosting);
-
-    public function restore(JobPosting $jobPosting);
+    /**
+     * Update only the status of a job posting
+     *
+     * @param string $id Job posting ID
+     * @param string $status New status value
+     * @return \Illuminate\Database\Eloquent\Model|null
+     */
+    public function updateStatus(string $id, string $status);
 }

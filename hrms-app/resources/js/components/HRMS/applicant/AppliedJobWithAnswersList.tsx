@@ -1,5 +1,6 @@
-import React from 'react';
-import AppliedJobWithAnswers, { AppliedJobWithAnswersProps } from './AppliedJobWithAnswers';
+import AppliedJobWithAnswers, {
+  AppliedJobWithAnswersProps,
+} from './AppliedJobWithAnswers';
 
 const dummyAppliedJobsWithAnswers: AppliedJobWithAnswersProps[] = [
   {
@@ -13,7 +14,8 @@ const dummyAppliedJobsWithAnswers: AppliedJobWithAnswersProps[] = [
     answers: [
       {
         question: 'Describe your experience with React.',
-        answer: 'I have 3 years of experience building SPAs with React and TypeScript.',
+        answer:
+          'I have 3 years of experience building SPAs with React and TypeScript.',
         score: 85,
       },
       {
@@ -34,7 +36,8 @@ const dummyAppliedJobsWithAnswers: AppliedJobWithAnswersProps[] = [
     answers: [
       {
         question: 'Describe your design process.',
-        answer: 'I start with user research, then wireframes, and iterate based on feedback.',
+        answer:
+          'I start with user research, then wireframes, and iterate based on feedback.',
         score: 80,
       },
       {
@@ -46,11 +49,19 @@ const dummyAppliedJobsWithAnswers: AppliedJobWithAnswersProps[] = [
   },
 ];
 
-export default function AppliedJobWithAnswersList({ appliedJobsWithAnswers = dummyAppliedJobsWithAnswers }: { appliedJobsWithAnswers?: AppliedJobWithAnswersProps[] }) {
+export default function AppliedJobWithAnswersList({
+  appliedJobsWithAnswers = dummyAppliedJobsWithAnswers,
+}: {
+  appliedJobsWithAnswers?: AppliedJobWithAnswersProps[];
+}) {
   return (
     <div>
       {appliedJobsWithAnswers.map((item, idx) => (
-        <AppliedJobWithAnswers key={idx} job={item.job} answers={item.answers} />
+        <AppliedJobWithAnswers
+          key={idx}
+          job={item.job}
+          answers={item.answers}
+        />
       ))}
     </div>
   );

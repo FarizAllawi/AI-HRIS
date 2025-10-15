@@ -14,7 +14,8 @@ return new class extends Migration
         Schema::create('job_posting_questions', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('job_posting_id')->constrained('job_postings')->onDelete('cascade');
-            $table->text('questions');
+            $table->text('question');
+            $table->text('description')->nullable();
             $table->double('weight')->nullable();
             $table->timestamps();
             $table->softDeletes();

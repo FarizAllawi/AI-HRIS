@@ -1,9 +1,9 @@
 export type EmploymentStatus =
-  | "active"
-  | "on_leave"
-  | "terminated"
-  | "probation"
-  | "inactive";
+  | 'active'
+  | 'on_leave'
+  | 'terminated'
+  | 'probation'
+  | 'inactive';
 
 export interface EmployeeRecord {
   id: string; // Employee ID or code
@@ -17,11 +17,11 @@ export interface EmployeeRecord {
   contactEmail?: string;
   contactPhone?: string;
   // Nice-to-have fields
-  workSchedule?: "full_time" | "part_time" | "remote" | "contract";
+  workSchedule?: 'full_time' | 'part_time' | 'remote' | 'contract';
   lastReviewDate?: string; // ISO date string
-  employmentType?: "permanent" | "contract" | "intern";
+  employmentType?: 'permanent' | 'contract' | 'intern';
   skills?: string[];
-  probationStatus?: "active" | "completed" | "n/a";
+  probationStatus?: 'active' | 'completed' | 'n/a';
   birthday?: string; // ISO date string
   notes?: string;
 }
@@ -31,5 +31,3 @@ export interface EmployeeTableHandlers {
   onEdit?: (employee: EmployeeRecord) => void;
   onTerminate?: (employee: EmployeeRecord) => void;
 }
-
-

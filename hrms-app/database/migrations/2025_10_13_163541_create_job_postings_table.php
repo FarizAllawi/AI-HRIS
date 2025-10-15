@@ -14,15 +14,15 @@ return new class extends Migration
         Schema::create('job_postings', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('title');
-            $table->text('description')->nullable();
+            $table->text('description');
             $table->string('location')->nullable();
             $table->string('departments')->nullable();
-            $table->text('requirements')->nullable();
-            $table->text('responsibilities')->nullable();
+            $table->text('requirements');       // store as JSON
+            $table->text('responsibilities');  // store as JSON
+            $table->text('benefits')->nullable(); // store as JSON
             $table->string('salary')->nullable();
-            $table->text('benefits')->nullable();
-            $table->enum('type', ['full-time', 'freelance', 'internship'])->default('full-time');
-            $table->enum('status', ['draft', 'published', 'unpublish'])->default('draft');
+            $table->enum('type', ['full-time', 'contract', 'part-time', 'internship'])->default('full-time');
+            $table->enum('status', ['draft', 'published', 'unpublish', 'archived'])->default('draft');
             $table->timestamps();
             $table->softDeletes();
         });

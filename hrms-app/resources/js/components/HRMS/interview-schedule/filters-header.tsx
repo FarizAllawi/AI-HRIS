@@ -1,5 +1,11 @@
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import type { InterviewStatus, InterviewType } from './types';
 
 export function FiltersHeader({
@@ -34,22 +40,36 @@ export function FiltersHeader({
           />
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          <Select value={statusFilter} onValueChange={(v) => onStatus(v as InterviewStatus | 'all')}>
-            <SelectTrigger className="w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
+          <Select
+            value={statusFilter}
+            onValueChange={(v) => onStatus(v as InterviewStatus | 'all')}
+          >
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="invited">Invited</SelectItem>
-              <SelectItem value="candidate_proposed">Candidate Proposed</SelectItem>
+              <SelectItem value="candidate_proposed">
+                Candidate Proposed
+              </SelectItem>
               <SelectItem value="scheduled">Scheduled</SelectItem>
               <SelectItem value="today">Today</SelectItem>
               <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="no_show">No Show</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
-              <SelectItem value="reschedule_requested">Reschedule Requested</SelectItem>
+              <SelectItem value="reschedule_requested">
+                Reschedule Requested
+              </SelectItem>
             </SelectContent>
           </Select>
-          <Select value={typeFilter} onValueChange={(v) => onType(v as InterviewType | 'all')}>
-            <SelectTrigger className="w-[150px]"><SelectValue placeholder="Type" /></SelectTrigger>
+          <Select
+            value={typeFilter}
+            onValueChange={(v) => onType(v as InterviewType | 'all')}
+          >
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="phone">Phone</SelectItem>
@@ -58,8 +78,13 @@ export function FiltersHeader({
               <SelectItem value="tbd">TBD</SelectItem>
             </SelectContent>
           </Select>
-          <Select value={String(pageSize)} onValueChange={(v) => onPageSize(Number(v))}>
-            <SelectTrigger className="w-[110px]"><SelectValue placeholder="Rows" /></SelectTrigger>
+          <Select
+            value={String(pageSize)}
+            onValueChange={(v) => onPageSize(Number(v))}
+          >
+            <SelectTrigger className="w-[110px]">
+              <SelectValue placeholder="Rows" />
+            </SelectTrigger>
             <SelectContent>
               <SelectItem value="5">5 / page</SelectItem>
               <SelectItem value="10">10 / page</SelectItem>
@@ -73,5 +98,3 @@ export function FiltersHeader({
     </div>
   );
 }
-
-

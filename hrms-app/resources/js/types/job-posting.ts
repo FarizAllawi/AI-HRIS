@@ -1,8 +1,9 @@
 export interface JobPosting {
   id: string;
   title: string;
-  dateCreated: string;
-  publishedStatus: 'published' | 'draft' | 'archived';
+  created_at: string;
+  status: 'published' | 'unpublish' | 'draft' | 'archived';
+  type: 'full-time' | 'contract' | 'part-time' | 'internship';
   description?: string;
   department?: string;
   location?: string;
@@ -10,6 +11,24 @@ export interface JobPosting {
   requirements?: string[];
   benefits?: string[];
   totalApplicants?: number;
+  questions?: JobPostingQuestions[];
+}
+
+export interface JobPostingQuestions {
+  id: string;
+  job_posting_id: string;
+  questions: string;
+  weight: number;
+}
+
+export interface JobPostingFilters {
+  search: string;
+  status: string;
+  type: string;
+  department: string;
+  location: string;
+  dateRange: string;
+  applicantRange: string;
 }
 
 export interface JobPostingTableProps {
@@ -18,5 +37,6 @@ export interface JobPostingTableProps {
   onDelete?: (jobPosting: JobPosting) => void;
   onView?: (jobPosting: JobPosting) => void;
   onToggleStatus?: (jobPosting: JobPosting) => void;
+  onArchive?: (jobPosting: JobPosting) => void;
+  onUnpublish?: (jobPosting: JobPosting) => void;
 }
-

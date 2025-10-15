@@ -1,14 +1,10 @@
-import { useMemo, useState } from 'react';
-import { IconDotsVertical, IconExternalLink } from '@tabler/icons-react';
 import { Button } from '@/components/ui/button';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -18,15 +14,31 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useIsMobile } from '@/hooks/use-mobile';
-import type { ApplicantRecord, ApplicantTableHandlers, InterviewStatus, InterviewType, ApplicationStatus } from './types';
-import { formatDate, formatDateTime, getApplicationStatusLabel, getInterviewStatusBadge, getInterviewTypeLabel, getResponseBadge } from './utils';
 import { Link } from '@inertiajs/react';
+import { IconDotsVertical, IconExternalLink } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
+import type {
+  ApplicantRecord,
+  ApplicantTableHandlers,
+  ApplicationStatus,
+  InterviewStatus,
+  InterviewType,
+} from './types';
+import {
+  formatDate,
+  formatDateTime,
+  getInterviewStatusBadge,
+  getInterviewTypeLabel,
+  getResponseBadge,
+} from './utils';
 
 type Props = { items: ApplicantRecord[] } & ApplicantTableHandlers;
 
@@ -47,9 +59,14 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
         it.fullName.toLowerCase().includes(q) ||
         it.positionTitle.toLowerCase().includes(q) ||
         (it.positionCode?.toLowerCase().includes(q) ?? false);
-      const matchStatus = status === 'all' ? true : it.interviewStatus === status;
-      const matchType = type === 'all' ? true : (it.interviewType ?? 'tbd') === type;
-      const matchAppStatus = appStatus === 'all' ? true : (it.applicationStatus ?? 'new') === appStatus;
+      const matchStatus =
+        status === 'all' ? true : it.interviewStatus === status;
+      const matchType =
+        type === 'all' ? true : (it.interviewType ?? 'tbd') === type;
+      const matchAppStatus =
+        appStatus === 'all'
+          ? true
+          : (it.applicationStatus ?? 'new') === appStatus;
       return matchQuery && matchStatus && matchType && matchAppStatus;
     });
   }, [items, query, status, type, appStatus]);
@@ -66,11 +83,26 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
       <div className="space-y-3">
         <div className="flex flex-col gap-3 border-b p-3">
           <div className="flex w-full gap-2 md:max-w-md">
-            <Input placeholder="Search applicant or position..." value={query} onChange={(e) => { setQuery(e.target.value); resetToFirst(); }} />
+            <Input
+              placeholder="Search applicant or position..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                resetToFirst();
+              }}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={status} onValueChange={(v) => { setStatus(v as InterviewStatus | 'all'); resetToFirst(); }}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Interview Status" /></SelectTrigger>
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v as InterviewStatus | 'all');
+                resetToFirst();
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Interview Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Interview</SelectItem>
                 <SelectItem value="invited">Invited</SelectItem>
@@ -82,8 +114,16 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                 <SelectItem value="tbd">TBD</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={type} onValueChange={(v) => { setType(v as InterviewType | 'all'); resetToFirst(); }}>
-              <SelectTrigger className="w-[140px]"><SelectValue placeholder="Type" /></SelectTrigger>
+            <Select
+              value={type}
+              onValueChange={(v) => {
+                setType(v as InterviewType | 'all');
+                resetToFirst();
+              }}
+            >
+              <SelectTrigger className="w-[140px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="phone">Phone</SelectItem>
@@ -92,8 +132,16 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                 <SelectItem value="tbd">TBD</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={appStatus} onValueChange={(v) => { setAppStatus(v as ApplicationStatus | 'all'); resetToFirst(); }}>
-              <SelectTrigger className="w-[170px]"><SelectValue placeholder="Application" /></SelectTrigger>
+            <Select
+              value={appStatus}
+              onValueChange={(v) => {
+                setAppStatus(v as ApplicationStatus | 'all');
+                resetToFirst();
+              }}
+            >
+              <SelectTrigger className="w-[170px]">
+                <SelectValue placeholder="Application" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Applications</SelectItem>
                 <SelectItem value="new">New</SelectItem>
@@ -106,22 +154,43 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
           </div>
         </div>
         {paged.length === 0 ? (
-          <div className="text-muted-foreground p-4 text-center">No applicants found.</div>
+          <div className="p-4 text-center text-muted-foreground">
+            No applicants found.
+          </div>
         ) : (
           paged.map((it) => (
             <div key={it.id} className="rounded-lg border p-3">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0">
                   <div className="truncate font-medium">{it.fullName}</div>
-                  <div className="text-muted-foreground text-xs">Applied {formatDate(it.applicationDate)} • {it.positionTitle}</div>
+                  <div className="text-xs text-muted-foreground">
+                    Applied {formatDate(it.applicationDate)} •{' '}
+                    {it.positionTitle}
+                  </div>
                 </div>
                 {getInterviewStatusBadge(it.interviewStatus)}
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                <div><span className="text-foreground font-medium">Interview:</span> {formatDateTime(it.interviewDateTime)}</div>
-                <div><span className="text-foreground font-medium">Type:</span> {getInterviewTypeLabel(it.interviewType)}</div>
-                <div><span className="text-foreground font-medium">Interviewer(s):</span> {it.interviewers?.join(', ') || '–'}</div>
-                <div><span className="text-foreground font-medium">Response:</span> {getResponseBadge(it.candidateResponse)}</div>
+                <div>
+                  <span className="font-medium text-foreground">
+                    Interview:
+                  </span>{' '}
+                  {formatDateTime(it.interviewDateTime)}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Type:</span>{' '}
+                  {getInterviewTypeLabel(it.interviewType)}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">
+                    Interviewer(s):
+                  </span>{' '}
+                  {it.interviewers?.join(', ') || '–'}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Response:</span>{' '}
+                  {getResponseBadge(it.candidateResponse)}
+                </div>
               </div>
               <div className="mt-3">
                 <DropdownMenu>
@@ -132,9 +201,15 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onView?.(it)}>View Profile</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onInvite?.(it)}>Send Invite</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onSchedule?.(it)}>Schedule Interview</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onView?.(it)}>
+                      View Profile
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onInvite?.(it)}>
+                      Send Invite
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onSchedule?.(it)}>
+                      Schedule Interview
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -142,10 +217,26 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
           ))
         )}
         <div className="flex items-center justify-between gap-2 border-t p-3 text-sm">
-          <div className="text-muted-foreground">Page {safePage} of {totalPages}</div>
+          <div className="text-muted-foreground">
+            Page {safePage} of {totalPages}
+          </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}>Previous</Button>
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}>Next</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+            >
+              Next
+            </Button>
           </div>
         </div>
       </div>
@@ -157,11 +248,26 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
       <div className="flex flex-col gap-3 border-b p-3">
         <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div className="flex w-full gap-2 md:max-w-md">
-            <Input placeholder="Search applicant or position..." value={query} onChange={(e) => { setQuery(e.target.value); resetToFirst(); }} />
+            <Input
+              placeholder="Search applicant or position..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                resetToFirst();
+              }}
+            />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={status} onValueChange={(v) => { setStatus(v as InterviewStatus | 'all'); resetToFirst(); }}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Interview Status" /></SelectTrigger>
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v as InterviewStatus | 'all');
+                resetToFirst();
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Interview Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Interview</SelectItem>
                 <SelectItem value="invited">Invited</SelectItem>
@@ -173,8 +279,16 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                 <SelectItem value="tbd">TBD</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={type} onValueChange={(v) => { setType(v as InterviewType | 'all'); resetToFirst(); }}>
-              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Type" /></SelectTrigger>
+            <Select
+              value={type}
+              onValueChange={(v) => {
+                setType(v as InterviewType | 'all');
+                resetToFirst();
+              }}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="phone">Phone</SelectItem>
@@ -183,8 +297,16 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                 <SelectItem value="tbd">TBD</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={appStatus} onValueChange={(v) => { setAppStatus(v as ApplicationStatus | 'all'); resetToFirst(); }}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Application" /></SelectTrigger>
+            <Select
+              value={appStatus}
+              onValueChange={(v) => {
+                setAppStatus(v as ApplicationStatus | 'all');
+                resetToFirst();
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Application" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Applications</SelectItem>
                 <SelectItem value="new">New</SelectItem>
@@ -194,8 +316,16 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                 <SelectItem value="withdrawn">Withdrawn</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); resetToFirst(); }}>
-              <SelectTrigger className="w-[110px]"><SelectValue placeholder="Rows" /></SelectTrigger>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(v) => {
+                setPageSize(Number(v));
+                resetToFirst();
+              }}
+            >
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Rows" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="10">10 / page</SelectItem>
                 <SelectItem value="20">20 / page</SelectItem>
@@ -204,7 +334,11 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
             </Select>
           </div>
         </div>
-        <div className="text-xs text-muted-foreground">Showing {filtered.length === 0 ? 0 : startIndex + 1}‑{Math.min(startIndex + pageSize, filtered.length)} of {filtered.length}</div>
+        <div className="text-xs text-muted-foreground">
+          Showing {filtered.length === 0 ? 0 : startIndex + 1}‑
+          {Math.min(startIndex + pageSize, filtered.length)} of{' '}
+          {filtered.length}
+        </div>
       </div>
       <Table>
         <TableHeader>
@@ -224,7 +358,9 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
         <TableBody>
           {paged.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={10} className="h-24 text-center">No applicants found.</TableCell>
+              <TableCell colSpan={10} className="h-24 text-center">
+                No applicants found.
+              </TableCell>
             </TableRow>
           ) : (
             paged.map((it) => (
@@ -243,23 +379,42 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-medium">{it.positionTitle}</span>
-                    {it.positionCode ? <span className="text-muted-foreground text-xs">{it.positionCode}</span> : null}
+                    {it.positionCode ? (
+                      <span className="text-xs text-muted-foreground">
+                        {it.positionCode}
+                      </span>
+                    ) : null}
                   </div>
                 </TableCell>
-                <TableCell>{getInterviewStatusBadge(it.interviewStatus)}</TableCell>
+                <TableCell>
+                  {getInterviewStatusBadge(it.interviewStatus)}
+                </TableCell>
                 <TableCell>{formatDateTime(it.interviewDateTime)}</TableCell>
-                <TableCell className="max-w-[220px] truncate">{it.interviewers?.join(', ') || '–'}</TableCell>
+                <TableCell className="max-w-[220px] truncate">
+                  {it.interviewers?.join(', ') || '–'}
+                </TableCell>
                 <TableCell>{getResponseBadge(it.candidateResponse)}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     {it.contactEmail ? <span>{it.contactEmail}</span> : null}
-                    {it.contactPhone ? <span className="text-muted-foreground text-xs">{it.contactPhone}</span> : null}
+                    {it.contactPhone ? (
+                      <span className="text-xs text-muted-foreground">
+                        {it.contactPhone}
+                      </span>
+                    ) : null}
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     {it.resumeUrl ? (
-                      <a href={it.resumeUrl} target="_blank" rel="noreferrer" className="hover:underline">Resume</a>
+                      <a
+                        href={it.resumeUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="hover:underline"
+                      >
+                        Resume
+                      </a>
                     ) : null}
                   </div>
                 </TableCell>
@@ -273,9 +428,15 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onView?.(it)}>View Profile</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onInvite?.(it)}>Send Invite</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onSchedule?.(it)}>Schedule Interview</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onView?.(it)}>
+                          View Profile
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onInvite?.(it)}>
+                          Send Invite
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onSchedule?.(it)}>
+                          Schedule Interview
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -286,10 +447,26 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
         </TableBody>
       </Table>
       <div className="flex items-center justify-between gap-2 border-t p-3 text-sm">
-        <div className="text-muted-foreground">Page {safePage} of {totalPages}</div>
+        <div className="text-muted-foreground">
+          Page {safePage} of {totalPages}
+        </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}>Previous</Button>
-          <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}>Next</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+          >
+            Next
+          </Button>
         </div>
       </div>
     </div>
@@ -297,5 +474,3 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
 }
 
 export default ApplicantTable;
-
-

@@ -1,7 +1,7 @@
-import { useMemo, useState } from 'react';
-import { IconDotsVertical, IconExternalLink } from '@tabler/icons-react';
-import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { IconDotsVertical, IconExternalLink } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
 // removed unused tooltip imports
 import {
   DropdownMenu,
@@ -9,14 +9,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -25,8 +17,20 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
 import { useIsMobile } from '@/hooks/use-mobile';
-import type { EmployeeRecord, EmployeeTableHandlers, EmploymentStatus } from './types';
+import type {
+  EmployeeRecord,
+  EmployeeTableHandlers,
+  EmploymentStatus,
+} from './types';
 import { formatDate, getStatusBadge, initials } from './utils';
 
 type Props = {
@@ -42,8 +46,14 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
 
-  const departments = useMemo(() => Array.from(new Set(items.map(i => i.department))).sort(), [items]);
-  const locations = useMemo(() => Array.from(new Set(items.map(i => i.location))).sort(), [items]);
+  const departments = useMemo(
+    () => Array.from(new Set(items.map((i) => i.department))).sort(),
+    [items],
+  );
+  const locations = useMemo(
+    () => Array.from(new Set(items.map((i) => i.location))).sort(),
+    [items],
+  );
 
   const filteredItems = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -53,7 +63,8 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
         it.fullName.toLowerCase().includes(q) ||
         it.id.toLowerCase().includes(q) ||
         it.jobTitle.toLowerCase().includes(q);
-      const matchDept = department === 'all' ? true : it.department === department;
+      const matchDept =
+        department === 'all' ? true : it.department === department;
       const matchStatus = status === 'all' ? true : it.status === status;
       const matchLoc = location === 'all' ? true : it.location === location;
       return matchQuery && matchDept && matchStatus && matchLoc;
@@ -75,19 +86,42 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
             <Input
               placeholder="Search name, ID, or role..."
               value={query}
-              onChange={(e) => { setQuery(e.target.value); resetToFirstPage(); }}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                resetToFirstPage();
+              }}
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={department} onValueChange={(v) => { setDepartment(v as typeof department); resetToFirstPage(); }}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Department" /></SelectTrigger>
+            <Select
+              value={department}
+              onValueChange={(v) => {
+                setDepartment(v as typeof department);
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Depts</SelectItem>
-                {departments.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
+                {departments.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Select value={status} onValueChange={(v) => { setStatus(v as EmploymentStatus | 'all'); resetToFirstPage(); }}>
-              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v as EmploymentStatus | 'all');
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
@@ -97,43 +131,83 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
                 <SelectItem value="terminated">Terminated</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={location} onValueChange={(v) => { setLocation(v as typeof location); resetToFirstPage(); }}>
-              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Location" /></SelectTrigger>
+            <Select
+              value={location}
+              onValueChange={(v) => {
+                setLocation(v as typeof location);
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Locations</SelectItem>
-                {locations.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
+                {locations.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
         </div>
         {pagedItems.length === 0 ? (
-          <div className="text-muted-foreground p-4 text-center">No employees found.</div>
+          <div className="p-4 text-center text-muted-foreground">
+            No employees found.
+          </div>
         ) : (
           pagedItems.map((it) => (
             <div key={it.id} className="rounded-lg border p-3">
               <div className="flex items-center gap-3">
-                <Avatar><AvatarFallback>{initials(it.fullName)}</AvatarFallback></Avatar>
+                <Avatar>
+                  <AvatarFallback>{initials(it.fullName)}</AvatarFallback>
+                </Avatar>
                 <div className="flex min-w-0 flex-col">
                   <div className="truncate font-medium">{it.fullName}</div>
-                  <div className="text-muted-foreground text-xs">{it.jobTitle} • {it.department}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {it.jobTitle} • {it.department}
+                  </div>
                 </div>
                 <div className="ml-auto">{getStatusBadge(it.status)}</div>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
-                <div><span className="font-medium text-foreground">ID:</span> {it.id}</div>
-                <div><span className="font-medium text-foreground">Location:</span> {it.location}</div>
-                <div><span className="font-medium text-foreground">Hire Date:</span> {formatDate(it.dateOfHire)}</div>
-                <div><span className="font-medium text-foreground">Manager:</span> {it.managerName ?? '–'}</div>
+                <div>
+                  <span className="font-medium text-foreground">ID:</span>{' '}
+                  {it.id}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Location:</span>{' '}
+                  {it.location}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">
+                    Hire Date:
+                  </span>{' '}
+                  {formatDate(it.dateOfHire)}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Manager:</span>{' '}
+                  {it.managerName ?? '–'}
+                </div>
               </div>
               <div className="mt-3">
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button size="sm" variant="outline">Actions</Button>
+                    <Button size="sm" variant="outline">
+                      Actions
+                    </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => onView?.(it)}>View</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onEdit?.(it)}>Edit</DropdownMenuItem>
-                    <DropdownMenuItem onClick={() => onTerminate?.(it)}>Terminate</DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onView?.(it)}>
+                      View
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit?.(it)}>
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onTerminate?.(it)}>
+                      Terminate
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -141,10 +215,26 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
           ))
         )}
         <div className="flex items-center justify-between gap-2 border-t p-3 text-sm">
-          <div className="text-muted-foreground">Page {safePage} of {totalPages}</div>
+          <div className="text-muted-foreground">
+            Page {safePage} of {totalPages}
+          </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}>Previous</Button>
-            <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}>Next</Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+            >
+              Next
+            </Button>
           </div>
         </div>
       </div>
@@ -159,19 +249,42 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
             <Input
               placeholder="Search name, ID, or role..."
               value={query}
-              onChange={(e) => { setQuery(e.target.value); resetToFirstPage(); }}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                resetToFirstPage();
+              }}
             />
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <Select value={department} onValueChange={(v) => { setDepartment(v as typeof department); resetToFirstPage(); }}>
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Department" /></SelectTrigger>
+            <Select
+              value={department}
+              onValueChange={(v) => {
+                setDepartment(v as typeof department);
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Departments</SelectItem>
-                {departments.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
+                {departments.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Select value={status} onValueChange={(v) => { setStatus(v as EmploymentStatus | 'all'); resetToFirstPage(); }}>
-              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Status" /></SelectTrigger>
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v as EmploymentStatus | 'all');
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
@@ -181,15 +294,35 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
                 <SelectItem value="terminated">Terminated</SelectItem>
               </SelectContent>
             </Select>
-            <Select value={location} onValueChange={(v) => { setLocation(v as typeof location); resetToFirstPage(); }}>
-              <SelectTrigger className="w-[160px]"><SelectValue placeholder="Location" /></SelectTrigger>
+            <Select
+              value={location}
+              onValueChange={(v) => {
+                setLocation(v as typeof location);
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Locations</SelectItem>
-                {locations.map((d) => (<SelectItem key={d} value={d}>{d}</SelectItem>))}
+                {locations.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
-            <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(Number(v)); resetToFirstPage(); }}>
-              <SelectTrigger className="w-[110px]"><SelectValue placeholder="Rows" /></SelectTrigger>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(v) => {
+                setPageSize(Number(v));
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Rows" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="10">10 / page</SelectItem>
                 <SelectItem value="20">20 / page</SelectItem>
@@ -199,7 +332,9 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
           </div>
         </div>
         <div className="text-xs text-muted-foreground">
-          Showing {filteredItems.length === 0 ? 0 : startIndex + 1}‑{Math.min(startIndex + pageSize, filteredItems.length)} of {filteredItems.length}
+          Showing {filteredItems.length === 0 ? 0 : startIndex + 1}‑
+          {Math.min(startIndex + pageSize, filteredItems.length)} of{' '}
+          {filteredItems.length}
         </div>
       </div>
       <Table>
@@ -218,31 +353,44 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
         <TableBody>
           {pagedItems.length === 0 ? (
             <TableRow>
-              <TableCell colSpan={8} className="h-24 text-center">No employees found.</TableCell>
+              <TableCell colSpan={8} className="h-24 text-center">
+                No employees found.
+              </TableCell>
             </TableRow>
           ) : (
             pagedItems.map((it) => (
               <TableRow key={it.id}>
                 <TableCell>
                   <div className="flex items-center gap-3">
-                    <Avatar><AvatarFallback>{initials(it.fullName)}</AvatarFallback></Avatar>
+                    <Avatar>
+                      <AvatarFallback>{initials(it.fullName)}</AvatarFallback>
+                    </Avatar>
                     <div className="flex min-w-0 flex-col">
                       {it.contactEmail ? (
-                        <a href={`mailto:${it.contactEmail}`} className="hover:underline truncate">
+                        <a
+                          href={`mailto:${it.contactEmail}`}
+                          className="truncate hover:underline"
+                        >
                           {it.fullName}
                           <IconExternalLink className="ml-1 inline size-3 align-[-2px]" />
                         </a>
                       ) : (
-                        <span className="font-medium truncate">{it.fullName}</span>
+                        <span className="truncate font-medium">
+                          {it.fullName}
+                        </span>
                       )}
-                      <span className="text-muted-foreground text-xs">{it.id}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {it.id}
+                      </span>
                     </div>
                   </div>
                 </TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     <span className="font-medium">{it.jobTitle}</span>
-                    <span className="text-muted-foreground text-xs">{it.department}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {it.department}
+                    </span>
                   </div>
                 </TableCell>
                 <TableCell>{it.location}</TableCell>
@@ -252,7 +400,11 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
                 <TableCell>
                   <div className="flex flex-col">
                     {it.contactEmail ? <span>{it.contactEmail}</span> : null}
-                    {it.contactPhone ? <span className="text-muted-foreground text-xs">{it.contactPhone}</span> : null}
+                    {it.contactPhone ? (
+                      <span className="text-xs text-muted-foreground">
+                        {it.contactPhone}
+                      </span>
+                    ) : null}
                   </div>
                 </TableCell>
                 <TableCell>
@@ -265,9 +417,15 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent align="end">
-                        <DropdownMenuItem onClick={() => onView?.(it)}>View</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onEdit?.(it)}>Edit</DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => onTerminate?.(it)}>Terminate</DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onView?.(it)}>
+                          View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit?.(it)}>
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onTerminate?.(it)}>
+                          Terminate
+                        </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </div>
@@ -278,10 +436,26 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
         </TableBody>
       </Table>
       <div className="flex items-center justify-between gap-2 border-t p-3 text-sm">
-        <div className="text-muted-foreground">Page {safePage} of {totalPages}</div>
+        <div className="text-muted-foreground">
+          Page {safePage} of {totalPages}
+        </div>
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.max(1, p - 1))} disabled={safePage <= 1}>Previous</Button>
-          <Button variant="outline" size="sm" onClick={() => setPage((p) => Math.min(totalPages, p + 1))} disabled={safePage >= totalPages}>Next</Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+          >
+            Next
+          </Button>
         </div>
       </div>
     </div>
@@ -289,5 +463,3 @@ export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
 }
 
 export default EmployeeTable;
-
-

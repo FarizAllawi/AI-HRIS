@@ -1,4 +1,3 @@
-import React from 'react';
 import AppliedJobCard, { AppliedJobInfo } from './AppliedJobCard';
 
 const dummyJobs: AppliedJobInfo[] = [
@@ -18,10 +17,14 @@ const dummyJobs: AppliedJobInfo[] = [
   },
 ];
 
-export default function AppliedJobList({ jobs = dummyJobs }: { jobs?: AppliedJobInfo[] }) {
+export default function AppliedJobList({
+  jobs = dummyJobs,
+}: {
+  jobs?: AppliedJobInfo[];
+}) {
   return (
     <div className="mb-4">
-      <div className="font-bold text-lg mb-2">Applied Jobs</div>
+      <div className="mb-2 text-lg font-bold">Applied Jobs</div>
       <div className="space-y-2">
         {jobs.map((job, idx) => (
           <AppliedJobCard key={idx} job={job} />

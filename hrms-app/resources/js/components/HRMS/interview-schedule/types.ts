@@ -50,5 +50,3 @@ export interface InterviewScheduleTableProps {
   onMarkCompleted?: (item: InterviewScheduleItem) => void;
   onReinitiate?: (item: InterviewScheduleItem) => void;
 }
-
-

@@ -1,5 +1,10 @@
 import { Badge } from '@/components/ui/badge';
-import type { InterviewStatus, CandidateResponse, ApplicationStatus, InterviewType } from './types';
+import type {
+  ApplicationStatus,
+  CandidateResponse,
+  InterviewStatus,
+  InterviewType,
+} from './types';
 
 export function formatDate(dateIso?: string) {
   if (!dateIso) return '–';
@@ -16,7 +21,13 @@ export function formatDateTime(dateIso?: string) {
 }
 
 export function getInterviewStatusBadge(status: InterviewStatus) {
-  const map: Record<InterviewStatus, { label: string; variant?: 'default' | 'secondary' | 'destructive' | 'outline' }> = {
+  const map: Record<
+    InterviewStatus,
+    {
+      label: string;
+      variant?: 'default' | 'secondary' | 'destructive' | 'outline';
+    }
+  > = {
     invited: { label: 'Invited', variant: 'default' },
     scheduled: { label: 'Scheduled', variant: 'default' },
     completed: { label: 'Completed', variant: 'outline' },
@@ -62,5 +73,3 @@ export function getInterviewTypeLabel(t?: InterviewType) {
   };
   return map[t];
 }
-
-

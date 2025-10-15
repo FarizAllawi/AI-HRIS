@@ -1,5 +1,5 @@
-import { IconClock } from '@tabler/icons-react';
 import { Badge } from '@/components/ui/badge';
+import { IconClock } from '@tabler/icons-react';
 import type { InterviewStatus, InterviewType } from './types';
 
 export function formatDateTime(dateString?: string | null) {
@@ -19,7 +19,8 @@ export function formatDateTime(dateString?: string | null) {
 }
 
 export function formatDateTimeLong(dateString?: string | null) {
-  if (!dateString) return 'Date/time not set yet. Awaiting scheduling or proposal.';
+  if (!dateString)
+    return 'Date/time not set yet. Awaiting scheduling or proposal.';
   const date = new Date(dateString);
   try {
     return date.toLocaleString(undefined, {
@@ -54,25 +55,53 @@ export function getTypeTooltip(type?: InterviewType) {
 export function getStatusBadge(status: InterviewStatus) {
   switch (status) {
     case 'invited':
-      return <Badge className="bg-yellow-100 text-yellow-800 border-yellow-200">Invited</Badge>;
+      return (
+        <Badge className="border-yellow-200 bg-yellow-100 text-yellow-800">
+          Invited
+        </Badge>
+      );
     case 'candidate_proposed':
-      return <Badge className="bg-orange-100 text-orange-800 border-orange-200">Candidate Proposed</Badge>;
+      return (
+        <Badge className="border-orange-200 bg-orange-100 text-orange-800">
+          Candidate Proposed
+        </Badge>
+      );
     case 'scheduled':
-      return <Badge className="bg-blue-100 text-blue-800 border-blue-200">Scheduled</Badge>;
+      return (
+        <Badge className="border-blue-200 bg-blue-100 text-blue-800">
+          Scheduled
+        </Badge>
+      );
     case 'today':
       return (
-        <Badge className="bg-violet-100 text-violet-800 border-violet-200">
+        <Badge className="border-violet-200 bg-violet-100 text-violet-800">
           <IconClock className="mr-1 inline size-3" /> Today
         </Badge>
       );
     case 'completed':
-      return <Badge className="bg-green-100 text-green-800 border-green-200">Completed</Badge>;
+      return (
+        <Badge className="border-green-200 bg-green-100 text-green-800">
+          Completed
+        </Badge>
+      );
     case 'no_show':
-      return <Badge className="bg-red-100 text-red-800 border-red-200">No Show</Badge>;
+      return (
+        <Badge className="border-red-200 bg-red-100 text-red-800">
+          No Show
+        </Badge>
+      );
     case 'cancelled':
-      return <Badge className="bg-gray-100 text-gray-800 border-gray-200">Cancelled</Badge>;
+      return (
+        <Badge className="border-gray-200 bg-gray-100 text-gray-800">
+          Cancelled
+        </Badge>
+      );
     case 'reschedule_requested':
-      return <Badge className="bg-orange-100 text-orange-800 border-orange-200">Reschedule Requested</Badge>;
+      return (
+        <Badge className="border-orange-200 bg-orange-100 text-orange-800">
+          Reschedule Requested
+        </Badge>
+      );
     default:
       return <Badge variant="outline">{status}</Badge>;
   }
@@ -100,5 +129,3 @@ export function getStatusTooltip(status: InterviewStatus) {
       return String(status);
   }
 }
-
-

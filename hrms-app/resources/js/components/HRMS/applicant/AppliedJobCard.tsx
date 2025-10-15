@@ -1,6 +1,11 @@
-import React from 'react';
-import { BriefcaseIcon, BuildingIcon, MapPinIcon, CalendarIcon, BarcodeIcon } from 'lucide-react';
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  BarcodeIcon,
+  BriefcaseIcon,
+  BuildingIcon,
+  CalendarIcon,
+  MapPinIcon,
+} from 'lucide-react';
 
 export type AppliedJobInfo = {
   title: string;
@@ -18,7 +23,11 @@ const dummyJob: AppliedJobInfo = {
   code: 'FD-2025',
 };
 
-export default function AppliedJobCard({ job = dummyJob }: { job?: AppliedJobInfo }) {
+export default function AppliedJobCard({
+  job = dummyJob,
+}: {
+  job?: AppliedJobInfo;
+}) {
   return (
     <Card className="mb-3">
       <CardHeader className="flex flex-row items-center gap-2 pb-2">
@@ -40,7 +49,9 @@ export default function AppliedJobCard({ job = dummyJob }: { job?: AppliedJobInf
         </div>
         <div className="flex items-center gap-1">
           <CalendarIcon size={14} className="text-muted-foreground" />
-          <span className="text-muted-foreground">{new Date(job.dateApplied).toLocaleDateString()}</span>
+          <span className="text-muted-foreground">
+            {new Date(job.dateApplied).toLocaleDateString()}
+          </span>
         </div>
       </CardContent>
     </Card>

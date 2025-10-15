@@ -55,5 +55,3 @@ export const applicantMock: ApplicantRecord[] = [
     referralSource: 'Website',
   },
 ];
-
-

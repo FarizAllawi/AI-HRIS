@@ -1,20 +1,22 @@
-import { IconExternalLink } from '@tabler/icons-react';
-import { useMemo, useState } from 'react';
-import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { ActionsSheet } from '@/components/HRMS/interview-schedule/actions-sheet';
-import { InterviewersCell, FeedbackCell } from '@/components/HRMS/interview-schedule/cells';
-import { formatDateTime, formatDateTimeLong, getStatusBadge, getStatusTooltip, getTypeTooltip } from '@/components/HRMS/interview-schedule/utils';
-import type { InterviewScheduleTableProps, InterviewStatus, InterviewType } from '@/components/HRMS/interview-schedule/types';
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
+  FeedbackCell,
+  InterviewersCell,
+} from '@/components/HRMS/interview-schedule/cells';
+import type {
+  InterviewScheduleTableProps,
+  InterviewStatus,
+  InterviewType,
+} from '@/components/HRMS/interview-schedule/types';
+import {
+  formatDateTime,
+  formatDateTimeLong,
+  getStatusBadge,
+  getStatusTooltip,
+  getTypeTooltip,
+} from '@/components/HRMS/interview-schedule/utils';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
   Select,
@@ -23,10 +25,30 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { IconExternalLink } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
 
-export function InterviewScheduleDataTable({ items, ...handlers }: InterviewScheduleTableProps) {
+export function InterviewScheduleDataTable({
+  items,
+  ...handlers
+}: InterviewScheduleTableProps) {
   const [query, setQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<InterviewStatus | 'all'>('all');
+  const [statusFilter, setStatusFilter] = useState<InterviewStatus | 'all'>(
+    'all',
+  );
   const [typeFilter, setTypeFilter] = useState<InterviewType | 'all'>('all');
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -39,8 +61,12 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
         it.candidateName.toLowerCase().includes(q) ||
         it.positionTitle.toLowerCase().includes(q) ||
         (it.positionCode?.toLowerCase().includes(q) ?? false);
-      const matchStatus = statusFilter === 'all' ? true : it.status === statusFilter;
-      const matchType = typeFilter === 'all' ? true : (it.interviewType ?? 'tbd') === typeFilter;
+      const matchStatus =
+        statusFilter === 'all' ? true : it.status === statusFilter;
+      const matchType =
+        typeFilter === 'all'
+          ? true
+          : (it.interviewType ?? 'tbd') === typeFilter;
       return matchQuery && matchStatus && matchType;
     });
   }, [items, query, statusFilter, typeFilter]);
@@ -74,17 +100,23 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 resetToFirstPage();
               }}
             >
-              <SelectTrigger className="w-[180px]"><SelectValue placeholder="Status" /></SelectTrigger>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="invited">Invited</SelectItem>
-                <SelectItem value="candidate_proposed">Candidate Proposed</SelectItem>
+                <SelectItem value="candidate_proposed">
+                  Candidate Proposed
+                </SelectItem>
                 <SelectItem value="scheduled">Scheduled</SelectItem>
                 <SelectItem value="today">Today</SelectItem>
                 <SelectItem value="completed">Completed</SelectItem>
                 <SelectItem value="no_show">No Show</SelectItem>
                 <SelectItem value="cancelled">Cancelled</SelectItem>
-                <SelectItem value="reschedule_requested">Reschedule Requested</SelectItem>
+                <SelectItem value="reschedule_requested">
+                  Reschedule Requested
+                </SelectItem>
               </SelectContent>
             </Select>
             <Select
@@ -94,7 +126,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 resetToFirstPage();
               }}
             >
-              <SelectTrigger className="w-[150px]"><SelectValue placeholder="Type" /></SelectTrigger>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="phone">Phone</SelectItem>
@@ -110,7 +144,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 resetToFirstPage();
               }}
             >
-              <SelectTrigger className="w-[110px]"><SelectValue placeholder="Rows" /></SelectTrigger>
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Rows" />
+              </SelectTrigger>
               <SelectContent>
                 <SelectItem value="5">5 / page</SelectItem>
                 <SelectItem value="10">10 / page</SelectItem>
@@ -121,7 +157,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
           </div>
         </div>
         <div className="text-xs text-muted-foreground">
-          Showing {filteredItems.length === 0 ? 0 : startIndex + 1}‑{Math.min(startIndex + pageSize, filteredItems.length)} of {filteredItems.length}
+          Showing {filteredItems.length === 0 ? 0 : startIndex + 1}‑
+          {Math.min(startIndex + pageSize, filteredItems.length)} of{' '}
+          {filteredItems.length}
         </div>
       </div>
       <Table>
@@ -132,7 +170,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 <TooltipTrigger asChild>
                   <span>Candidate</span>
                 </TooltipTrigger>
-                <TooltipContent>Applicant name — click to open profile.</TooltipContent>
+                <TooltipContent>
+                  Applicant name — click to open profile.
+                </TooltipContent>
               </Tooltip>
             </TableHead>
             <TableHead>
@@ -140,7 +180,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 <TooltipTrigger asChild>
                   <span>Position</span>
                 </TooltipTrigger>
-                <TooltipContent>Job title and optional job code.</TooltipContent>
+                <TooltipContent>
+                  Job title and optional job code.
+                </TooltipContent>
               </Tooltip>
             </TableHead>
             <TableHead className="w-[180px]">
@@ -148,7 +190,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 <TooltipTrigger asChild>
                   <span>Date & Time</span>
                 </TooltipTrigger>
-                <TooltipContent>Scheduled interview time in your local timezone.</TooltipContent>
+                <TooltipContent>
+                  Scheduled interview time in your local timezone.
+                </TooltipContent>
               </Tooltip>
             </TableHead>
             <TableHead className="w-[100px]">
@@ -156,7 +200,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 <TooltipTrigger asChild>
                   <span>Type</span>
                 </TooltipTrigger>
-                <TooltipContent>Phone, Video, In‑person, or TBD.</TooltipContent>
+                <TooltipContent>
+                  Phone, Video, In‑person, or TBD.
+                </TooltipContent>
               </Tooltip>
             </TableHead>
             <TableHead>
@@ -172,7 +218,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 <TooltipTrigger asChild>
                   <span>Status</span>
                 </TooltipTrigger>
-                <TooltipContent>Current interview stage (color‑coded).</TooltipContent>
+                <TooltipContent>
+                  Current interview stage (color‑coded).
+                </TooltipContent>
               </Tooltip>
             </TableHead>
             <TableHead className="w-[120px]">
@@ -188,7 +236,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 <TooltipTrigger asChild>
                   <span>Actions</span>
                 </TooltipTrigger>
-                <TooltipContent>Contextual actions based on status.</TooltipContent>
+                <TooltipContent>
+                  Contextual actions based on status.
+                </TooltipContent>
               </Tooltip>
             </TableHead>
           </TableRow>
@@ -206,9 +256,16 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                 <TableCell>
                   <div className="flex items-center gap-3">
                     <Avatar>
-                      <AvatarImage src={item.candidateAvatarUrl ?? undefined} alt={item.candidateName} />
+                      <AvatarImage
+                        src={item.candidateAvatarUrl ?? undefined}
+                        alt={item.candidateName}
+                      />
                       <AvatarFallback>
-                        {item.candidateName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+                        {item.candidateName
+                          .split(' ')
+                          .map((n) => n[0])
+                          .join('')
+                          .slice(0, 2)}
                       </AvatarFallback>
                     </Avatar>
                     {item.candidateProfileUrl ? (
@@ -230,7 +287,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                   <div className="flex flex-col">
                     <span className="font-medium">{item.positionTitle}</span>
                     {item.positionCode ? (
-                      <span className="text-muted-foreground text-xs">{item.positionCode}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {item.positionCode}
+                      </span>
                     ) : null}
                   </div>
                 </TableCell>
@@ -239,15 +298,23 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                     <TooltipTrigger asChild>
                       <span>{formatDateTime(item.interviewDateTime)}</span>
                     </TooltipTrigger>
-                    <TooltipContent>{formatDateTimeLong(item.interviewDateTime)}</TooltipContent>
+                    <TooltipContent>
+                      {formatDateTimeLong(item.interviewDateTime)}
+                    </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell className="capitalize">
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span>{item.interviewType ? item.interviewType.replace('_', ' ') : '–'}</span>
+                      <span>
+                        {item.interviewType
+                          ? item.interviewType.replace('_', ' ')
+                          : '–'}
+                      </span>
                     </TooltipTrigger>
-                    <TooltipContent>{getTypeTooltip(item.interviewType)}</TooltipContent>
+                    <TooltipContent>
+                      {getTypeTooltip(item.interviewType)}
+                    </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell>
@@ -258,7 +325,9 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                     <TooltipTrigger asChild>
                       <span>{getStatusBadge(item.status)}</span>
                     </TooltipTrigger>
-                    <TooltipContent>{getStatusTooltip(item.status)}</TooltipContent>
+                    <TooltipContent>
+                      {getStatusTooltip(item.status)}
+                    </TooltipContent>
                   </Tooltip>
                 </TableCell>
                 <TableCell>
@@ -270,15 +339,23 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
                       item={item}
                       handlers={handlers}
                       title={
-                        item.status === 'invited' ? 'Actions — Invited' :
-                        item.status === 'candidate_proposed' ? 'Actions — Candidate Proposed' :
-                        item.status === 'scheduled' ? 'Actions — Scheduled' :
-                        item.status === 'today' ? 'Actions — Today' :
-                        item.status === 'completed' ? 'Actions — Completed' :
-                        item.status === 'no_show' ? 'Actions — No Show' :
-                        item.status === 'cancelled' ? 'Actions — Cancelled' :
-                        item.status === 'reschedule_requested' ? 'Actions — Reschedule Requested' :
-                        'Actions'
+                        item.status === 'invited'
+                          ? 'Actions — Invited'
+                          : item.status === 'candidate_proposed'
+                            ? 'Actions — Candidate Proposed'
+                            : item.status === 'scheduled'
+                              ? 'Actions — Scheduled'
+                              : item.status === 'today'
+                                ? 'Actions — Today'
+                                : item.status === 'completed'
+                                  ? 'Actions — Completed'
+                                  : item.status === 'no_show'
+                                    ? 'Actions — No Show'
+                                    : item.status === 'cancelled'
+                                      ? 'Actions — Cancelled'
+                                      : item.status === 'reschedule_requested'
+                                        ? 'Actions — Reschedule Requested'
+                                        : 'Actions'
                       }
                     />
                   </div>
@@ -316,5 +393,3 @@ export function InterviewScheduleDataTable({ items, ...handlers }: InterviewSche
 }
 
 export default InterviewScheduleDataTable;
-
-

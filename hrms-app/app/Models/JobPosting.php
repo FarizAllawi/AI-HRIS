@@ -24,6 +24,12 @@ class JobPosting extends Model
         'status',
     ];
 
+    protected $casts = [
+        'requirements' => 'array',      // <-- cast JSON to array
+        'responsibilities' => 'array',   // <-- cast JSON to array
+        'benefits' => 'array',          // <-- cast JSON to array
+    ];
+
     public function questions()
     {
         return $this->hasMany(JobPostingQuestion::class);

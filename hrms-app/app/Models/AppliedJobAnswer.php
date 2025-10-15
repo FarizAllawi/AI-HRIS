@@ -14,6 +14,7 @@ class AppliedJobAnswer extends Model
     protected $fillable = [
         'job_posting_question_id',
         'applied_job_id',
+        'answer',
         'ai_score',
         'hr_score',
     ];
