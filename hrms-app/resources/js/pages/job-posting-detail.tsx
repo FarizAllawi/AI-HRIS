@@ -127,6 +127,9 @@ export default function JobPostingDetail() {
     });
   };
 
+  const formatJobType = (t: string) =>
+    t ? t.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : t;
+
   console.log("Job Posting: ", jobPosting);
 
   return (
@@ -178,9 +181,7 @@ export default function JobPostingDetail() {
               {/* Auth Links */}
               <div className="flex items-center space-x-4">
                 {auth.user ? (
-                  <Button asChild>
-                    <Link href={dashboard()}>Dashboard</Link>
-                  </Button>
+                      <Link href={dashboard()} className='rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700'>Dashboard</Link>
                 ) : (
                   <div className="flex items-center space-x-2">
                     <Button variant="ghost" asChild>
@@ -309,8 +310,11 @@ export default function JobPostingDetail() {
                         <CardTitle className="text-3xl">
                           {jobPosting.title}
                         </CardTitle>
-                        <Badge variant="secondary" className="text-sm">
-                          {jobPosting.type}
+                        <Badge
+                          variant="secondary"
+                          className="text-sm bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 border-0"
+                        >
+                          {formatJobType(jobPosting.type)}
                         </Badge>
                       </div>
 
@@ -455,8 +459,8 @@ export default function JobPostingDetail() {
                           </Button>
                           <Button
                             size="icon"
-                            variant="outline"
-                            className="flex-1 border-gray-300/60 dark:border-gray-700/60 text-gray-700 dark:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-800/50"
+                            variant="secondary"
+                            className="flex-1 bg-white/90 text-blue-700 hover:bg-white"
                           >
                             LinkedIn
                           </Button>

@@ -100,6 +100,9 @@ export default function JobPosting() {
     });
   };
 
+  const formatJobType = (t: string) =>
+    t ? t.replace(/[-_]/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase()) : t;
+
   const clearFilters = () => {
     setSelectedType('');
     setSelectedLocation('');
@@ -155,17 +158,16 @@ export default function JobPosting() {
               {/* Auth Links */}
               <div className="flex items-center space-x-4">
                 {auth.user ? (
-                  <Button asChild>
-                    <Link href={dashboard()}>Dashboard</Link>
-                  </Button>
+                    <Link href={dashboard()} className='rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700'>Dashboard</Link>
                 ) : (
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" asChild>
-                      <Link href={login()}>Sign In</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href={register()}>Apply Now</Link>
-                    </Button>
+                  <div className="flex items-center space-x-4">
+                   <Link
+                      href={login()}
+                      className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
+                    >
+                      Sign In
+                    </Link>
+                      <Link href={register()} className='rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700'>Apply Now</Link>
                   </div>
                 )}
               </div>
@@ -241,7 +243,7 @@ export default function JobPosting() {
                           <SelectItem value="all">All Types</SelectItem>
                           {uniqueTypes.map((type) => (
                             <SelectItem key={type} value={type}>
-                              {type}
+                              {formatJobType(type)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -274,7 +276,7 @@ export default function JobPosting() {
                     {/* Clear Filters */}
                     <Button
                       variant="outline"
-                      className="w-full border-gray-300/60 dark:border-gray-700/60 text-gray-700 dark:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-800/50"
+                      className="cursor-pointer w-full border-gray-300/60 dark:border-white text-gray-700 dark:text-gray-800 dark:bg-white dark:hover:bg-gray-300/100 hover:bg-gray-300/10"
                       onClick={clearFilters}
                     >
                       Clear All Filters
@@ -306,7 +308,12 @@ export default function JobPosting() {
                                 <CardTitle className="text-xl">
                                   {job.title}
                                 </CardTitle>
-                                <Badge variant="secondary">{job.type}</Badge>
+                                <Badge
+                                  variant="secondary"
+                                  className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 border-0"
+                                >
+                                  {formatJobType(job.type)}
+                                </Badge>
                               </div>
                               <CardDescription className="line-clamp-2">
                                 {job.description}
@@ -365,7 +372,8 @@ export default function JobPosting() {
                               View Details
                             </Link>
                           </Button>
-                          <Button variant="outline" className="flex-1 border-gray-300/60 dark:border-gray-700/60 text-gray-700 dark:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-800/50">
+                          <Button variant="outline" className="flex-1
+                           cursor-pointer border-gray-300/60 dark:border-white text-gray-700 dark:text-gray-800 dark:bg-white dark:hover:bg-gray-300/100 hover:bg-gray-300/10">
                             Save Job
                           </Button>
                         </CardFooter>
