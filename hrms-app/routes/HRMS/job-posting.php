@@ -7,7 +7,7 @@ use App\Http\Controllers\HRMS\JobPostingController;
 
 
 Route::prefix('HRMS')->group(function () {
-     Route::middleware(['auth', 'verified'])->group(function () { // Uncomment this line to enable middleware
+     Route::middleware(['auth', 'verified', 'role:hrms-user'])->group(function () { // Uncomment this line to enable middleware
 
         Route::get('job-posting/create', [JobPostingController::class, 'create'])->name('job-posting.create');
         Route::post('job-posting', [JobPostingController::class, 'store'])->name('job-posting.store');
@@ -24,3 +24,4 @@ Route::prefix('HRMS')->group(function () {
          Route::get('job-posting/{jobPosting}', [JobPostingController::class, 'show'])->name('job-posting.show');
      });
 });
+

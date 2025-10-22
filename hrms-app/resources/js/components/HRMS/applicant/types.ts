@@ -42,6 +42,20 @@ export interface ApplicantRecord {
   feedbackStatus?: 'pending' | 'submitted' | 'n/a';
   resumeScore?: number; // 0-100
   referralSource?: string;
+  appliedJobsWithAnswers?: Array<{
+    job: {
+      title: string;
+      department: string;
+      dateApplied: string;
+      location: string;
+      code: string;
+    };
+    answers: Array<{
+      question: string;
+      answer: string;
+      score: number;
+    }>;
+  }>;
 }
 
 export interface ApplicantTableHandlers {

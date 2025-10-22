@@ -95,9 +95,11 @@ export default function ApplicantCard({ applicant }: Props) {
                 <span>📅</span>
                 <span>
                   Applied{' '}
-                  {applicant.daysAgo === 0
-                    ? 'today'
-                    : `${applicant.daysAgo} days ago`}
+                  {(() => {
+                    const days = Math.floor(Number(applicant.daysAgo ?? 0));
+                    if (days <= 0) return 'today';
+                    return `${days} day${days > 1 ? 's' : ''} ago`;
+                  })()}
                 </span>
               </span>
             </div>
@@ -170,7 +172,7 @@ export default function ApplicantCard({ applicant }: Props) {
               className="bg-gradient-to-r from-slate-600 to-gray-600 shadow-md transition-all hover:from-slate-700 hover:to-gray-700 hover:shadow-lg"
               asChild
             >
-              <a href={applicant.profileUrl}>👤 View Profile</a>
+              <a href={`/HRMS/applicant/${applicant.applicantId}`}>👤 View Profile</a>
             </Button>
           </div>
         </div>

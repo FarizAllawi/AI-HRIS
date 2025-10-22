@@ -17,6 +17,9 @@ class AppliedJobAnswer extends Model
         'answer',
         'ai_score',
         'hr_score',
+        'status',
+        'last_error',
+        'ai_screened_at',
     ];
 
     public function jobPostingQuestion()

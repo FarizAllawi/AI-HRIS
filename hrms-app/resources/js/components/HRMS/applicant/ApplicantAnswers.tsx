@@ -1,42 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import AnswerItem, { AnswerItemProps } from './AnswerItem';
 
-const dummyAnswers: AnswerItemProps[] = [
-  {
-    question: 'Describe your experience with React.',
-    answer:
-      'I have 3 years of experience building SPAs with React and TypeScript.',
-    score: 85,
-  },
-  {
-    question: 'How do you handle tight deadlines?',
-    answer: 'I prioritize tasks and communicate proactively with my team.',
-    score: 78,
-  },
-  {
-    question: 'What motivates you in a remote work environment?',
-    answer: 'Autonomy and the ability to focus without distractions.',
-    score: 65,
-  },
-  {
-    question: 'Are you comfortable with code reviews?',
-    answer:
-      'Yes, I believe code reviews improve code quality and team learning.',
-    score: 92,
-  },
-];
-
 function getOverallScore(answers: AnswerItemProps[]): number {
-  if (!answers.length) return 0;
+  if (!answers || answers.length === 0) return 0;
   const total = answers.reduce((sum, a) => sum + a.score, 0);
   return Math.round(total / answers.length);
 }
 
-export default function ApplicantAnswers({
-  answers = dummyAnswers,
-}: {
-  answers?: AnswerItemProps[];
-}) {
+export default function ApplicantAnswers({ answers }: { answers: AnswerItemProps[] }) {
+  if (!answers || answers.length === 0) return null;
   const overallScore = getOverallScore(answers);
   return (
     <Card className="mb-2">

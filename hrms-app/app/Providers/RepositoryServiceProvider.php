@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+
 use Illuminate\support\ServiceProvider;
 use App\Repositories\JobPosting\{
    JobPostingRepository,
@@ -23,6 +24,16 @@ use App\Repositories\Employee\{
    EmployeeRepositoryInterface,
 };
 
+use App\Repositories\ApplyJob\{
+   ApplyJobRepository,
+   ApplyJobRepositoryInterface,
+};
+
+use App\Repositories\Media\{
+    MediaRepository,
+    MediaRepositoryInterface,
+};
+
 
 class RepositoryServiceProvider extends ServiceProvider
 {
@@ -37,5 +48,7 @@ class RepositoryServiceProvider extends ServiceProvider
         $this->app->bind(JobPostingQuestionsRepositoryInterface::class, JobPostingQuestionsRepository::class);
         $this->app->bind(EmployeeRepositoryInterface::class, EmployeeRepository::class);
         $this->app->bind(ApplicantRepositoryInterface::class, ApplicantRepository::class);
+        $this->app->bind(ApplyJobRepositoryInterface::class, ApplyJobRepository::class);
+        $this->app->bind(MediaRepositoryInterface::class, MediaRepository::class);
     }
 }

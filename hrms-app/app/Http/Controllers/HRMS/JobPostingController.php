@@ -4,9 +4,9 @@ namespace App\Http\Controllers\HRMS;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\HRMS\JobPostingRequest;
-use App\Http\Resources\FormJobPostingResource;
-use App\Http\Resources\JobPostingResource;
-use App\Http\Resources\JobPostingDetailResource;
+use App\Http\Resources\HRMS\FormJobPostingResource;
+use App\Http\Resources\HRMS\JobPostingResource;
+use App\Http\Resources\HRMS\JobPostingDetailResource;
 use App\Models\JobPosting;
 use App\Repositories\JobPosting\JobPostingRepositoryInterface;
 use App\Repositories\JobPostingQuestions\JobPostingQuestionsRepositoryInterface;

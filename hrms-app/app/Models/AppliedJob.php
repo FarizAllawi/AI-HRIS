@@ -28,7 +28,7 @@ class AppliedJob extends Model
         return $this->belongsTo(Applicant::class);
     }
 
-    public function answers()
+    public function jobPostingAnswers()
     {
         return $this->hasMany(AppliedJobAnswer::class);
     }

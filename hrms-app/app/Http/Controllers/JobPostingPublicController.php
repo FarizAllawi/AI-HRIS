@@ -2,175 +2,128 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Resources\ApplicantResource;
+use App\Http\Resources\UserResource;
+use App\Models\User;
 use App\Models\Applicant;
 use App\Models\AppliedJob;
-use App\Models\AppliedJobAnswer;
 use App\Models\JobPosting;
 use App\Repositories\JobPosting\JobPostingRepositoryInterface;
+use App\Repositories\ApplyJob\ApplyJobRepositoryInterface;
+use App\Repositories\Applicant\ApplicantRepositoryInterface;
 use Illuminate\Http\Request;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Redirect;
 use Inertia\Inertia;
 use Inertia\Response;
+use App\Http\Requests\ApplyJobRequest;
+use App\Http\Requests\JobPostingIndexRequest;
+use App\Http\Requests\UpdateMyProfileRequest;
+use App\Http\Resources\JobPostingResource;
+use App\Http\Resources\JobPostingPublicDetailResource;
+use App\Http\Resources\AppliedJobResource;
 
 class JobPostingPublicController extends Controller
 {
-    protected JobPostingRepositoryInterface $jobPostingRepository;
-
-    public function __construct(JobPostingRepositoryInterface $jobPostingRepository)
-    {
-        $this->jobPostingRepository = $jobPostingRepository;
-    }
+    public function __construct(
+        protected JobPostingRepositoryInterface $jobPostingRepository,
+        protected ApplyJobRepositoryInterface $applyJobRepository,
+        protected ApplicantRepositoryInterface $applicantRepository,
+    ) {}
 
     /**
      * Display a listing of published job postings.
      */
-    public function index(Request $request): Response
+    public function index(JobPostingIndexRequest $request): Response
     {
-        $filters = [
-            'status' => 'published',
-            'title' => $request->get('search'),
-        ];
-
-        $jobPostings = $this->jobPostingRepository->all($filters);
-
-        // Format job postings for the frontend
-        $formattedJobPostings = $jobPostings->map(function ($jobPosting) {
-            return [
-                'id' => $jobPosting->id,
-                'title' => $jobPosting->title,
-                'description' => $jobPosting->description,
-                'location' => $jobPosting->location,
-                'departments' => $jobPosting->departments,
-                'type' => $jobPosting->type,
-                'salary' => $jobPosting->salary,
-                'benefits' => $jobPosting->benefits,
-                'requirements' => $jobPosting->requirements,
-                'responsibilities' => $jobPosting->responsibilities,
-                'created_at' => $jobPosting->created_at,
-                'updated_at' => $jobPosting->updated_at,
-            ];
-        });
+        $jobPostings = $this->jobPostingRepository->all($request->filters());
 
         return Inertia::render('job-posting', [
-            'jobPostings' => $formattedJobPostings,
-            'filters' => $filters,
+            'jobPostings' => JobPostingResource::collection($jobPostings),
+            'filters' => $request->filters(),
         ]);
     }
 
     /**
-     * Display the specified job posting with questions.
+     * Display the specified job posting
      */
     public function show(JobPosting $jobPosting): Response
     {
-        $jobPosting = $jobPosting->with('questions')
-            ->where('status', 'published')->first();
-
-        $formattedJobPosting = [
-            'id' => $jobPosting->id,
-            'title' => $jobPosting->title,
-            'description' => $jobPosting->description,
-            'location' => $jobPosting->location,
-            'departments' => $jobPosting->departments,
-            'type' => $jobPosting->type,
-            'salary' => $jobPosting->salary,
-            'benefits' => $jobPosting->benefits,
-            'requirements' => $jobPosting->requirements,
-            'responsibilities' => $jobPosting->responsibilities,
-            'created_at' => $jobPosting->created_at,
-            'updated_at' => $jobPosting->updated_at,
-            'questions' => $jobPosting->questions->map(function ($question) {
-                return [
-                    'id' => $question->id,
-                    'question' => $question->question,
-                    'description' => $question->description,
-                    'weight' => $question->weight,
-                ];
-            }),
-        ];
-
+        $jobPosting = $jobPosting->where('status', 'published')->first();
         return Inertia::render('job-posting-detail', [
-            'jobPosting' => $formattedJobPosting,
+            'jobPosting' => new JobPostingPublicDetailResource($jobPosting),
+        ]);
+    }
+
+    /**
+     * Display the specified job posting questions
+     */
+    public function apply(JobPosting $jobPosting): Response
+    {
+        $user = Auth::user()->load('applicant.resume',);
+        $jobPosting = $jobPosting->with('questions')
+            ->where('status', 'published')
+            ->firstOrFail();
+        return Inertia::render('job-posting-apply', [
+            'jobPosting' => new JobPostingPublicDetailResource($jobPosting),
+            'user' => new UserResource($user)
         ]);
     }
 
     /**
      * Submit an application for a job posting.
      */
-    public function apply(Request $request, string $id)
+    public function postApply(ApplyJobRequest $request, JobPosting $jobPosting)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'phone' => 'required|string|max:20',
-            'portfolio_link' => 'nullable|url',
-            'resume_file' => 'required|file|mimes:pdf,doc,docx|max:10240', // 10MB max
-            'answers' => 'nullable|array',
-            'answers.*' => 'nullable|string',
-        ]);
-
-        $jobPosting = JobPosting::with('questions')
+        $jobPosting = $jobPosting->with('questions')
             ->where('status', 'published')
-            ->findOrFail($id);
+            ->firstOrFail();
 
-        $user = Auth::user();
-        if (!$user) {
+        $user = Auth::user()->load('applicant');
+
+        if (!$user->applicant->id) {
             return redirect()->route('register');
         }
 
-        return DB::transaction(function () use ($request, $jobPosting, $user) {
-            // Create or update applicant profile
-            $applicant = Applicant::updateOrCreate(
-                ['user_id' => $user->id],
-                [
-                    'email' => $request->email,
-                    'phone' => $request->phone,
-                    'portfolio_link' => $request->portfolio_link,
-                    'resume_file' => $this->storeResumeFile($request->file('resume_file')),
-                ]
-            );
-
-            // Check if already applied
-            $existingApplication = AppliedJob::where([
-                'job_posting_id' => $jobPosting->id,
-                'applicant_id' => $applicant->id,
-            ])->first();
-
-            if ($existingApplication) {
-                return back()->withErrors(['application' => 'You have already applied for this position.']);
-            }
-
-            // Create application
-            $appliedJob = AppliedJob::create([
-                'job_posting_id' => $jobPosting->id,
-                'applicant_id' => $applicant->id,
-                'ai_screening_score' => null,
-                'hr_screening_score' => null,
-            ]);
-
-            // Save answers to job posting questions
-            if ($request->answers) {
-                foreach ($request->answers as $questionId => $answer) {
-                    if (!empty($answer)) {
-                        AppliedJobAnswer::create([
-                            'applied_job_id' => $appliedJob->id,
-                            'job_posting_question_id' => $questionId,
-                            'answer' => $answer,
-                        ]);
-                    }
-                }
-            }
-
-            return redirect()->back()->with('success', 'Your application has been submitted successfully!');
-        });
+        try {
+            $this->applyJobRepository->apply($jobPosting, $user, $request->validated());
+            return Redirect::route('job-posting-public.my-applications');
+        } catch (\Exception $e) {
+            return back()->withErrors(['application' => $e->getMessage()]);
+        }
     }
 
     /**
-     * Store the uploaded resume file.
+     * List applications of the authenticated applicant.
      */
-    private function storeResumeFile($file): string
+    public function myApplications(Request $request): Response
     {
-        $filename = time() . '_' . $file->getClientOriginalName();
-        return $file->storeAs('resumes', $filename, 'public');
+        $user = Auth::user();
+
+        $applicant = Applicant::with(['user', 'resume'])->where('user_id', $user->id)->first();
+
+        $applications = collect();
+        if ($applicant) {
+            $applications = AppliedJob::with('jobPosting')
+                ->where('applicant_id', $applicant->id)
+                ->orderByDesc('created_at')
+                ->get();
+        }
+
+        return Inertia::render('my-applications', [
+            'applications' => AppliedJobResource::collection($applications),
+            'applicant' => new ApplicantResource($applicant)
+        ]);
+    }
+
+    /**
+     * Update the authenticated applicant profile.
+     */
+    public function updateMyProfile(UpdateMyProfileRequest $request): RedirectResponse
+    {
+        $user = Auth::user();
+        $this->applicantRepository->updateProfile($user, $request->validated(), $request->file('resumeFile'));
+        return back()->with('success', 'Profile updated successfully.');
     }
 }

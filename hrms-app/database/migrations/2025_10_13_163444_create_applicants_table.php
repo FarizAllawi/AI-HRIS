@@ -14,14 +14,19 @@ return new class extends Migration
         Schema::create('applicants', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->foreignUuid('user_id')->constrained('users')->onDelete('cascade');
+
             $table->string('email');
             $table->string('phone')->nullable();
             $table->string('portfolio_link')->nullable();
             $table->string('resume_file')->nullable();
 
-            $table->timestamps(); // creates created_at & updated_at
-            $table->softDeletes(); // creates deleted_at
-        
+            // 👇 New columns
+            $table->date('date_of_birth')->nullable();
+            $table->text('social_media')->nullable(); // e.g. ["twitter" => "...", "linkedin" => "..."]
+
+            $table->timestamps();
+            $table->softDeletes();
+
             $table
                 ->foreign('user_id')
                 ->references('id')

@@ -8,8 +8,12 @@ export interface JobPosting {
   department?: string;
   location?: string;
   salary?: string;
-  requirements?: string[];
-  benefits?: string[];
+  benefits: Array<{ value: string }>;
+  requirements: Array<{ value: string }>;
+  responsibilities: Array<{ value: string }>;
+//   requirements?: string[];
+//   benefits?: string[];
+//   responsibilities: string[];
   totalApplicants?: number;
   questions?: JobPostingQuestions[];
 }
@@ -17,7 +21,7 @@ export interface JobPosting {
 export interface JobPostingQuestions {
   id: string;
   job_posting_id: string;
-  questions: string;
+  question: string;
   weight: number;
 }
 

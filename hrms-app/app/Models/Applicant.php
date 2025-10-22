@@ -16,12 +16,18 @@ class Applicant extends Model
         'email',
         'phone',
         'portfolio_link',
-        'resume_file',
+        'resume_media_id',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    // Each applicant may have one uploaded resume stored in Media table
+    public function resume()
+    {
+        return $this->belongsTo(Media::class, 'resume_media_id');
     }
 
     public function appliedJobs()

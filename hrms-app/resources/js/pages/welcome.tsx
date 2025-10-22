@@ -1,10 +1,9 @@
-import { dashboard, login, register } from '@/routes';
 import { index as jobPosting } from '@/routes/job-posting-public';
-import { type SharedData } from '@/types';
-import { Head, Link, usePage } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
+import PublicNavbar from '@/components/public/PublicNavbar';
+import PublicFooter from '@/components/public/PublicFooter';
 
 export default function Welcome() {
-  const { auth } = usePage<SharedData>().props;
 
   return (
     <>
@@ -18,81 +17,7 @@ export default function Welcome() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
         {/* Navigation */}
-        <nav className="relative z-50 border-b border-gray-200/50 bg-white/80 backdrop-blur-md dark:border-gray-700/50 dark:bg-gray-900/80">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              {/* Logo */}
-              <div className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-                  <span className="text-xl font-bold text-white">T</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Trilogi University
-                  </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Career Opportunities
-                  </p>
-                </div>
-              </div>
-
-              {/* Navigation Links */}
-              <div className="hidden items-center space-x-8 md:flex">
-                <Link
-                  href="/"
-                  className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                >
-                  Home
-                </Link>
-                <Link
-                  href={jobPosting().url}
-                  className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                >
-                  Job Openings
-                </Link>
-                <a
-                  href="#about"
-                  className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                >
-                  About Us
-                </a>
-                <a
-                  href="#contact"
-                  className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                >
-                  Contact
-                </a>
-              </div>
-
-              {/* Auth Links */}
-              <div className="flex items-center space-x-4">
-                {auth.user ? (
-                  <Link
-                    href={dashboard()}
-                    className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700"
-                  >
-                    Dashboard
-                  </Link>
-                ) : (
-                  <>
-                    <Link
-                      href={login()}
-                      className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                    >
-                      Sign In
-                    </Link>
-                    <Link
-                      href={register()}
-                      className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700"
-                    >
-                      Apply Now
-                    </Link>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </nav>
+        <PublicNavbar />
 
         {/* Hero Section */}
         <section className="relative overflow-hidden">
@@ -387,94 +312,7 @@ export default function Welcome() {
         </section>
 
         {/* Footer */}
-        <footer id="contact" className="bg-gray-900 py-16 text-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-8 md:grid-cols-4">
-              <div className="col-span-2">
-                <div className="mb-6 flex items-center space-x-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-                    <span className="text-xl font-bold text-white">T</span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">Trilogi University</h3>
-                    <p className="text-gray-400">Shaping Tomorrow's Leaders</p>
-                  </div>
-                </div>
-                <p className="mb-6 max-w-md text-gray-400">
-                  Join our community of educators, researchers, and innovators
-                  who are passionate about transforming the future of education.
-                </p>
-                <div className="flex space-x-4">
-                  <a
-                    href="#"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-800 transition-colors hover:bg-blue-600"
-                  >
-                    <svg
-                      className="h-5 w-5"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M24 4.557c-.883.392-1.832.656-2.828.775 1.017-.609 1.798-1.574 2.165-2.724-.951.564-2.005.974-3.127 1.195-.897-.957-2.178-1.555-3.594-1.555-3.179 0-5.515 2.966-4.797 6.045-4.091-.205-7.719-2.165-10.148-5.144-1.29 2.213-.669 5.108 1.523 6.574-.806-.026-1.566-.247-2.229-.616-.054 2.281 1.581 4.415 3.949 4.89-.693.188-1.452.232-2.224.084.626 1.956 2.444 3.379 4.6 3.419-2.07 1.623-4.678 2.348-7.29 2.04 2.179 1.397 4.768 2.212 7.548 2.212 9.142 0 14.307-7.721 13.995-14.646.962-.695 1.797-1.562 2.457-2.549z" />
-                    </svg>
-                  </a>
-                  <a
-                    href="#"
-                    className="flex h-10 w-10 items-center justify-center rounded-lg bg-gray-800 transition-colors hover:bg-blue-600"
-                  >
-                    <svg
-                      className="h-5 w-5"
-                      fill="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z" />
-                    </svg>
-                  </a>
-                </div>
-              </div>
-              <div>
-                <h4 className="mb-4 font-semibold">Quick Links</h4>
-                <div className="space-y-2">
-                  <Link
-                    href={jobPosting().url}
-                    className="block text-gray-400 transition-colors hover:text-white"
-                  >
-                    Job Openings
-                  </Link>
-                  <a
-                    href="#about"
-                    className="block text-gray-400 transition-colors hover:text-white"
-                  >
-                    About Us
-                  </a>
-                  <a
-                    href="#"
-                    className="block text-gray-400 transition-colors hover:text-white"
-                  >
-                    Departments
-                  </a>
-                  <a
-                    href="#"
-                    className="block text-gray-400 transition-colors hover:text-white"
-                  >
-                    Research
-                  </a>
-                </div>
-              </div>
-              <div>
-                <h4 className="mb-4 font-semibold">Contact Info</h4>
-                <div className="space-y-2 text-gray-400">
-                  <p>123 University Avenue</p>
-                  <p>Jakarta, Indonesia</p>
-                  <p>Phone: +62 21 1234 5678</p>
-                  <p>Email: careers@trilogi.ac.id</p>
-                </div>
-              </div>
-            </div>
-            <div className="mt-12 border-t border-gray-800 pt-8 text-center text-gray-400">
-              <p>&copy; 2024 Trilogi University. All rights reserved.</p>
-            </div>
-          </div>
-        </footer>
+        <PublicFooter />
       </div>
     </>
   );

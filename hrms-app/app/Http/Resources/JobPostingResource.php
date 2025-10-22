@@ -23,6 +23,7 @@ class JobPostingResource extends JsonResource
             'salary' => $this->salary,
             'type' => $this->type,
             'status' => $this->status,
+            'totalApplicants' => $this->applied_jobs_count ?? 0,
             'requirements' => $this->transformArrayField($this->requirements),
             'responsibilities' => $this->transformArrayField($this->responsibilities),
             'benefits' => $this->transformArrayField($this->benefits),

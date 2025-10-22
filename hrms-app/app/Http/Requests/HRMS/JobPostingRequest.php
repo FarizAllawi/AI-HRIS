@@ -29,7 +29,7 @@ class JobPostingRequest extends FormRequest
 
             // Questions of the job
             'questions' => 'nullable|array',
-            'questions.*.question' => 'required|string|max:255',
+            'questions.*.question' => 'required|string',
             'questions.*.description' => 'nullable|string',
             'questions.*.weight' => 'nullable|numeric|min:0',
         ];

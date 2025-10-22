@@ -17,8 +17,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Separator } from '@/components/ui/separator';
-import { dashboard, login, register } from '@/routes';
+import { register } from '@/routes';
 import { show as jobPostingShow } from '@/routes/job-posting-public';
 import { type SharedData } from '@/types';
 import { Head, Link, router, usePage } from '@inertiajs/react';
@@ -31,6 +30,8 @@ import {
   Search,
 } from 'lucide-react';
 import { useState } from 'react';
+import PublicNavbar from '@/components/public/PublicNavbar';
+import PublicFooter from '@/components/public/PublicFooter';
 
 interface JobPosting {
   id: string;
@@ -62,7 +63,7 @@ export default function JobPosting() {
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.get('/job-posting', { search: searchTerm }, { preserveState: true });
+    router.get('/job-openings', { search: searchTerm }, { preserveState: true });
   };
 
   const filteredJobPostings = jobPostings.filter((job) => {
@@ -121,59 +122,7 @@ export default function JobPosting() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
         {/* Navigation */}
-        <nav className="relative z-50 border-b border-gray-200/50 bg-white/80 backdrop-blur-md dark:border-gray-700/50 dark:bg-gray-900/80">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              {/* Logo */}
-              <Link href="/" className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-                  <span className="text-xl font-bold text-white">T</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Trilogi University
-                  </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Career Opportunities
-                  </p>
-                </div>
-              </Link>
-
-              {/* Navigation Links */}
-              <div className="hidden items-center space-x-8 md:flex">
-                <Link
-                  href="/"
-                  className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                >
-                  Home
-                </Link>
-                <Link
-                  href="/job-posting"
-                  className="font-medium text-blue-600 dark:text-blue-400"
-                >
-                  Job Openings
-                </Link>
-              </div>
-
-              {/* Auth Links */}
-              <div className="flex items-center space-x-4">
-                {auth.user ? (
-                    <Link href={dashboard()} className='rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700'>Dashboard</Link>
-                ) : (
-                  <div className="flex items-center space-x-4">
-                   <Link
-                      href={login()}
-                      className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                    >
-                      Sign In
-                    </Link>
-                      <Link href={register()} className='rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700'>Apply Now</Link>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </nav>
+        <PublicNavbar />
 
         {/* Hero Section */}
         <section className="bg-gradient-to-r from-blue-600 to-indigo-600 py-16">
@@ -420,57 +369,7 @@ export default function JobPosting() {
         </section>
 
         {/* Footer */}
-        <footer className="bg-gray-900 py-12 text-white">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="grid gap-8 md:grid-cols-4">
-              <div className="col-span-2">
-                <div className="mb-4 flex items-center space-x-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-                    <span className="text-xl font-bold text-white">T</span>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold">Trilogi University</h3>
-                    <p className="text-gray-400">Shaping Tomorrow's Leaders</p>
-                  </div>
-                </div>
-                <p className="max-w-md text-gray-400">
-                  Join our community of educators, researchers, and innovators
-                  who are passionate about transforming the future of education.
-                </p>
-              </div>
-              <div>
-                <h4 className="mb-4 font-semibold">Quick Links</h4>
-                <div className="space-y-2">
-                  <Link
-                    href="/"
-                    className="block text-gray-400 transition-colors hover:text-white"
-                  >
-                    Home
-                  </Link>
-                  <Link
-                    href="/job-posting"
-                    className="block text-gray-400 transition-colors hover:text-white"
-                  >
-                    Job Openings
-                  </Link>
-                </div>
-              </div>
-              <div>
-                <h4 className="mb-4 font-semibold">Contact Info</h4>
-                <div className="space-y-2 text-gray-400">
-                  <p>123 University Avenue</p>
-                  <p>Jakarta, Indonesia</p>
-                  <p>Phone: +62 21 1234 5678</p>
-                  <p>Email: careers@trilogi.ac.id</p>
-                </div>
-              </div>
-            </div>
-            <Separator className="my-8" />
-            <div className="text-center text-gray-400">
-              <p>&copy; 2024 Trilogi University. All rights reserved.</p>
-            </div>
-          </div>
-        </footer>
+        <PublicFooter />
       </div>
     </>
   );

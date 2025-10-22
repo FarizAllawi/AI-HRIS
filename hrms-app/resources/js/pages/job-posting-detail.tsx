@@ -1,4 +1,3 @@
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import {
   Breadcrumb,
@@ -15,13 +14,10 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { dashboard, login, register } from '@/routes';
+import { register } from '@/routes';
 import { index as jobPostingIndex } from '@/routes/job-posting-public';
 import { type SharedData } from '@/types';
-import { Head, Link, router, useForm, usePage } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import {
   Building2,
   Calendar,
@@ -30,9 +26,10 @@ import {
   Home,
   MapPin,
   Share2,
-  Upload,
 } from 'lucide-react';
-import { useEffect, useState } from 'react';
+
+import PublicNavbar from '@/components/public/PublicNavbar';
+import PublicFooter from "@/components/public/PublicFooter";
 
 interface JobPostingQuestion {
   id: string;
@@ -65,44 +62,14 @@ export default function JobPostingDetail() {
   const pageProps = usePage<
     Props & { flash?: { success?: string; error?: string } }
   >().props;
-  const { auth, jobPosting, flash } = pageProps;
-  const [showApplicationForm, setShowApplicationForm] = useState(false);
-  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
-
-  const { data, setData, post, processing, errors } = useForm({
-    email: auth.user?.email || '',
-    phone: '',
-    portfolio_link: '',
-    resume_file: null as File | null,
-    answers: jobPosting.questions.reduce(
-      (acc, question) => {
-        acc[question.id] = '';
-        return acc;
-      },
-      {} as Record<string, string>,
-    ),
-  });
-
-  useEffect(() => {
-    if (flash?.success) {
-      setShowSuccessMessage(true);
-      setShowApplicationForm(false);
-      // Hide success message after 5 seconds
-      setTimeout(() => setShowSuccessMessage(false), 5000);
-    }
-  }, [flash]);
+  const { auth, jobPosting } = pageProps;
 
   const handleApply = () => {
     if (!auth.user) {
       router.visit(register());
       return;
     }
-    setShowApplicationForm(true);
-  };
-
-  const handleSubmitApplication = (e: React.FormEvent) => {
-    e.preventDefault();
-    post(`/job-posting/${jobPosting.id}/apply`);
+    router.visit(`/job-openings/${jobPosting.id}/apply`);
   };
 
   const formatSalary = (salary: string) => {
@@ -144,58 +111,7 @@ export default function JobPostingDetail() {
 
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-indigo-50 dark:from-gray-900 dark:via-gray-800 dark:to-blue-900">
         {/* Navigation */}
-        <nav className="relative z-50 border-b border-gray-200/50 bg-white/80 backdrop-blur-md dark:border-gray-700/50 dark:bg-gray-900/80">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex h-16 items-center justify-between">
-              {/* Logo */}
-              <Link href="/" className="flex items-center space-x-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-                  <span className="text-xl font-bold text-white">T</span>
-                </div>
-                <div>
-                  <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-                    Trilogi University
-                  </h1>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    Career Opportunities
-                  </p>
-                </div>
-              </Link>
-
-              {/* Navigation Links */}
-              <div className="hidden items-center space-x-8 md:flex">
-                <Link
-                  href="/"
-                  className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                >
-                  Home
-                </Link>
-                <Link
-                  href={jobPostingIndex().url}
-                  className="text-gray-700 transition-colors hover:text-blue-600 dark:text-gray-300 dark:hover:text-blue-400"
-                >
-                  Job Openings
-                </Link>
-              </div>
-
-              {/* Auth Links */}
-              <div className="flex items-center space-x-4">
-                {auth.user ? (
-                      <Link href={dashboard()} className='rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700'>Dashboard</Link>
-                ) : (
-                  <div className="flex items-center space-x-2">
-                    <Button variant="ghost" asChild>
-                      <Link href={login()}>Sign In</Link>
-                    </Button>
-                    <Button asChild>
-                      <Link href={register()}>Apply Now</Link>
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-        </nav>
+        <PublicNavbar />
 
         {/* Breadcrumb */}
         <div className="bg-white/50 py-4 dark:bg-gray-800/50">
@@ -234,74 +150,7 @@ export default function JobPostingDetail() {
         {/* Main Content */}
         <main className="py-12">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            {/* Success Message */}
-            {showSuccessMessage && flash?.success && (
-              <Alert className="mb-6 border-green-200 bg-green-50 text-green-800 dark:border-green-800 dark:bg-green-900/20 dark:text-green-200">
-                <div className="flex items-center">
-                  <svg
-                    className="mr-3 h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  <AlertDescription>{flash.success}</AlertDescription>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setShowSuccessMessage(false)}
-                    className="ml-auto text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-200"
-                  >
-                    <svg
-                      className="h-5 w-5"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </Button>
-                </div>
-              </Alert>
-            )}
-
-            {/* Error Message */}
-            {flash?.error && (
-              <Alert
-                variant="destructive"
-                className="mb-6 border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20"
-              >
-                <div className="flex items-center">
-                  <svg
-                    className="mr-3 h-5 w-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 15.5c-.77.833.192 2.5 1.732 2.5z"
-                    />
-                  </svg>
-                  <AlertDescription>{flash.error}</AlertDescription>
-                </div>
-              </Alert>
-            )}
-            {!showApplicationForm ? (
-              <div className="grid gap-8 lg:grid-cols-3">
+            <div className="grid gap-8 lg:grid-cols-3">
                 {/* Job Details */}
                 <div className="lg:col-span-2">
                   <Card className="bg-white/80 dark:bg-gray-900/60 border border-gray-200/60 dark:border-gray-700/60 backdrop-blur">
@@ -477,184 +326,10 @@ export default function JobPostingDetail() {
                   </div>
                 </div>
               </div>
-            ) : (
-              /* Application Form */
-              <div className="mx-auto max-w-4xl">
-                <Card className="bg-white/80 dark:bg-gray-900/60 border border-gray-200/60 dark:border-gray-700/60 backdrop-blur">
-                  <CardHeader>
-                    <CardTitle>Apply for {jobPosting.title}</CardTitle>
-                    <CardDescription>
-                      Fill out the form below to submit your application.
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <form
-                      onSubmit={handleSubmitApplication}
-                      className="space-y-6"
-                    >
-                      {/* Personal Information */}
-                      <div>
-                        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                          Personal Information
-                        </h2>
-                        <div className="grid gap-4 sm:grid-cols-2">
-                          <div>
-                            <Label htmlFor="email">Email Address</Label>
-                            <Input
-                              id="email"
-                              type="email"
-                              value={data.email}
-                              onChange={(e) => setData('email', e.target.value)}
-                              disabled={!!auth.user}
-                              required
-                              className="bg-white/80 dark:bg-gray-900/60 border-gray-300/60 dark:border-gray-700/60"
-                            />
-                            {errors.email && (
-                              <p className="mt-1 text-sm text-red-600">
-                                {errors.email}
-                              </p>
-                            )}
-                          </div>
-                          <div>
-                            <Label htmlFor="phone">Phone Number</Label>
-                            <Input
-                              id="phone"
-                              type="tel"
-                              value={data.phone}
-                              onChange={(e) => setData('phone', e.target.value)}
-                              required
-                              className="bg-white/80 dark:bg-gray-900/60 border-gray-300/60 dark:border-gray-700/60"
-                            />
-                            {errors.phone && (
-                              <p className="mt-1 text-sm text-red-600">
-                                {errors.phone}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        <div className="mt-4">
-                          <Label htmlFor="portfolio_link">
-                            Portfolio Link (Optional)
-                          </Label>
-                          <Input
-                            id="portfolio_link"
-                            type="url"
-                            value={data.portfolio_link}
-                            onChange={(e) =>
-                              setData('portfolio_link', e.target.value)
-                            }
-                            placeholder="https://your-portfolio.com"
-                            className="bg-white/80 dark:bg-gray-900/60 border-gray-300/60 dark:border-gray-700/60"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Resume Upload */}
-                      <div>
-                        <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                          Resume
-                        </h2>
-                        <div className="rounded-lg border-2 border-dashed border-gray-300 p-6 text-center dark:border-gray-600">
-                          <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                          <div className="mt-4">
-                            <Label
-                              htmlFor="resume_file"
-                              className="cursor-pointer rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 text-white hover:from-blue-700 hover:to-indigo-700"
-                            >
-                              Choose File
-                            </Label>
-                            <Input
-                              id="resume_file"
-                              type="file"
-                              accept=".pdf,.doc,.docx"
-                              onChange={(e) =>
-                                setData(
-                                  'resume_file',
-                                  e.target.files?.[0] || null,
-                                )
-                              }
-                              className="hidden"
-                              required
-                            />
-                            <p className="mt-2 text-sm text-gray-500">
-                              PDF, DOC, or DOCX up to 10MB
-                            </p>
-                            {data.resume_file && (
-                              <p className="mt-2 text-sm text-green-600">
-                                Selected: {data.resume_file.name}
-                              </p>
-                            )}
-                          </div>
-                        </div>
-                        {errors.resume_file && (
-                          <p className="mt-2 text-sm text-red-600">
-                            {errors.resume_file}
-                          </p>
-                        )}
-                      </div>
-
-                      {/* Questions */}
-                      {jobPosting.questions.length > 0 && (
-                        <div>
-                          <h2 className="mb-4 text-lg font-semibold text-gray-900 dark:text-white">
-                            Additional Questions
-                          </h2>
-                          <div className="space-y-6">
-                            {jobPosting.questions.map((question) => (
-                              <div key={question.id}>
-                                <Label htmlFor={question.id}>
-                                  {question.question}
-                                </Label>
-                                <Textarea
-                                  id={question.id}
-                                  value={data.answers[question.id] || ''}
-                                  onChange={(e) =>
-                                    setData('answers', {
-                                      ...data.answers,
-                                      [question.id]: e.target.value,
-                                    })
-                                  }
-                                  rows={4}
-                                  placeholder="Enter your answer here..."
-                                  required
-                                  className="bg-white/80 dark:bg-gray-900/60 border-gray-300/60 dark:border-gray-700/60"
-                                />
-                                {errors[`answers.${question.id}`] && (
-                                  <p className="mt-1 text-sm text-red-600">
-                                    {errors[`answers.${question.id}`]}
-                                  </p>
-                                )}
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Submit Buttons */}
-                      <div className="flex space-x-4 pt-6">
-                        <Button
-                          type="button"
-                          variant="outline"
-                          onClick={() => setShowApplicationForm(false)}
-                          className="flex-1 border-gray-300/60 dark:border-gray-700/60 text-gray-700 dark:text-gray-200 hover:bg-white/50 dark:hover:bg-gray-800/50"
-                        >
-                          Cancel
-                        </Button>
-                        <Button
-                          type="submit"
-                          disabled={processing}
-                          className="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
-                        >
-                          {processing ? 'Submitting...' : 'Submit Application'}
-                        </Button>
-                      </div>
-                    </form>
-                  </CardContent>
-                </Card>
-              </div>
-            )}
           </div>
         </main>
+      {/* Footer */}
+      <PublicFooter />
       </div>
     </>
   );

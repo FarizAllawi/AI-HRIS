@@ -3,19 +3,27 @@
 namespace App\Http\Controllers\HRMS;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
+use App\Http\Requests\HRMS\ApplicantIndexRequest;
+use App\Http\Resources\HRMS\ApplicantResource;
+use App\Repositories\Applicant\ApplicantRepositoryInterface;
 use Inertia\Inertia;
 use Inertia\Response;
 use Inertia\ResponseFactory;
 
 class ApplicantController extends Controller
 {
+    public function __construct(
+        protected ApplicantRepositoryInterface $applicants
+    ) {}
     /**
      * Display a listing of the resource.
      */
-    public function index(): Response
+    public function index(ApplicantIndexRequest $request): Response
     {
-        return Inertia::render('HRMS/applicant/index');
+        $items = $this->applicants->all($request->validated());
+        return Inertia::render('HRMS/applicant/index', [
+            'applicants' => ApplicantResource::collection($items),
+        ]);
     }
 
     /**
@@ -29,7 +37,7 @@ class ApplicantController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(\Illuminate\Http\Request $request)
     {
         //
     }
@@ -39,27 +47,9 @@ class ApplicantController extends Controller
      */
     public function show(string $id): Response|ResponseFactory
     {
-        // Demo payload for UI preview; replace with real data source
-        $applicant = [
-            'id' => $id,
-            'fullName' => 'Demo Applicant',
-            'applicationDate' => '2025-09-01',
-            'positionTitle' => 'Software Engineer',
-            'positionCode' => 'ENG-101',
-            'interviewStatus' => 'scheduled',
-            'interviewDateTime' => '2025-10-15T14:30:00',
-            'interviewType' => 'in_person',
-            'interviewers' => ['Sarah Park'],
-            'candidateResponse' => 'accepted',
-            'contactEmail' => 'demo@applicant.test',
-            'applicationStatus' => 'in_review',
-            'feedbackStatus' => 'pending',
-            'resumeScore' => 88,
-            'referralSource' => 'Website',
-        ];
-
+        $applicant = $this->applicants->findWithRelations($id);
         return Inertia::render('HRMS/applicant/detail', [
-            'applicant' => $applicant,
+            'applicant' => new ApplicantResource($applicant),
         ]);
     }
 
@@ -74,7 +64,7 @@ class ApplicantController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, string $id)
+    public function update(\Illuminate\Http\Request $request, string $id)
     {
         //
     }

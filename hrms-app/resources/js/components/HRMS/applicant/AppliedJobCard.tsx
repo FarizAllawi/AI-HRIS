@@ -15,19 +15,7 @@ export type AppliedJobInfo = {
   code: string;
 };
 
-const dummyJob: AppliedJobInfo = {
-  title: 'Frontend Developer',
-  department: 'Engineering',
-  dateApplied: '2025-10-01',
-  location: 'Jakarta',
-  code: 'FD-2025',
-};
-
-export default function AppliedJobCard({
-  job = dummyJob,
-}: {
-  job?: AppliedJobInfo;
-}) {
+export default function AppliedJobCard({ job }: { job: AppliedJobInfo }) {
   return (
     <Card className="mb-3">
       <CardHeader className="flex flex-row items-center gap-2 pb-2">

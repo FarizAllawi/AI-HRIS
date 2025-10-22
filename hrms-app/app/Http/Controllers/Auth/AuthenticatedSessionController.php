@@ -45,7 +45,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        return redirect()->intended(route('dashboard', absolute: false));
+        return redirect()->intended(route(
+            $user->role === 'hrms-user' ? 'dashboard' : 'job-posting-public.my-applications',
+            absolute: false
+        ));
     }
 
     /**

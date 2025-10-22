@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
                 'name' => 'Test User',
                 'password' => Hash::make('password'),
                 'email_verified_at' => now(),
+                'role' => 'hrms-user'
             ]
         );
     }

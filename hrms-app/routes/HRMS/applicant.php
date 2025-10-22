@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::prefix('HRMS')->group(function () {
-    Route::middleware(['auth', 'verified'])->group(function () {
+    Route::middleware(['auth', 'verified', 'role:hrms-user'])->group(function () {
 
         Route::get('applicant', [ApplicantController::class, 'index'])->name('applicant.index');
         Route::get('applicant/{id}', [ApplicantController::class, 'show'])->name('applicant.show');
@@ -24,7 +24,9 @@ Route::prefix('HRMS')->group(function () {
         //     return Inertia::render('settings/appearance');
         // })->name('appearance.edit');
 
-        // Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
-        //     ->name('two-factor.show');
+        Route::middleware(['role:hrms-user'])->group(function () {
+            // Route::get('settings/two-factor', [TwoFactorAuthenticationController::class, 'show'])
+            //     ->name('two-factor.show');
+        });
     });
 });

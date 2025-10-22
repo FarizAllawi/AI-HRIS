@@ -15,8 +15,12 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('job_posting_question_id')->constrained('job_posting_questions')->onDelete('cascade');
             $table->foreignUuid('applied_job_id')->constrained('applied_jobs')->onDelete('cascade');
+            $table->string('answer');
             $table->double('ai_score')->nullable();
             $table->double('hr_score')->nullable();
+            $table->enum('status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
+            $table->text('last_error')->nullable();
+            $table->timestamp('ai_screened_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

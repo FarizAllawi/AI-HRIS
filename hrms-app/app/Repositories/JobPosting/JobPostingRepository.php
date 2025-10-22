@@ -29,13 +29,36 @@ class JobPostingRepository extends BaseRepository implements JobPostingRepositor
     {
         $query = $this->model->newQuery();
 
+        // Filter by status
         if (!empty($filters['status'])) {
             $query->where('status', $filters['status']);
         }
 
+        // Flexible search across multiple columns
         if (!empty($filters['title'])) {
-            $query->where('title', 'ILIKE', "%{$filters['title']}%");
+            $search = $filters['title'];
+            $driver = $this->model->getConnection()->getDriverName();
+
+            $query->where(function ($q) use ($search, $driver) {
+                if ($driver === 'pgsql') {
+                    // PostgreSQL supports ILIKE for case-insensitive matching
+                    $q->where('title', 'ILIKE', "%{$search}%")
+                        ->orWhere('description', 'ILIKE', "%{$search}%")
+                        ->orWhere('location', 'ILIKE', "%{$search}%")
+                        ->orWhere('departments', 'ILIKE', "%{$search}%");
+                } else {
+                    // SQLite (and others) — emulate ILIKE using LOWER() + LIKE
+                    $search = strtolower($search);
+                    $q->whereRaw('LOWER(title) LIKE ?', ["%{$search}%"])
+                        ->orWhereRaw('LOWER(description) LIKE ?', ["%{$search}%"])
+                        ->orWhereRaw('LOWER(location) LIKE ?', ["%{$search}%"])
+                        ->orWhereRaw('LOWER(departments) LIKE ?', ["%{$search}%"]);
+                }
+            });
         }
+
+        // Include applicants count for each job posting
+        $query->withCount('appliedJobs');
 
         return $query->latest()->get();
     }

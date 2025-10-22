@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Resources;
+namespace App\Http\Resources\HRMS;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
@@ -8,27 +8,16 @@ use Illuminate\Support\Collection;
 
 class JobPostingDetailResource extends JsonResource
 {
-    /**
-     * Transform the resource into an array.
-     *
-     * @return array<string, mixed>
-     */
     public function toArray(Request $request): array
     {
-        // Get applicants for this job posting
         $appliedJobs = $this->appliedJobs()
             ->with(['applicant.user'])
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Transform applicants data
         $applicants = $this->transformApplicants($appliedJobs);
-
-        // Generate rankings and AI rankings
         $rankings = $this->generateRankings($applicants, $appliedJobs);
         $aiRankings = $this->generateAiRankings($rankings);
-
-        // Calculate AI progress metrics
         $aiProgress = $this->calculateAiProgress($applicants);
 
         return [
@@ -52,16 +41,12 @@ class JobPostingDetailResource extends JsonResource
         ];
     }
 
-    /**
-     * Transform applied jobs into applicants array
-     */
     private function transformApplicants(Collection $appliedJobs): array
     {
         return $appliedJobs->map(function ($appliedJob) {
             $applicant = $appliedJob->applicant;
             $user = $applicant->user;
 
-            // Determine status based on screening scores
             $status = $this->determineApplicantStatus($appliedJob);
 
             return [
@@ -86,25 +71,17 @@ class JobPostingDetailResource extends JsonResource
         })->toArray();
     }
 
-    /**
-     * Determine applicant status based on screening scores
-     */
     private function determineApplicantStatus($appliedJob): string
     {
         if ($appliedJob->hr_screening_score !== null) {
             return $appliedJob->hr_screening_score >= 70 ? 'approved' : 'rejected';
         }
-
         if ($appliedJob->ai_screening_score !== null) {
             return 'in_review';
         }
-
         return 'new';
     }
 
-    /**
-     * Generate rankings based on screening scores
-     */
     private function generateRankings(array $applicants, Collection $appliedJobs): array
     {
         return collect($applicants)
@@ -124,9 +101,6 @@ class JobPostingDetailResource extends JsonResource
             })->toArray();
     }
 
-    /**
-     * Generate AI-only rankings
-     */
     private function generateAiRankings(array $rankings): array
     {
         return collect($rankings)
@@ -138,9 +112,6 @@ class JobPostingDetailResource extends JsonResource
             })->toArray();
     }
 
-    /**
-     * Calculate AI screening progress metrics
-     */
     private function calculateAiProgress(array $applicants): array
     {
         $total = count($applicants);
@@ -171,9 +142,6 @@ class JobPostingDetailResource extends JsonResource
         ];
     }
 
-    /**
-     * Generate additional statistics
-     */
     private function generateStatistics(array $applicants): array
     {
         $scores = collect($applicants)
@@ -199,15 +167,11 @@ class JobPostingDetailResource extends JsonResource
         ];
     }
 
-    /**
-     * Format array fields from database storage
-     */
     private function formatArrayField($field): array
     {
         if (is_null($field)) {
             return [];
         }
-
         return collect($field)
             ->map(function ($item) {
                 return is_array($item) ? ($item['value'] ?? '') : $item;
