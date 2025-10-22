@@ -4,6 +4,7 @@ namespace App\Http\Resources\HRMS;
 
 use App\Http\Resources\MediaResource;
 use App\Http\Resources\UserResource;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -32,17 +33,18 @@ class ApplicantResource extends JsonResource
             $appliedJobsWithAnswers = $this->appliedJobs->map(function ($aj) use ($request) {
                 $job = $aj->relationLoaded('jobPosting') ? $aj->jobPosting : null;
                 $answers = [];
-                if ($aj->relationLoaded('answers')) {
-                    $answers = $aj->answers->map(function ($ans) {
-                        $questionText = $ans->relationLoaded('jobPostingQuestion') && $ans->jobPostingQuestion
-                            ? ($ans->jobPostingQuestion->question ?? '')
-                            : '';
+                if ($aj->relationLoaded('jobPostingAnswers')) {
+                    $answers = collect($aj->jobPostingAnswers)->map(function ($ans) {
+                        $questionText = '';
+                        if ($ans->relationLoaded('jobPostingQuestion')) {
+                            $questionText = $ans->jobPostingQuestion->question;
+                        }
                         return [
                             'question' => $questionText,
                             'answer' => $ans->answer,
                             'score' => (int)($ans->hr_score ?? $ans->ai_score ?? 0),
                         ];
-                    })->toArray();
+                    });
                 }
                 return [
                     'job' => [

@@ -94,8 +94,8 @@ class ApplicantRepository extends BaseRepository implements ApplicantRepositoryI
                     $q->latest();
                 },
                 'appliedJobs.jobPosting',
-                'appliedJobs.answers',
-                'appliedJobs.answers.jobPostingQuestion',
+                'appliedJobs.jobPostingAnswers',
+                'appliedJobs.jobPostingAnswers.jobPostingQuestion',
             ])
             ->findOrFail($id);
     }

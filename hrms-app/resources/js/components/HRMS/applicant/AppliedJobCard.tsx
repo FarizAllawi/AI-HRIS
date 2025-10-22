@@ -20,7 +20,7 @@ export default function AppliedJobCard({ job }: { job: AppliedJobInfo }) {
     <Card className="mb-3">
       <CardHeader className="flex flex-row items-center gap-2 pb-2">
         <BriefcaseIcon size={18} className="text-primary" />
-        <CardTitle className="text-base font-semibold">{job.title}</CardTitle>
+        <CardTitle className="text-lg font-semibold">{job.title}</CardTitle>
       </CardHeader>
       <CardContent className="grid grid-cols-2 gap-2 text-xs">
         <div className="flex items-center gap-1">

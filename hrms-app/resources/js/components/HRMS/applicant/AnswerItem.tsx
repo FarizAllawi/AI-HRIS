@@ -14,9 +14,9 @@ export default function AnswerItem({
   return (
     <Card className="mb-2">
       <CardContent className="p-3">
-        <div className="mb-1 text-xs font-semibold">Q: {question}</div>
-        <div className="mb-1 text-xs">A: {answer}</div>
-        <div className="text-xs text-muted-foreground">
+        <div className="mb-1 text-sm font-semibold">Q: {question}</div>
+        <div className="mb-1 text-sm">A: {answer}</div>
+        <div className="text-sm text-muted-foreground">
           AI Screening Score:{' '}
           <span
             className={

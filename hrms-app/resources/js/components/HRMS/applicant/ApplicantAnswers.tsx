@@ -10,10 +10,11 @@ function getOverallScore(answers: AnswerItemProps[]): number {
 export default function ApplicantAnswers({ answers }: { answers: AnswerItemProps[] }) {
   if (!answers || answers.length === 0) return null;
   const overallScore = getOverallScore(answers);
+  console.log("answer:", answers);
   return (
     <Card className="mb-2">
       <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium">Applicant Answers</CardTitle>
+        <CardTitle className="text-lg font-medium">Applicant Answers</CardTitle>
         <div className="mt-2 text-base font-semibold">
           Overall AI Screening Score:{' '}
           <span

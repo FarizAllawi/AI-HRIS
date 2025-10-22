@@ -74,14 +74,14 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="rounded-lg bg-blue-100 p-2">
                                 <FileText className="h-5 w-5 text-blue-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">Application Details</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">Application Details</h3>
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-start gap-3">
                                 <Calendar className="mt-0.5 h-4 w-4 text-gray-400" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-500">Application Date</div>
-                                    <div className="text-sm text-gray-900">
+                                    <div className="text-sm font-medium text-gray-500">Application Date</div>
+                                    <div className="text-base text-gray-900">
                                         {new Date(applicant.applicationDate).toLocaleDateString('en-US', {
                                             year: 'numeric',
                                             month: 'long',
@@ -93,7 +93,7 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="flex items-start gap-3">
                                 <UserCheck className="mt-0.5 h-4 w-4 text-gray-400" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-500">Status</div>
+                                    <div className="text-sm font-medium text-gray-500">Status</div>
                                     <div className="mt-1">
                                         <Badge variant={getStatusVariant(applicant.applicationStatus || 'new')}>
                                             {applicant.applicationStatus || 'New Application'}
@@ -105,7 +105,7 @@ export default function ApplicantDetail({ applicant }: Props) {
                                 <div className="flex items-start gap-3">
                                     <User className="mt-0.5 h-4 w-4 text-gray-400" />
                                     <div className="flex-1">
-                                        <div className="text-xs font-medium text-gray-500">Referral Source</div>
+                                        <div className="text-sm font-medium text-gray-500">Referral Source</div>
                                         <div className="mt-1">
                                             <Badge variant="outline">{applicant.referralSource}</Badge>
                                         </div>
@@ -121,13 +121,13 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="rounded-lg bg-purple-100 p-2">
                                 <Video className="h-5 w-5 text-purple-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">Interview Information</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">Interview Information</h3>
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-start gap-3">
                                 <UserCheck className="mt-0.5 h-4 w-4 text-gray-400" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-500">Status</div>
+                                    <div className="text-sm font-medium text-gray-500">Status</div>
                                     <div className="mt-1">
                                         <Badge variant={getStatusVariant(applicant.interviewStatus || 'not scheduled')}>
                                             {applicant.interviewStatus || 'Not Scheduled'}
@@ -138,8 +138,8 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="flex items-start gap-3">
                                 <Clock className="mt-0.5 h-4 w-4 text-gray-400" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-500">Scheduled Time</div>
-                                    <div className="text-sm text-gray-900">
+                                    <div className="text-sm font-medium text-gray-500">Scheduled Time</div>
+                                    <div className="text-base text-gray-900">
                                         {applicant.interviewDateTime
                                             ? new Date(applicant.interviewDateTime).toLocaleString('en-US', {
                                                 year: 'numeric',
@@ -155,7 +155,7 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="flex items-start gap-3">
                                 <Video className="mt-0.5 h-4 w-4 text-gray-400" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-500">Interview Type</div>
+                                    <div className="text-sm font-medium text-gray-500">Interview Type</div>
                                     <div className="mt-1">
                                         <Badge variant="secondary">{applicant.interviewType || 'TBD'}</Badge>
                                     </div>
@@ -165,7 +165,7 @@ export default function ApplicantDetail({ applicant }: Props) {
                                 <div className="flex items-start gap-3">
                                     <User className="mt-0.5 h-4 w-4 text-gray-400" />
                                     <div className="flex-1">
-                                        <div className="text-xs font-medium text-gray-500">Interviewers</div>
+                                        <div className="text-sm font-medium text-gray-500">Interviewers</div>
                                         <div className="mt-1 flex flex-wrap gap-1">
                                             {applicant.interviewers.map((interviewer, idx) => (
                                                 <Badge key={idx} variant="outline">
@@ -185,17 +185,17 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="rounded-lg bg-green-100 p-2">
                                 <Mail className="h-5 w-5 text-green-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">Contact Information</h3>
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-start gap-3">
                                 <Mail className="mt-0.5 h-4 w-4 text-gray-400" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-500">Email Address</div>
+                                    <div className="text-sm font-medium text-gray-500">Email Address</div>
                                     {applicant.contactEmail ? (
                                         <a
                                             href={`mailto:${applicant.contactEmail}`}
-                                            className="text-sm text-blue-600 hover:underline"
+                                            className="text-base text-blue-600 hover:underline"
                                         >
                                             {applicant.contactEmail}
                                         </a>
@@ -207,11 +207,11 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="flex items-start gap-3">
                                 <Phone className="mt-0.5 h-4 w-4 text-gray-400" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-500">Phone Number</div>
+                                    <div className="text-sm font-medium text-gray-500">Phone Number</div>
                                     {applicant.contactPhone ? (
                                         <a
                                             href={`tel:${applicant.contactPhone}`}
-                                            className="text-sm text-blue-600 hover:underline"
+                                            className="text-base text-blue-600 hover:underline"
                                         >
                                             {applicant.contactPhone}
                                         </a>
@@ -224,9 +224,9 @@ export default function ApplicantDetail({ applicant }: Props) {
                                 <div className="flex items-start gap-3">
                                     <User className="mt-0.5 h-4 w-4 text-gray-400" />
                                     <div className="flex-1">
-                                        <div className="text-xs font-medium text-gray-500">Profile</div>
+                                        <div className="text-sm font-medium text-gray-500">Profile</div>
                                         <a
-                                            className="mt-1 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                                            className="mt-1 inline-flex items-center gap-1 text-base text-blue-600 hover:underline"
                                             href={applicant.profileUrl}
                                             target="_blank"
                                             rel="noreferrer"
@@ -242,9 +242,9 @@ export default function ApplicantDetail({ applicant }: Props) {
                                 <div className="flex items-start gap-3">
                                     <FileText className="mt-0.5 h-4 w-4 text-gray-400" />
                                     <div className="flex-1">
-                                        <div className="text-xs font-medium text-gray-500">Resume</div>
+                                        <div className="text-sm font-medium text-gray-500">Resume</div>
                                         <a
-                                            className="mt-1 inline-flex items-center gap-1 text-sm text-blue-600 hover:underline"
+                                            className="mt-1 inline-flex items-center gap-1 text-base text-blue-600 hover:underline"
                                             href={applicant.resumeUrl}
                                             target="_blank"
                                             rel="noreferrer"
@@ -265,13 +265,13 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="rounded-lg bg-orange-100 p-2">
                                 <MessageSquare className="h-5 w-5 text-orange-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">Additional Information</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">Additional Information</h3>
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-start gap-3">
                                 <MessageSquare className="mt-0.5 h-4 w-4 text-gray-400" />
                                 <div className="flex-1">
-                                    <div className="text-xs font-medium text-gray-500">Feedback Status</div>
+                                    <div className="text-sm font-medium text-gray-500">Feedback Status</div>
                                     <div className="mt-1">
                                         <Badge variant={getStatusVariant(applicant.feedbackStatus || 'n/a')}>
                                             {applicant.feedbackStatus || 'N/A'}
@@ -283,7 +283,7 @@ export default function ApplicantDetail({ applicant }: Props) {
                                 <div className="flex items-start gap-3">
                                     <Star className="mt-0.5 h-4 w-4 text-gray-400" />
                                     <div className="flex-1">
-                                        <div className="text-xs font-medium text-gray-500">Resume Score</div>
+                                        <div className="text-sm font-medium text-gray-500">Resume Score</div>
                                         <div className="mt-1 flex items-center gap-2">
                                             <Badge variant="outline" className="gap-1">
                                                 <Star className="h-3 w-3" />
@@ -310,7 +310,7 @@ export default function ApplicantDetail({ applicant }: Props) {
                             <div className="rounded-lg bg-indigo-100 p-2">
                                 <FileText className="h-5 w-5 text-indigo-600" />
                             </div>
-                            <h3 className="text-lg font-semibold text-gray-900">Applications & Answers</h3>
+                            <h3 className="text-xl font-semibold text-gray-900">Applications & Answers</h3>
                         </div>
                         <AppliedJobFilter appliedJobsWithAnswers={applicant.appliedJobsWithAnswers} />
                     </div>

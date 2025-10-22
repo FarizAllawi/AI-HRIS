@@ -346,10 +346,6 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
             <TableHead>Applicant</TableHead>
             <TableHead>Application Date</TableHead>
             <TableHead>Position</TableHead>
-            <TableHead>Interview Status</TableHead>
-            <TableHead>Interview Date & Time</TableHead>
-            <TableHead>Interviewer(s)</TableHead>
-            <TableHead>Candidate Response</TableHead>
             <TableHead>Contact</TableHead>
             <TableHead>Links</TableHead>
             <TableHead className="text-center">Actions</TableHead>
@@ -386,14 +382,6 @@ export function ApplicantTable({ items, onView, onInvite, onSchedule }: Props) {
                     ) : null}
                   </div>
                 </TableCell>
-                <TableCell>
-                  {getInterviewStatusBadge(it.interviewStatus)}
-                </TableCell>
-                <TableCell>{formatDateTime(it.interviewDateTime)}</TableCell>
-                <TableCell className="max-w-[220px] truncate">
-                  {it.interviewers?.join(', ') || '–'}
-                </TableCell>
-                <TableCell>{getResponseBadge(it.candidateResponse)}</TableCell>
                 <TableCell>
                   <div className="flex flex-col">
                     {it.contactEmail ? <span>{it.contactEmail}</span> : null}
