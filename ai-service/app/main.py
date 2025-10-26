@@ -1,59 +1,62 @@
-from fastapi import FastAPI, UploadFile, Form, WebSocket, WebSocketDisconnect
-from fastapi.responses import JSONResponse
-from celery_app import process_csv_file
-from utils.ws_manager import ws_manager
-from utils.ws_broadcast import router as ws_broadcast_router
-import os
-import uuid
-import shutil
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
 
-app = FastAPI(title="AI Screening Service")
+from app.api import screening, job_posting
+from app.core.config import settings
+from app.core.database import engine, Base
+from app.core.logging import setup_logging
+import app.models #for models creation
 
-# Mount WebSocket router
-app.include_router(ws_broadcast_router)
+setup_logging()
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """Startup and shutdown events"""
+    # Startup: Create database tables
+    Base.metadata.create_all(bind=engine)
+    print("✅ Database tables created")
 
+    # Load base IndoBERT model
+    # from app.ml.IndoBERT.indobert_model import IndoBERTModel
+    # app.state.model = IndoBERTModel()
+    print("✅ IndoBERT model loaded")
 
-@app.post("/upload-csv")
-async def upload_csv(
-    file: UploadFile,
-    job_description: str = Form(...),
-    callback_url: str = Form(None)
-):
-    """Receive CSV from Laravel, store it, and trigger Celery task."""
-    try:
-        job_id = str(uuid.uuid4())
-        file_path = os.path.join(UPLOAD_DIR, f"{job_id}.csv")
+    yield
 
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+    # Shutdown: Cleanup
+    print("🔻 Shutting down...")
 
-        # Trigger Celery background job
-        task = process_csv_file.delay(file_path, job_description, callback_url)
+app = FastAPI(
+    title="AI Screening Service",
+    description="IndoBERT-based candidate screening with continual learning",
+    version="0.1.0",
+    lifespan=lifespan
+)
 
-        return JSONResponse({
-            "message": "File received. Processing started.",
-            "job_id": job_id,
-            "task_id": task.id,
-            "job_description": job_description
-        })
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+# CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.CORS_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
-
-@app.websocket("/ws/{job_id}")
-async def websocket_endpoint(websocket: WebSocket, job_id: str):
-    """WebSocket endpoint for Laravel to receive real-time updates."""
-    await ws_manager.connect(job_id, websocket)
-    try:
-        while True:
-            await websocket.receive_text()  # Keep connection alive
-    except WebSocketDisconnect:
-        ws_manager.disconnect(job_id, websocket)
-
+app.include_router(job_posting.router, prefix='/job-posting')
+app.include_router(screening.router, prefix="/screening")
 
 @app.get("/")
 async def root():
-    return {"status": "running", "service": "FastAPI IndoBERT Screening"}
+    return {
+        "service": "AI Screening Service",
+        "status": "running",
+        "version": "0.1.0"
+    }
+
+@app.get("/health")
+async def health_check():
+    return {
+        "status": "healthy",
+        "model_loaded": hasattr(app.state, "model")
+    }

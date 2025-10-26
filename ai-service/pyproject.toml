@@ -1,0 +1,56 @@
+[project]
+name = "ai-service"
+version = "0.1.0"
+description = "AI Service for screening candidate"
+authors = [{ name = "Fariz Allawi Ghozi" }]
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.118.2",
+    "httpx>=0.28.1",
+    "pydantic-settings>=2.10.1",
+    "pytest>=8.4.1",
+    "python-dotenv>=1.1.1",
+    "sqlalchemy>=2.0.42",
+    "uvicorn>=0.37.0",
+    "python-multipart>=0.0.20",
+    "celery>=5.5.3",
+    "flower>=2.0.1",
+    "redis>=6.4.0",
+    "pandas>=2.3.3",
+    "psycopg2>=2.9.11",
+    # ✅ Use CPU-only PyTorch builds (compatible with Linux CPython 3.12)
+    "torch>=2.7.0",
+    "torchvision>=0.22.0",
+    "torchaudio==2.7.0",
+    # ✅ ML libs
+    "transformers>=4.57.1",
+    "sentence-transformers>=5.1.1",
+    "tqdm>=4.67.1",
+]
+
+# ✅ Add PyTorch CPU wheel index
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cpu" },
+]
+torchvision = [
+    { index = "pytorch-cpu" },
+]
+torchaudio = [
+    { index = "pytorch-cpu" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
+
+[tool.pytest.ini_options]
+pythonpath = "."
+
+[dependency-groups]
+dev = [
+    "ipykernel>=7.0.1",
+]
+

@@ -1,20 +1,24 @@
-FROM python:3.11-slim
+# ---- Base image ----
+FROM ghcr.io/astral-sh/uv:python3.12-bookworm
 
+# Set working directory
 WORKDIR /app
 
-RUN apt-get update && apt-get install -y \
-    build-essential git && \
-    rm -rf /var/lib/apt/lists/*
+# Copy dependency files first (for layer caching)
+COPY pyproject.toml ./
 
+# Install dependencies (include dev deps for linting, testing, etc.)
+RUN uv lock --upgrade
+RUN uv sync --frozen
 
-COPY ./src /app
+# Copy all project files
+COPY . .
 
-# Install CPU-only PyTorch (latest stable version)
-RUN pip install --no-cache-dir torch==2.6.0 torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+# Use uv-managed virtual environment
+ENV PATH="/app/.venv/bin:$PATH"
 
-# Install requirements dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-EXPOSE 8100
-
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8100"]
+## Expose FastAPI default port
+#EXPOSE 8000
+#
+## Enable fastapi auto-reload
+#CMD ["uv", "run", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
