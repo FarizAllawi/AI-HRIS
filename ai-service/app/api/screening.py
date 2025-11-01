@@ -1,6 +1,13 @@
-from fastapi import APIRouter, UploadFile
-from fastapi.responses import JSONResponse
-from app.tasks.process_csv import process_csv_file
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from typing import List, Dict
+from collections import defaultdict
+from uuid import UUID
+
+from app.core.database import get_db
+from app.models import Applicant, JobPosting, ApplicantAnswer
+from app.schemas.screening import BatchScreening
+from app.tasks.screening import screen_applicant_batch_async
 import os
 import shutil
 
@@ -9,30 +16,70 @@ router = APIRouter()
 UPLOAD_DIR = "uploads"
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
-@router.post("/upload-csv")
-def upload_csv(file: UploadFile ):
-    '''
-        Receive CSV from laravel, store it and trigger Celery task.
-    '''
-    try:
-        # Save the file to uploads folder
-        file_path = os.path.join(UPLOAD_DIR, file.filename)
-        with open(file_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
 
-        # Process csv file with celery task
-        task = process_csv_file.delay(file_path)
+@router.post("/applicant/batch")
+def screening_batch(
+        data: BatchScreening,
+        db: Session = Depends(get_db)
+):
+    ''' Screening multiple applicants at once'''
+    # Group newly created applicants by job_posting_id
+    applicants_by_job: Dict[UUID, List[Applicant]] = defaultdict(list)
 
-        return JSONResponse({
-            "message": "File received. Processing started.",
-            "task_id": task.id
-        })
-    except Exception as e:
-        return JSONResponse({"error": str(e)}, status_code=500)
+    for applicant_data in data.applicants:
+        # Check if applicant already exists in the database
+        exists = db.query(Applicant).filter(
+            Applicant.id == applicant_data.id
+        ).first()
 
-@router.get('/task/{task_id}')
-def get_task_info(task_id):
-    '''
-        Get task information
-    '''
-    pass
+        # Only create a new applicant if they do not exist
+        if not exists:
+            # Create applicant record
+            applicant = Applicant(
+                id=applicant_data.id,
+                job_posting_id=applicant_data.job_posting_id,
+                user_id=applicant_data.user_id,
+            )
+            db.add(applicant)
+
+            # Group by job_posting_id
+            applicants_by_job[applicant_data.job_posting_id].append(applicant)
+
+            # Process and add applicant answers
+            for answer_data in applicant_data.answers:
+                # Check if answer already exists
+                answer_exists = db.query(ApplicantAnswer).filter(
+                    ApplicantAnswer.id == answer_data.id,
+                    ApplicantAnswer.applicant_id == applicant.id
+                ).first()
+
+                if not answer_exists:
+                    answer = ApplicantAnswer(
+                        id=answer_data.id,
+                        applicant_id=answer_data.applicant_id,
+                        question_id=answer_data.question_id,
+                        answer=answer_data.answer,
+                    )
+                    db.add(answer)
+
+    db.commit()
+
+    # Trigger batch screening grouped by job_posting_id
+    # Send separate Celery tasks for each job posting
+    task_ids = []
+    for job_posting_id, applicants in applicants_by_job.items():
+        if applicants:
+            applicant_ids = [a.id for a in applicants]
+            task = screen_applicant_batch_async.delay(job_posting_id, applicant_ids)
+            task_ids.append({
+                "job_posting_id": str(job_posting_id),
+                "task_id": task.id,
+                "applicant_count": len(applicant_ids)
+            })
+
+    # Return summary of created applicants and tasks
+    return {
+        "total_applicants_created": sum(len(apps) for apps in applicants_by_job.values()),
+        "jobs_processed": len(applicants_by_job),
+        "tasks": task_ids
+    }

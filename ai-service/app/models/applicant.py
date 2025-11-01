@@ -2,6 +2,7 @@ from sqlalchemy import UUID, JSON, Column, String, Float, Integer, Text, DateTim
 from sqlalchemy.orm import relationship
 from app.core.database import Base
 import datetime
+import uuid
 
 class Applicant(Base):
     __tablename__ = 'applicants'
@@ -57,7 +58,7 @@ class ScreeningResult(Base):
     Screening results for an applicant against a job posting Question.
   '''
   __tablename__ = 'screening_results'
-  id = Column(UUID, primary_key=True, index=True)
+  id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
   applicant_id = Column(UUID, ForeignKey('applicants.id', ondelete='CASCADE'), nullable=False)
   job_posting_id = Column(UUID, ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
 

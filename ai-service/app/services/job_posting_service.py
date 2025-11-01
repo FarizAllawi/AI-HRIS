@@ -2,8 +2,8 @@ from typing import List, Dict
 from sqlalchemy.orm import Session
 from app.ml.indoBERT.indobert_model import IndoBERTModel
 from app.models import JobPosting, JobPostingQuestion, JobPostingEmbedding
+import numpy as np
 import json
-
 
 class JobPostingService:
     """
@@ -18,9 +18,9 @@ class JobPostingService:
         self.db = db
 
     def create_job_posting_profile(
-            self,
-            job_posting: JobPosting,
-            questions: List[JobPostingQuestion],
+        self,
+        job_posting: JobPosting,
+        questions: List[JobPostingQuestion],
     )->JobPosting:
         """
         Create complete JD profile with embeddings
@@ -49,6 +49,53 @@ class JobPostingService:
         self.db.commit()
         self.db.refresh(job_posting)
         return job_posting
+
+    def get_job_posting_embeddings_for_questions(
+        self,
+        job_posting_id: str
+    ) -> Dict[str, List[np.ndarray]]:
+        '''
+        Get Job Posting Embeddings organized by question ID
+
+        Args:
+            job_posting_id: Job Posting ID
+
+        Returns:
+           Dict mapping question_id to list of relevant Job Posting embeddings
+        '''
+        job_posting = self.db.query(JobPosting).filter(
+            JobPosting.id == job_posting_id
+        ).first()
+
+        if not job_posting:
+            return {}
+
+        # Get all embeddings
+        jp_embeddings = self.db.query(JobPostingEmbedding).filter(
+            JobPostingEmbedding.job_posting_id == job_posting_id
+        ).all()
+
+        # Get all questions
+        questions = self.db.query(JobPostingQuestion).filter(
+            JobPostingQuestion.job_posting_id == job_posting_id
+        ).all()
+
+        # Organize by question based on mapped_competencies
+        question_embeddings = {}
+
+        for question in questions:
+            qid = question.id
+            mapped_comps = question.mapped_competencies
+
+            # Get embeddings for mapped competencies
+            relevant_embeddings = []
+            for emb in jp_embeddings:
+                if emb.competency_id in mapped_comps:
+                    relevant_embeddings.append(
+                        np.array(emb.embedding, dtype=np.float32)
+                    )
+            question_embeddings[qid] = relevant_embeddings
+        return question_embeddings
 
     def _generate_embeddings(self, job_posting: JobPosting):
         """Generate embeddings for all competencies"""

@@ -17,8 +17,13 @@ class JobPosting(Base):
     required_skills = Column(JSON) # List of required skilss
     preferred_skills = Column(JSON) # List of preferred skills
 
+    # Calibration thresholds
+    shortlist_threshold = Column(Float)  # P75 from similar JDs
+    flag_threshold = Column(Float)  # P25 from similar JDs
+
     # Metadata
     status = Column(String(50), default='draft') # draft, published, archived
+
     created_at = Column(
         DateTime,
         default=datetime.datetime.now(tz=datetime.timezone.utc)

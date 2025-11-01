@@ -1,7 +1,43 @@
 import re
-from typing import Any, Dict, List, Union
 import json
+from typing import Any, Dict, List, Union
+from sqlalchemy.orm import DeclarativeMeta
+from datetime import datetime
+from uuid import UUID
+from typing import Any
 
+def to_serializable(value: Any):
+    """
+    Safely converts ORM objects, UUIDs, datetime, etc. into JSON-serializable data.
+    Avoids infinite recursion by only including column attributes.
+    """
+    if isinstance(value, list):
+        return [to_serializable(v) for v in value]
+
+    if isinstance(value, dict):
+        return {k: to_serializable(v) for k, v in value.items()}
+
+    # ✅ Handle SQLAlchemy models
+    if isinstance(type(value), DeclarativeMeta):
+        data = {}
+        for column in value.__table__.columns.keys():
+            data[column] = to_serializable(getattr(value, column))
+        return data
+
+    # ✅ Handle Pydantic models
+    if hasattr(value, "model_dump") and callable(value.model_dump):
+        return value.model_dump()
+    if hasattr(value, "dict") and callable(value.dict):
+        return value.dict()
+
+    if isinstance(value, UUID):
+        return str(value)
+
+    if isinstance(value, datetime):
+        return value.isoformat()
+
+    # ✅ Fallback: primitive or already serializable
+    return value
 
 def parse_job_desc_to_competencies(jd_text: str) -> Dict[str, List[str]]:
     """

@@ -1,8 +1,7 @@
 import numpy as np
 from typing import List, Tuple
 from sqlalchemy.orm import Session
-from app.models.job_posting import JobPosting, JDEmbedding
-from app.models.candidate import ScreeningResult
+from app.models import ScreeningResult, JobPosting, JobPostingEmbedding
 from app.utils.similarity import cosine_similarity
 from app.core.config import settings
 
@@ -18,7 +17,7 @@ class CalibrationService:
 
     def calibrate_thresholds(
             self,
-            job_posting_id: int,
+            job_posting_id: str,
             top_k: int = 5
     ) -> Tuple[float, float]:
         """
@@ -84,8 +83,8 @@ class CalibrationService:
 
     def _get_jd_aggregate_embedding(self, job_posting: JobPosting) -> np.ndarray:
         """Get aggregate embedding for a JD (mean of all competency embeddings)"""
-        embeddings = self.db.query(JDEmbedding).filter(
-            JDEmbedding.job_posting_id == job_posting.id
+        embeddings = self.db.query(JobPostingEmbedding).filter(
+            JobPostingEmbedding.job_posting_id == job_posting.id
         ).all()
 
         if not embeddings:

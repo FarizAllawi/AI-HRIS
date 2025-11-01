@@ -1,0 +1,144 @@
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: screening-postgres
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: secret
+      POSTGRES_DB: screening_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # Redis (for Celery broker and caching)
+  redis:
+    image: redis:alpine
+    container_name: screening-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # FastAPI Web Service
+  web:
+    build:
+      context: .
+      target: fastapi
+    container_name: screening-web
+    command: >
+      uvicorn app.main:app
+      --host 0.0.0.0
+      --port 8100
+      --reload
+      --reload-dir /app/app
+    ports:
+      - "8100:8100"
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONPATH: /app
+      DATABASE_URL: postgresql://admin:secret@postgres:5432/screening_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - ./app:/app/app
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+      - ./pyproject.toml:/app/pyproject.toml:ro
+      - ./uv.lock:/app/uv.lock:ro
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # Celery Worker (with ML dependencies)
+  celery-worker:
+    build:
+      context: .
+      target: celery-worker
+    container_name: screening-celery
+    command: >
+      celery -A app.celery_app.celery_app worker
+      --loglevel=info
+      --concurrency=2
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONPATH: /app
+      DATABASE_URL: postgresql://admin:secret@postgres:5432/screening_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - ./app:/app/app
+      - ./data:/app/data
+      - ./uploads:/app/uploads
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # Celery Beat (for periodic tasks)
+  celery-beat:
+    build:
+      context: .
+      target: celery-worker
+    container_name: screening-celery-beat
+    command: celery -A app.celery_app beat --loglevel=info
+    environment:
+      PYTHONUNBUFFERED: 1
+      PYTHONDONTWRITEBYTECODE: 1
+      PYTHONPATH: /app
+      DATABASE_URL: postgresql://admin:secret@postgres:5432/screening_db
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    volumes:
+      - ./app:/app/app
+      - ./data:/app/data
+    depends_on:
+      - postgres
+      - redis
+    networks:
+      - backend
+    restart: unless-stopped
+
+  # Flower (Celery monitoring - optional)
+  flower:
+    build:
+      context: .
+      target: celery-worker
+    container_name: screening-flower
+    command: celery -A app.celery_app flower --port=5555
+    ports:
+      - "5555:5555"
+    environment:
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+    depends_on:
+      - redis
+      - celery-worker
+    networks:
+      - backend
+    restart: unless-stopped
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

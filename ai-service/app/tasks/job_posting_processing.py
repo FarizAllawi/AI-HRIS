@@ -10,11 +10,10 @@ from app.celery_app import celery_app
 from app.core.database import SessionLocal
 from app.core.ml_loader import get_model
 from app.services.job_posting_service import JobPostingService
-# from app.services.calibration_service import CalibrationService
+from app.services.calibration_service import CalibrationService
 from app.models import JobPosting, JobPostingEmbedding, JobPostingQuestion
 from typing import Dict, List
 import traceback
-
 
 @celery_app.task(
     name="app.tasks.job_posting_processing.process_job_posting_profile",
@@ -59,12 +58,14 @@ def process_job_posting_profile(self, job_posting_id: str, questions: list) -> D
         jpp_service = JobPostingService(model, db)
         question_list: List[JobPostingQuestion] = []
         for q in questions:
+            print(q)
             question_list.append(JobPostingQuestion(
-                id=q.id,
-                question=q.question,
-                weight=q.weight,
-                mapped_competencies=q.mapped_competencies,
-                weight_version=q.weight_version
+                id=q['id'],
+                job_posting_id=q['job_posting_id'],
+                question=q['question'],
+                weight=q['weight'],
+                mapped_competencies=q['mapped_competencies'],
+                weight_version=q['weight_version'],
             ))
         print(question_list)
         job_posting = jpp_service.create_job_posting_profile(job_posting, question_list)
@@ -137,13 +138,12 @@ def process_job_posting_profile(self, job_posting_id: str, questions: list) -> D
     finally:
         db.close()
 
-
 @celery_app.task(
-    name="app.tasks.jd_processing.regenerate_embeddings",
+    name="app.tasks.job_posting_processing.regenerate_embeddings",
     bind=True,
     max_retries=2
 )
-def regenerate_embeddings(self, job_posting_id: int) -> Dict:
+def regenerate_embeddings(self, job_posting_id: str) -> Dict:
     """
     Regenerate embeddings for a job posting
 
@@ -163,7 +163,7 @@ def regenerate_embeddings(self, job_posting_id: int) -> Dict:
     try:
         print(f"🔄 Regenerating embeddings for job {job_posting_id}...")
 
-        model = IndoBERTModel()
+        model = get_model()
 
         job_posting = db.query(JobPosting).filter(
             JobPosting.id == job_posting_id
@@ -173,20 +173,20 @@ def regenerate_embeddings(self, job_posting_id: int) -> Dict:
             raise ValueError(f"Job posting {job_posting_id} not found")
 
         # Delete old embeddings
-        deleted_count = db.query(JDEmbedding).filter(
-            JDEmbedding.job_posting_id == job_posting_id
+        deleted_count = db.query(JobPostingEmbedding).filter(
+            JobPostingEmbedding.job_posting_id == job_posting_id
         ).delete()
 
         print(f"  🗑️  Deleted {deleted_count} old embeddings")
 
         # Generate new embeddings
-        jd_service = JDProfileService(model, db)
+        jd_service = JobPostingService(model, db)
         jd_service._generate_embeddings(job_posting)
 
         db.commit()
 
-        new_count = db.query(JDEmbedding).filter(
-            JDEmbedding.job_posting_id == job_posting_id
+        new_count = db.query(JobPostingEmbedding).filter(
+            JobPostingEmbedding.job_posting_id == job_posting_id
         ).count()
 
         print(f"✅ Regenerated {new_count} embeddings for job {job_posting_id}")
@@ -205,6 +205,18 @@ def regenerate_embeddings(self, job_posting_id: int) -> Dict:
 
     finally:
         db.close()
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 @celery_app.task(name="app.tasks.jd_processing.batch_process_jd_profiles")
@@ -232,7 +244,7 @@ def batch_process_jd_profiles(job_posting_ids: List[int]) -> Dict:
 
             if job and job.questions:
                 # Process
-                result = process_jd_profile(job_id, job.questions)
+                result = process_job_posting_profile(job_id, job.questions)
                 results["success"].append({
                     "job_id": job_id,
                     "result": result
@@ -255,7 +267,6 @@ def batch_process_jd_profiles(job_posting_ids: List[int]) -> Dict:
 
     return results
 
-
 @celery_app.task(name="app.tasks.jd_processing.update_jd_competencies")
 def update_jd_competencies(job_posting_id: int, new_description: str) -> Dict:
     """
@@ -271,7 +282,7 @@ def update_jd_competencies(job_posting_id: int, new_description: str) -> Dict:
     db = SessionLocal()
 
     try:
-        from app.utils.jd_parser import parse_jd_to_competencies
+        from app.utils.parser import parse_jd_to_competencies
 
         print(f"📝 Updating competencies for job {job_posting_id}...")
 
@@ -345,8 +356,8 @@ def validate_embeddings(job_posting_id: int) -> Dict:
         if not job:
             return {"status": "error", "error": "Job not found"}
 
-        embeddings = db.query(JDEmbedding).filter(
-            JDEmbedding.job_posting_id == job_posting_id
+        embeddings = db.query(JobPostingEmbedding).filter(
+            JobPostingEmbedding.job_posting_id == job_posting_id
         ).all()
 
         issues = []

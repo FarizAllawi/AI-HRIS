@@ -8,6 +8,8 @@ class Settings(BaseSettings):
     API_PORT: int = 8100
     DEBUG: bool = True
 
+    HRMS_BASE_URL: str = "http://localhost:8000"
+
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 
