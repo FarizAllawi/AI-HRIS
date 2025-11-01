@@ -26,7 +26,6 @@ export function DeleteConfirmationDialog({
   isDeleting = false,
 }: DeleteConfirmationDialogProps) {
   if (!jobPosting) return null;
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
@@ -60,7 +59,7 @@ export function DeleteConfirmationDialog({
                   Status:
                 </span>
                 <span
-                  className={`ml-2 inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
+                  className={`capitalize ml-2 inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
                     jobPosting.status === 'published'
                       ? 'bg-green-100 text-green-800'
                       : jobPosting.status === 'draft'
@@ -96,8 +95,9 @@ export function DeleteConfirmationDialog({
             </p>
             <ul className="mt-2 list-inside list-disc space-y-1 text-sm text-gray-600">
               <li>The job posting and all its details</li>
-              <li>All associated questions and requirements</li>
-              {jobPosting.totalApplicants && jobPosting.totalApplicants > 0 && (
+              <li>All associated questions</li>
+              <li>All associated applicants answers</li>
+              {jobPosting.totalApplicants !== undefined && jobPosting.totalApplicants > 0 && (
                 <li className="font-medium text-red-600">
                   All {jobPosting.totalApplicants} job applications
                 </li>
@@ -105,7 +105,7 @@ export function DeleteConfirmationDialog({
             </ul>
           </div>
 
-          {jobPosting.totalApplicants && jobPosting.totalApplicants > 0 && (
+          {jobPosting.totalApplicants !== undefined && jobPosting.totalApplicants > 0 && (
             <div className="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
               <div className="flex items-start">
                 <IconAlertTriangle className="mt-0.5 h-4 w-4 flex-shrink-0 text-amber-600" />

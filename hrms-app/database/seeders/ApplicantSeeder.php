@@ -38,11 +38,12 @@ class ApplicantSeeder extends Seeder
             ->map(fn($row) => array_combine($headers->toArray(), $row));
 
         $jobPostingId = DB::table('job_postings')->where('title', 'Staf Administrasi Biro Pembelajaran')->value('id');
-        $questionId1 = DB::table('job_posting_questions')->where('question', 'Ceritakan pengalaman kerja terdahulu. Anda boleh menceritakan relevansi pengalaman kerja dulu dengan lowongan kerja yang Bapak/Ibu lamar')->value('id');
+        $questionId1 = DB::table('job_posting_questions')->where('question', 'LIKE', 'Ceritakan pengalaman kerja terdahulu. Anda boleh menceritakan relevansi pengalaman kerja dulu dengan lowongan kerja yang Bapak/Ibu lamar.')->value('id');
         $questionId2 = DB::table('job_posting_questions')->where('question', 'Apa motivasi Bapak/Ibu untuk bekerja di Universitas Trilogi?')->value('id');
         $questionId3 = DB::table('job_posting_questions')->where('question', 'Apa yang Bapak/Ibu ketahui tentang posisi ini?')->value('id');
-        $questionId4 = DB::table('job_posting_questions')->where('question', 'Apa rencana pengembangan kedepannya apabila Anda diterima dalam posisi ini?')->value('id');
-        $questionId5 = DB::table('job_posting_questions')->where('question', 'Jika Anda diterima, Apa yang Anda butuhkan dari Biro Sumber Daya Manusia jika Anda ingin mengembangkan diri Anda ?')->value('id');
+        $questionId4 = DB::table('job_posting_questions')->where('question', 'Apa rencana pengembangan ke depannya apabila Anda diterima dalam posisi ini?')->value('id');
+        $questionId5 = DB::table('job_posting_questions')->where('question', 'Jika Anda diterima, apa yang Anda butuhkan dari Biro Sumber Daya Manusia untuk mengembangkan diri Anda?')->value('id');
+
 
         // Create User & Applicant
         foreach ($data as $record) {

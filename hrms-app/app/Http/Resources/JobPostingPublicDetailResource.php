@@ -22,9 +22,12 @@ class JobPostingPublicDetailResource extends JsonResource
             'departments' => $this->departments,
             'type' => $this->type,
             'salary' => $this->salary,
-            'benefits' => $this->formatArray($this->benefits),
-            'requirements' => $this->formatArray($this->requirements),
-            'responsibilities' => $this->formatArray($this->responsibilities),
+            'benefits' => $this->benefits,
+            'requirements' => $this->requirements,
+            'responsibilities' => $this->responsibilities,
+            'qualifications' => $this->qualifications,
+            'required_skills' => $this->required_skills,
+            'preferred_skills' => $this->preferred_skills,
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
             'questions' => $this->whenLoaded('questions', function () {
@@ -33,7 +36,6 @@ class JobPostingPublicDetailResource extends JsonResource
                         'id' => $q->id,
                         'question' => $q->question,
                         'description' => $q->description,
-                        'weight' => $q->weight,
                     ];
                 });
             }),

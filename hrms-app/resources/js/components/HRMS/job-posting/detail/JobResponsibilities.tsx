@@ -1,8 +1,13 @@
 import { Badge } from '@/components/ui/badge';
 import { IconListCheck, IconX } from '@tabler/icons-react';
 
+type ArrayItem = {
+  id?: string;
+  value: string;
+}
+
 type Props = {
-  responsibilities?: string[];
+  responsibilities?: ArrayItem[];
 };
 
 export default function JobResponsibilities({ responsibilities }: Props) {
@@ -24,7 +29,7 @@ export default function JobResponsibilities({ responsibilities }: Props) {
               className="flex items-start space-x-3 rounded-md border bg-blue-50/50 p-3 dark:bg-blue-950/20"
             >
               <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-blue-500 dark:bg-blue-400" />
-              <span className="text-sm leading-relaxed">{responsibility}</span>
+              <span className="text-sm leading-relaxed">{responsibility.value}</span>
             </div>
           ))
         ) : (

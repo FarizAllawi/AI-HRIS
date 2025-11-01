@@ -19,19 +19,37 @@ class JobPostingRequest extends FormRequest
 
             // Requirements, Responsibilities, and Benefits (stored as JSON)
             'requirements' => 'required|array|min:1',
+            'requirements.*.id' => 'required|string|max:255',
             'requirements.*.value' => 'required|string|max:255',
 
             'responsibilities' => 'required|array|min:1',
+            'responsibilities.*.id' => 'required|string|max:255',
             'responsibilities.*.value' => 'required|string|max:255',
 
+            'qualifications' => 'required|array|min:1',
+            'qualifications.*.id' => 'required|string|max:255',
+            'qualifications.*.value' => 'required|string|max:255',
+
+            'required_skills' => 'nullable|array|min:1',
+            'required_skills.*.id' => 'nullable|string|max:255',
+            'required_skills.*.value' => 'nullable|string|max:255',
+
+            'preferred_skills' => 'nullable|array|min:0',
+            'preferred_skills.*.id' => 'nullable|string|max:255',
+            'preferred_skills.*.value' => 'nullable|string|max:255',
+
             'benefits' => 'nullable|array',
+            'benefits.*.id' => 'nullable|string|max:255',
             'benefits.*.value' => 'nullable|string|max:255',
 
             // Questions of the job
             'questions' => 'nullable|array',
+            'questions.*.id' => 'nullable|string|max:255',
             'questions.*.question' => 'required|string',
             'questions.*.description' => 'nullable|string',
             'questions.*.weight' => 'nullable|numeric|min:0',
+            'questions.*.mapped_competencies' => 'nullable|array',
+            'questions.*.mapped_competencies.*' => 'string',
         ];
     }
 

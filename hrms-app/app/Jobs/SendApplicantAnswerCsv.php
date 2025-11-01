@@ -33,7 +33,7 @@ class SendApplicantAnswerCsv implements ShouldQueue
 
             $response = Http::timeout(20)
                 ->attach('file', $fileContent, basename($this->csvPath))
-                ->post(env('AI_SERVICE_URL') || 'http://localhost:8100' . '/screening/upload');
+                ->post((env('AI_SERVICE_URL') ?: 'http://localhost:8100') . '/screening/upload-csv');
 
             if ($response->successful()) {
                 Log::info('✅ AI Microservice accepted CSV successfully.');

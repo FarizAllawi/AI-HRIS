@@ -1,12 +1,15 @@
 import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
-import AiScreeningProgress from '@/components/HRMS/job-posting/AiScreeningProgress';
+import AiScreeningProgress from '@/components/HRMS/job-posting/detail/AiScreeningProgress';
 import ApplicantCard from '@/components/HRMS/job-posting/ApplicantCard';
-import JobDescription from '@/components/HRMS/job-posting/JobDescription';
-import JobOverview from '@/components/HRMS/job-posting/JobOverview';
-import JobRequirements from '@/components/HRMS/job-posting/JobRequirements';
-import JobResponsibilities from '@/components/HRMS/job-posting/JobResponsibilities';
-import TopAiRankings from '@/components/HRMS/job-posting/TopAiRankings';
-import TopCandidates from '@/components/HRMS/job-posting/TopCandidates';
+import JobDescription from '@/components/HRMS/job-posting/detail/JobDescription';
+import JobOverview from '@/components/HRMS/job-posting/detail/JobOverview';
+import JobRequirements from '@/components/HRMS/job-posting/detail/JobRequirements';
+import JobQualifications from '@/components/HRMS/job-posting/detail/JobQualifications';
+import JobPreferredSkills from '@/components/HRMS/job-posting/detail/JobPreferredSkills';
+import JobRequiredSkills from '@/components/HRMS/job-posting/detail/JobRequiredSkills';
+import JobResponsibilities from '@/components/HRMS/job-posting/detail/JobResponsibilities';
+import TopAiRankings from '@/components/HRMS/job-posting/detail/TopAiRankings';
+import TopCandidates from '@/components/HRMS/job-posting/detail/TopCandidates';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,6 +38,11 @@ const formatBadgeText = (text: string) => {
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join(' ');
 };
+
+type ArrayItem = {
+  id: string;
+  value: string;
+}
 
 type Applicant = {
   id: string;
@@ -86,9 +94,12 @@ type Props = {
     department?: string;
     employmentType?: string;
     salary?: string;
-    requirements?: string[];
-    responsibilities?: string[];
-    benefits?: string[];
+    requirements?: ArrayItem[];
+    responsibilities?: ArrayItem[];
+    qualifications?: ArrayItem[];
+    required_skills?: ArrayItem[];
+    preferred_skills?: ArrayItem[];
+    benefits?: ArrayItem[];
     applicants?: Applicant[];
     rankings?: RankedApplicant[];
     aiRankings?: AiRankedApplicant[];
@@ -153,6 +164,8 @@ export default function JobPostingDetail({ jobPosting }: Props) {
       return true;
     });
   }, [jobPosting.applicants, query, timeRange, statusFilter]);
+
+  console.log("jobPosting", jobPosting);
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -267,6 +280,9 @@ export default function JobPostingDetail({ jobPosting }: Props) {
           <JobDescription description={jobPosting.description} />
           <JobRequirements requirements={jobPosting.requirements} />
           <JobResponsibilities responsibilities={jobPosting.responsibilities} />
+          <JobQualifications qualifications={jobPosting.qualifications} />
+          <JobRequiredSkills required_skills={jobPosting.preferred_skills} />
+          <JobPreferredSkills preferred_skills={jobPosting.preferred_skills} />
 
           {jobPosting.benefits && jobPosting.benefits.length > 0 && (
             <div className="rounded-lg border bg-card p-6">
@@ -285,7 +301,7 @@ export default function JobPostingDetail({ jobPosting }: Props) {
                     className="flex items-start space-x-3 rounded-md border bg-purple-50/50 p-3 dark:bg-purple-950/20"
                   >
                     <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-purple-500 dark:bg-purple-400" />
-                    <span className="text-sm leading-relaxed">{benefit}</span>
+                    <span className="text-sm leading-relaxed">{benefit.value}</span>
                   </div>
                 ))}
               </div>

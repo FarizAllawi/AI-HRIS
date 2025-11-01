@@ -2,15 +2,15 @@
 
 namespace App\Repositories\JobPosting;
 
+use App\Events\JobPostingEvent;
 use Illuminate\Database\Eloquent\Collection;
 use App\Repositories\BaseRepository;
 use Illuminate\Database\Eloquent\Model;
-
 use App\Repositories\JobPostingQuestions\JobPostingQuestionsRepository;
-
 use App\Models\JobPosting;
 use App\Models\JobPostingQuestion;
 use Illuminate\Support\Facades\DB;
+use Ramsey\Uuid\Uuid;
 
 class JobPostingRepository extends BaseRepository implements JobPostingRepositoryInterface
 {
@@ -41,13 +41,11 @@ class JobPostingRepository extends BaseRepository implements JobPostingRepositor
 
             $query->where(function ($q) use ($search, $driver) {
                 if ($driver === 'pgsql') {
-                    // PostgreSQL supports ILIKE for case-insensitive matching
                     $q->where('title', 'ILIKE', "%{$search}%")
                         ->orWhere('description', 'ILIKE', "%{$search}%")
                         ->orWhere('location', 'ILIKE', "%{$search}%")
                         ->orWhere('departments', 'ILIKE', "%{$search}%");
                 } else {
-                    // SQLite (and others) — emulate ILIKE using LOWER() + LIKE
                     $search = strtolower($search);
                     $q->whereRaw('LOWER(title) LIKE ?', ["%{$search}%"])
                         ->orWhereRaw('LOWER(description) LIKE ?', ["%{$search}%"])
@@ -66,21 +64,24 @@ class JobPostingRepository extends BaseRepository implements JobPostingRepositor
     public function create(array $data): Model
     {
         return DB::transaction(function () use ($data) {
-            // Create the job posting
+            // ✅ Laravel handles JSON casting automatically
             $jobPosting = $this->model->create([
                 'title' => $data['title'],
                 'description' => $data['description'],
                 'location' => $data['location'] ?? null,
                 'departments' => $data['departments'] ?? null,
-                'requirements' => $this->formatArrayData($data['requirements']),
-                'responsibilities' => $this->formatArrayData($data['responsibilities']),
-                'benefits' => isset($data['benefits']) ? $this->formatArrayData($data['benefits']) : null,
+                'requirements' => $data['requirements'],
+                'responsibilities' => $data['responsibilities'],
+                'qualifications' => $data['qualifications'],
+                'required_skills' => $data['required_skills'] ?? null,
+                'preferred_skills' => $data['preferred_skills'] ?? null,
+                'benefits' => $data['benefits'] ?? null,
                 'salary' => $data['salary'] ?? null,
                 'type' => $data['type'],
                 'status' => $data['status'],
             ]);
 
-            // Create related job posting questions (if any)
+            // ✅ Create related questions (no json_encode)
             if (!empty($data['questions'])) {
                 foreach ($data['questions'] as $question) {
                     $this->jobPostingQuestions->create([
@@ -88,59 +89,102 @@ class JobPostingRepository extends BaseRepository implements JobPostingRepositor
                         'question' => $question['question'],
                         'description' => $question['description'] ?? null,
                         'weight' => $question['weight'] ?? 0,
+                        'mapped_competencies' => $question['mapped_competencies'] ?? [],
+                        'weight_version' => $question['weight_version'] ?? 1,
                     ]);
                 }
             }
 
-            return $jobPosting->load('questions');
+            $jobPosting->load('questions');
+
+            // Dispatch event after transaction
+            event(new JobPostingEvent($jobPosting, 'create'));
+
+            return $jobPosting;
+
         });
     }
 
-    public function update(string $id, array $data): ?Model
+    public function update(string $id, array $data): Model
     {
         return DB::transaction(function () use ($id, $data) {
-            // Find and lock the job posting for update
-            $jobPosting = $this->model->lockForUpdate()->findOrFail($id);
-            // Update the job posting
+            $jobPosting = $this->model->with('questions')->findOrFail($id);
+
+            // Update main job posting fields
             $jobPosting->update([
                 'title' => $data['title'],
                 'description' => $data['description'],
                 'location' => $data['location'] ?? null,
                 'departments' => $data['departments'] ?? null,
-                'requirements' => $this->formatArrayData($data['requirements']),
-                'responsibilities' => $this->formatArrayData($data['responsibilities']),
-                'benefits' => isset($data['benefits']) ? $this->formatArrayData($data['benefits']) : null,
+                'requirements' => $data['requirements'],
+                'responsibilities' => $data['responsibilities'],
+                'qualifications' => $data['qualifications'],
+                'required_skills' => $data['required_skills'] ?? null,
+                'preferred_skills' => $data['preferred_skills'] ?? null,
+                'benefits' => $data['benefits'] ?? null,
                 'salary' => $data['salary'] ?? null,
                 'type' => $data['type'],
                 'status' => $data['status'],
             ]);
 
-            // Delete existing questions
-            $this->jobPostingQuestions->deleteByJobPostingId($jobPosting->id);
-
-            // Create new questions (if any)
             if (!empty($data['questions'])) {
-                foreach ($data['questions'] as $question) {
-                    $this->jobPostingQuestions->create([
+                // List of questions id that in Job Posting
+                $jobPostingQuestionIds = $jobPosting->questions->pluck('id')->toArray();
+                foreach ($data['questions'] as $questions) {
+                    $questionData = [
                         'job_posting_id' => $jobPosting->id,
-                        'question' => $question['question'],
-                        'description' => $question['description'] ?? null,
-                        'weight' => $question['weight'] ?? 0,
-                    ]);
+                        'question' => $questions['question'],
+                        'description' => $questions['description'] ?? null,
+                        'weight' => $questions['weight'] ?? 0,
+                        'mapped_competencies' => $questions['mapped_competencies'] ?? [],
+                        'weight_version' => $questions['weight_version'] ?? 1,
+                    ];
+
+                    // If question ID from request has an ID than update it
+                    if (!is_null($questions['id']) && Uuid::isValid($questions['id'])) {
+                       // Validate is questions really exist in database
+                        $existingQuestion = $jobPosting->questions()->where(
+                            'id', $questions['id']
+                        )->first();
+
+                        // Check is existing weight questions change, required to set for AI Service
+                        $oldWeight = $existingQuestion->weight;
+                        $shouldIncrementVersion = $oldWeight !== $questions['weight'];
+
+                        $existingQuestion->update([
+                            ...$questionData,
+                            'weight_version' => $shouldIncrementVersion
+                                ? ($existingQuestion->weight_version + 1)
+                                : $existingQuestion->weight_version,
+                        ]);
+                        // Skip the loop
+                        continue;
+                    }
+
+                    // Create the new question when id is not set from request
+                    $this->jobPostingQuestions->create($questionData);
+                }
+
+                // Delete removed questions
+                $incomingIds = collect($data['questions'])
+                    ->pluck('id')
+                    ->filter(fn($id) => !is_null($id) && Uuid::isValid($id))
+                    ->toArray();
+
+                $toDelete = array_diff($jobPostingQuestionIds, $incomingIds);
+
+                foreach ($toDelete as $jobPostingQuestionId) {
+                    $this->jobPostingQuestions->delete($jobPostingQuestionId);
                 }
             }
+            $jobPosting->loadMissing('questions');
 
-            return $jobPosting->load('questions');
+             event(new JobPostingEvent($jobPosting, 'update'));
+
+            return $jobPosting;
         });
     }
 
-    /**
-     * Update only the status of a job posting (simpler than full update)
-     *
-     * @param string $id
-     * @param string $status
-     * @return Model|null
-     */
     public function updateStatus(string $id, string $status): ?Model
     {
         return DB::transaction(function () use ($id, $status) {
@@ -148,25 +192,5 @@ class JobPostingRepository extends BaseRepository implements JobPostingRepositor
             $jobPosting->update(['status' => $status]);
             return $jobPosting;
         });
-    }
-
-    /**
-     * Format array data to ensure consistent structure
-     *
-     * @param array $data
-     * @return array
-     */
-    private function formatArrayData(array $data): array
-    {
-        // Ensure each item has the expected structure with 'value' key
-        return array_map(function($item) {
-            if (is_array($item) && isset($item['value'])) {
-                return $item;
-            } elseif (is_string($item)) {
-                return ['value' => $item];
-            } else {
-                return ['value' => (string)$item];
-            }
-        }, $data);
     }
 }

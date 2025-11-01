@@ -10,33 +10,11 @@ use Illuminate\Support\Facades\DB;
 
 class ScreeningController extends Controller
 {
-    public function uploadCsv(Request $request)
-    {
-        $request->validate([
-            'csv_file' => 'required|file|mimes:csv,txt',
-            'job_description' => 'required|string',
-        ]);
-
-        $file = $request->file('csv_file');
-
-        $response = Http::withHeaders([
-            'X-API-KEY' => env('FASTAPI_API_KEY', 'secret123'),
-        ])->attach(
-            'file',
-            file_get_contents($file->getRealPath()),
-            $file->getClientOriginalName()
-        )->post(env('FASTAPI_URL', 'http://ai-service:8100') . '/upload-csv/', [
-            'job_description' => $request->job_description,
-            'callback_url' => route('screening.callback'),
-        ]);
-
-        // FastAPI returns a task_id so we can poll later
-        return response()->json($response->json(), $response->status());
-    }
-
     public function callback(Request $request)
     {
         $data = $request->all();
+
+        dd($data);
 
         Log::info('📥 FastAPI callback received:', $data);
 

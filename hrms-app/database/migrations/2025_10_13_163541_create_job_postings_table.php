@@ -19,6 +19,9 @@ return new class extends Migration
             $table->string('departments')->nullable();
             $table->text('requirements');       // store as JSON
             $table->text('responsibilities');  // store as JSON
+            $table->text('qualifications');  // store as JSON
+            $table->text('required_skills')->nullable(); // store as JSON
+            $table->text('preferred_skills')->nullable(); // store as JSON
             $table->text('benefits')->nullable(); // store as JSON
             $table->string('salary')->nullable();
             $table->enum('type', ['full-time', 'contract', 'part-time', 'internship'])->default('full-time');

@@ -3,28 +3,24 @@
 namespace App\Jobs;
 
 use App\Models\Applicant;
+use App\Models\AppliedJobAnswer;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class ProcessApplicantAnswer implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    /**
-     * Create a new job instance.
-     */
     public function __construct(public int $limit = 10) {}
 
-    /**
-     * Execute the job.
-     */
     public function handle(): void
     {
-        // ✅ Get up to N applicants that have pending answers
+        // ✅ Get applicants with pending answers
         $applicants = Applicant::with([
             'appliedJobs.jobPostingAnswers.jobPostingQuestion.jobPosting',
             'user'
@@ -36,136 +32,80 @@ class ProcessApplicantAnswer implements ShouldQueue
             ->get();
 
         if ($applicants->isEmpty()) {
-            info('No applicants with pending answers found.');
+            Log::info('No applicants with pending answers found.');
             return;
         }
 
-        // ✅ Prepare a temporary in-memory file for CSV
-        $handle = fopen('php://temp', 'r+');
-        fputcsv($handle, [
-            'user_id',
-            'applicant_id',
-            'question_id',
-            'answer_id',
-            'job_posting_id',
-            'job_posting_title',
-            'job_posting_description',
-            'job_posting_responsibilities',
-            'job_posting_requirements',
-            'job_posting_benefits',
-            'question',
-            'answer',
-            'weight'
-        ]);
-
-        // ✅ Write CSV rows and track processed answer IDs
         $processedAnswerIds = [];
+        $payload = ['applicants' => []];
 
         foreach ($applicants as $applicant) {
+            $answers = [];
+            $jobPostingId = null;
+
             foreach ($applicant->appliedJobs as $job) {
+                $jobPostingId = $job->jobPosting->id ?? null;
+
                 foreach ($job->jobPostingAnswers as $answer) {
-                    if ($answer->status !== 'pending') continue;
+                    if ($answer->status !== 'pending') {
+                        continue;
+                    }
 
-                    $jobPosting = $answer->jobPostingQuestion->jobPosting;
+                    $answers[] = [
+                        'id' => $answer->id,
+                        'applicant_id' => $applicant->id,
+                        'question_id' => $answer->job_posting_question_id,
+                        'answer' => $answer->answer,
+                    ];
 
-                    fputcsv($handle, [
-                        $applicant->user->id ?? 'Unknown',
-                        $applicant->id ?? '-',
-                        $answer->job_posting_question_id ?? '-',
-                        $answer->id ?? '-',
-                        $jobPosting->id ?? '-',
-                        $this->formatField($jobPosting->title),
-                        $this->formatJsonField($jobPosting->description),
-                        $this->formatJsonField($jobPosting->responsibilities),
-                        $this->formatJsonField($jobPosting->requirements),
-                        $this->formatJsonField($jobPosting->benefits),
-                        $this->formatField($answer->jobPostingQuestion->question),
-                        $this->formatField($answer->answer),
-                        $this->formatField($answer->jobPostingQuestion->weight),
-                    ]);
-
-                    // Track this answer ID for status update
                     $processedAnswerIds[] = $answer->id;
                 }
             }
+
+            if (!empty($answers)) {
+                $payload['applicants'][] = [
+                    'id' => $applicant->id,
+                    'job_posting_id' => $jobPostingId,
+                    'user_id' => $applicant->user_id,
+                    'answers' => $answers,
+                ];
+            }
         }
 
-        // ✅ Save file to storage
-        rewind($handle);
-        $csvContent = stream_get_contents($handle);
-        fclose($handle);
+        if (empty($payload['applicants'])) {
+            Log::info('No pending answers to process.');
+            return;
+        }
 
-        $filename = 'applicant_answers_' . now()->format('Ymd_His') . '.csv';
-        $path = "exports/$filename";
-        Storage::disk('local')->put($path, $csvContent);
+        // ✅ Send all applicants in a single request
+        try {
+            $url = env('AI_SERVICE_URL', 'http://localhost:8100');
+            $response = Http::timeout(30)->post(
+                $url . '/screening/applicant/batch',
+                $payload
+            );
 
-        // ✅ Update all processed answers to 'processing' status
+            if ($response->successful()) {
+                Log::info("✅ Successfully sent applicants to AI service.");
+            } else {
+                Log::error("❌ Failed to send applicants.", [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            Log::error("❌ Exception when sending data: " . $e->getMessage());
+        }
+
+        // ✅ Update status to 'processing'
         if (!empty($processedAnswerIds)) {
-            \App\Models\AppliedJobAnswer::whereIn('id', $processedAnswerIds)
+            AppliedJobAnswer::whereIn('id', $processedAnswerIds)
                 ->update([
                     'status' => 'processing',
-                    'updated_at' => now()
+                    'updated_at' => now(),
                 ]);
 
-            info("✅ Updated " . count($processedAnswerIds) . " answers to 'processing' status");
+            Log::info("✅ Updated " . count($processedAnswerIds) . " answers to 'processing' status");
         }
-
-        info("✅ CSV file generated: storage/app/$path");
-
-        // Dispatch the next job
-        dispatch(new SendApplicantAnswerCsv($filename, $processedAnswerIds));
-    }
-
-    /**
-     * Format JSON field for CSV export
-     */
-    private function formatJsonField($field): string
-    {
-        if (empty($field)) {
-            return '-';
-        }
-
-        // If it's a string, try to decode it
-        if (is_string($field)) {
-            $decoded = json_decode($field, true);
-            if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
-                $field = $decoded; // Use decoded array
-            } else {
-                return $field; // Return as-is if not JSON
-            }
-        }
-
-        // If it's an array, process it
-        if (is_array($field)) {
-            // Check if it's an array of objects with 'value' key
-            $values = [];
-            foreach ($field as $item) {
-                if (is_array($item) && isset($item['value'])) {
-                    $values[] = $item['value'];
-                } elseif (is_string($item)) {
-                    $values[] = $item;
-                }
-            }
-
-            return !empty($values) ? implode('; ', $values) : '-';
-        }
-
-        return '-';
-    }
-
-    /**
-     * Format regular field for CSV export (handles any type safely)
-     */
-    private function formatField($field): string
-    {
-        if (empty($field)) {
-            return '-';
-        }
-
-        if (is_array($field)) {
-            return json_encode($field);
-        }
-
-        return (string) $field;
     }
 }

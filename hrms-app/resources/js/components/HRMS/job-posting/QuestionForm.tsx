@@ -32,7 +32,7 @@ export default function QuestionForm({
     formState: { errors },
   } = useForm<QuestionFormValues>({
     resolver: zodResolver(questionSchema),
-    defaultValues: {
+    initialValues: {
       questions: initialValues?.questions || [
         { question: '', description: '' },
       ],

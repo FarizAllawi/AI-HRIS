@@ -18,9 +18,9 @@ class FormJobPostingResource extends JsonResource
             'salary' => $this->salary,
             'type' => $this->type,
             'status' => $this->status,
-            'requirements' => $this->transformArrayField($this->requirements),
-            'responsibilities' => $this->transformArrayField($this->responsibilities),
-            'benefits' => $this->transformArrayField($this->benefits),
+            'requirements' => $this->requirements,
+            'responsibilities' => $this->responsibilities,
+            'benefits' => $this->benefits,
             'questions' => $this->transformQuestions($this->questions),
         ];
     }
@@ -36,9 +36,12 @@ class FormJobPostingResource extends JsonResource
             'salary' => $this->salary,
             'type' => $this->type,
             'status' => $this->status,
-            'requirements' => $this->transformArrayField($this->requirements),
-            'responsibilities' => $this->transformArrayField($this->responsibilities),
-            'benefits' => $this->transformArrayField($this->benefits),
+            'requirements' => $this->requirements,
+            'responsibilities' => $this->responsibilities,
+            'qualifications' => $this->qualifications,
+            'required_skills' =>$this->required_skills,
+            'preferred_skills' => $this->preferred_skills,
+            'benefits' => $this->benefits,
             'questions' => $this->transformQuestions($this->questions),
         ];
     }
@@ -78,9 +81,11 @@ class FormJobPostingResource extends JsonResource
         if (is_iterable($questions)) {
             return collect($questions)->map(function ($question) {
                 return [
+                    'id' => $question->id ?? null,
                     'question' => $question['question'] ?? '',
                     'description' => $question['description'] ?? '',
                     'weight' => (string)($question['weight'] ?? ''),
+                    'mapped_competencies' => $question['mapped_competencies'] ?? [],
                 ];
             })->toArray();
         }

@@ -17,7 +17,10 @@ class JobPosting extends Model
         'location',
         'departments',
         'requirements',
+        'qualifications',
         'responsibilities',
+        'required_skills',
+        'preferred_skills',
         'salary',
         'benefits',
         'type',
@@ -25,9 +28,12 @@ class JobPosting extends Model
     ];
 
     protected $casts = [
-        'requirements' => 'array',      // <-- cast JSON to array
-        'responsibilities' => 'array',   // <-- cast JSON to array
-        'benefits' => 'array',          // <-- cast JSON to array
+        'requirements' => 'array',
+        'responsibilities' => 'array',
+        'qualifications' => 'array',
+        'required_skills' => 'array',
+        'preferred_skills' => 'array',
+        'benefits' => 'array',
     ];
 
     public function questions()

@@ -16,6 +16,14 @@ class JobPostingQuestion extends Model
         'question',
         'description',
         'weight',
+        'mapped_competencies',
+        'weight_version'
+    ];
+
+    protected $casts = [
+        'mapped_competencies' => 'array',
+        'weight' => 'float',
+        'weight_version' => 'integer',
     ];
 
     public function jobPosting()

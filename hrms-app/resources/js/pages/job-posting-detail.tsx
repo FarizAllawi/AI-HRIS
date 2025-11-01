@@ -46,9 +46,12 @@ interface JobPosting {
   departments: string;
   type: string;
   salary: string;
-  benefits: Array<{ value: string }>;
-  requirements: Array<{ value: string }>;
-  responsibilities: Array<{ value: string }>;
+  benefits: Array<{ id: string, value: string }>;
+  requirements: Array<{ id: string, value: string }>;
+  responsibilities: Array<{ id: string, value: string }>;
+  qualifications: Array<{ id: string, value: string }>;
+  required_skills: Array<{ id: string, value: string }>;
+  preferred_skills: Array<{ id: string, value: string }>;
   created_at: string;
   updated_at: string;
   questions: JobPostingQuestion[];
@@ -228,6 +231,75 @@ export default function JobPostingDetail() {
                             </h2>
                             <ul className="space-y-2">
                               {jobPosting.requirements.map((req, index) => (
+                                <li
+                                  key={index}
+                                  className="flex items-start text-gray-600 dark:text-gray-300"
+                                >
+                                  <span className="mt-1 mr-3 text-blue-600">
+                                    ✓
+                                  </span>
+                                  {req.value}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                      {/* RQualifications */}
+                      {jobPosting.qualifications &&
+                        jobPosting.qualifications.length > 0 && (
+                          <div className="mb-8">
+                            <h2 className="mb-4 text-xl font-semibold">
+                              Qualifications
+                            </h2>
+                            <ul className="space-y-2">
+                              {jobPosting.qualifications.map((req, index) => (
+                                <li
+                                  key={index}
+                                  className="flex items-start text-gray-600 dark:text-gray-300"
+                                >
+                                  <span className="mt-1 mr-3 text-blue-600">
+                                    ✓
+                                  </span>
+                                  {req.value}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                      {/* Required Skills */}
+                      {jobPosting.required_skills &&
+                        jobPosting.required_skills.length > 0 && (
+                          <div className="mb-8">
+                            <h2 className="mb-4 text-xl font-semibold">
+                              Required Skills
+                            </h2>
+                            <ul className="space-y-2">
+                              {jobPosting.required_skills.map((req, index) => (
+                                <li
+                                  key={index}
+                                  className="flex items-start text-gray-600 dark:text-gray-300"
+                                >
+                                  <span className="mt-1 mr-3 text-blue-600">
+                                    ✓
+                                  </span>
+                                  {req.value}
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+                        )}
+
+                      {/* Preferred Skills */}
+                      {jobPosting.preferred_skills &&
+                        jobPosting.preferred_skills.length > 0 && (
+                          <div className="mb-8">
+                            <h2 className="mb-4 text-xl font-semibold">
+                              Preffered Skills
+                            </h2>
+                            <ul className="space-y-2">
+                              {jobPosting.preferred_skills.map((req, index) => (
                                 <li
                                   key={index}
                                   className="flex items-start text-gray-600 dark:text-gray-300"

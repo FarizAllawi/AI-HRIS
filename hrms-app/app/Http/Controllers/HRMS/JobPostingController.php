@@ -11,16 +11,17 @@ use App\Models\JobPosting;
 use App\Repositories\JobPosting\JobPostingRepositoryInterface;
 use App\Repositories\JobPostingQuestions\JobPostingQuestionsRepositoryInterface;
 use Illuminate\Support\Facades\Redirect;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class JobPostingController extends Controller
 {
-
     public function __construct(
         protected JobPostingRepositoryInterface $jobPosting,
-        protected  JobPostingQuestionsRepositoryInterface $jobPostingQuestions
+        protected JobPostingQuestionsRepositoryInterface $jobPostingQuestions
     ){}
+
     /**
      * Display a listing of the resource.
      */
@@ -46,12 +47,18 @@ class JobPostingController extends Controller
     public function store(JobPostingRequest $request)
     {
         try {
-            // Use repository to store
             $data = $request->validated();
-            $jobPosting = $this->jobPosting->create($data);
+            $this->jobPosting->create($data);
 
             return Redirect::route('job-posting.index');
         } catch (\Exception $e) {
+            Log::error('Failed to create job posting', [
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
             return back()->withErrors([
                 'general' => 'Failed to create job posting. Please try again.'
             ])->withInput();
@@ -63,7 +70,6 @@ class JobPostingController extends Controller
      */
     public function show(JobPosting $jobPosting): Response
     {
-        // Fetch job posting from database
         return Inertia::render('HRMS/job-posting/detail', [
             'jobPosting' => new JobPostingDetailResource($jobPosting),
         ]);
@@ -74,10 +80,7 @@ class JobPostingController extends Controller
      */
     public function edit(JobPosting $jobPosting)
     {
-        // Load the job posting with its questions
         $jobPosting->load('questions');
-
-        // Use form-specific resource to transform data for the edit form
         $jobPostingResource = new FormJobPostingResource($jobPosting);
 
         return Inertia::render('HRMS/job-posting/action', [
@@ -91,12 +94,19 @@ class JobPostingController extends Controller
     public function update(JobPostingRequest $request, JobPosting $jobPosting)
     {
         try {
-            // Use repository to update
             $data = $request->validated();
             $this->jobPosting->update($jobPosting->id, $data);
 
             return Redirect::route('job-posting.index');
         } catch (\Exception $e) {
+            Log::error('Failed to update job posting', [
+                'job_posting_id' => $jobPosting->id,
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
             return back()->withErrors([
                 'general' => 'Failed to update job posting. Please try again.'
             ])->withInput();
@@ -108,9 +118,7 @@ class JobPostingController extends Controller
      */
     public function archived(JobPosting $jobPosting)
     {
-        // Use repository to update status to archived
         $this->jobPosting->updateStatus($jobPosting->id, 'archived');
-
         return Redirect::route('job-posting.index');
     }
 
@@ -119,9 +127,7 @@ class JobPostingController extends Controller
      */
     public function unpublish(JobPosting $jobPosting)
     {
-        // Use repository to update status to unpublish
         $this->jobPosting->updateStatus($jobPosting->id, 'unpublish');
-
         return Redirect::route('job-posting.index');
     }
 
@@ -130,9 +136,7 @@ class JobPostingController extends Controller
      */
     public function publish(JobPosting $jobPosting)
     {
-        // Use repository to update status to published
         $this->jobPosting->updateStatus($jobPosting->id, 'published');
-
         return Redirect::route('job-posting.index');
     }
 
@@ -141,9 +145,7 @@ class JobPostingController extends Controller
      */
     public function unarchive(JobPosting $jobPosting)
     {
-        // Use repository to update status to draft for editing
         $this->jobPosting->updateStatus($jobPosting->id, 'draft');
-
         return Redirect::route('job-posting.index');
     }
 
@@ -153,15 +155,19 @@ class JobPostingController extends Controller
     public function destroy(JobPosting $jobPosting)
     {
         try {
-            // Use repository to delete the job posting
-            // This will also handle soft deletion and any related data cleanup
             $this->jobPosting->delete($jobPosting->id);
 
             return Redirect::route('job-posting.index');
         } catch (\Exception $e) {
+            Log::error('Failed to delete job posting', [
+                'job_posting_id' => $jobPosting->id,
+                'message' => $e->getMessage(),
+                'file'    => $e->getFile(),
+                'line'    => $e->getLine(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
+
             return Redirect::route('job-posting.index');
         }
     }
-
-
 }

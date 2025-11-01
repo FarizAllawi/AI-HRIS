@@ -5,8 +5,8 @@ import { Head, router } from '@inertiajs/react';
 import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
 import {
   JobPostingForm,
-  JobPostingFormValues,
-} from '@/components/HRMS/job-posting/JobPostingForm';
+} from '@/components/HRMS/job-posting/action/JobPostingForm';
+import { JobPostingFormValues } from '@/components/HRMS/job-posting/action/schema';
 import AppLayout from '@/layouts/app-layout';
 
 export default function JobPostingDetail({
@@ -90,6 +90,7 @@ export default function JobPostingDetail({
     }
   };
 
+  console.log("jobPostingDetail:", jobPosting);
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Job Posting | ${isCreate ? 'Create' : 'Edit'}`} />
