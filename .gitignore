@@ -1,0 +1,23 @@
+# IDE
+.idea/
+.vscode/
+
+# Environment files
+.env
+*.env
+!.env.example
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+
+# CSV data files
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
