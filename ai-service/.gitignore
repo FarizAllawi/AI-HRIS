@@ -78,3 +78,6 @@ celerybeat.pid
 # Jupyter
 .ipynb_checkpoints/
 *.ipynb
+
+# Keys
+/keys/*.key
