@@ -19,6 +19,7 @@ dependencies = [
     "redis>=6.4.0",
     "pandas>=2.3.3",
     "psycopg2>=2.9.11",
+    "python-jose[cryptography]>=3.5.0",
     # ✅ Use CPU-only PyTorch builds (compatible with Linux CPython 3.12)
     "torch>=2.7.0",
     "torchvision>=0.22.0",
@@ -27,6 +28,8 @@ dependencies = [
     "transformers>=4.57.1",
     "sentence-transformers>=5.1.1",
     "tqdm>=4.67.1",
+    # Local vector index backend for dev
+    "hnswlib>=0.7.0",
 ]
 
 # ✅ Add PyTorch CPU wheel index
@@ -52,5 +55,6 @@ pythonpath = "."
 [dependency-groups]
 dev = [
     "ipykernel>=7.0.1",
+    "hnswlib>=0.7.0",
 ]
 

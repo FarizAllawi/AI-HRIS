@@ -1,5 +1,6 @@
 import os, requests, time, threading
 from app.core.config import settings
+from app.core.oauth_token_manager import get_token
 
 PUBLIC_KEY_CACHE_PATH = "keys/oauth-public.key"
 GATEWAY_KEY_URL = f"{settings.GATEWAY_BASE_URL}/api/passport/public-key"
@@ -7,7 +8,8 @@ FETCH_INTERVAL = 3600  # every 1 hour
 
 def fetch_and_cache_public_key():
     try:
-        headers = {"X-Internal-Key": settings.FASTAPI_INTERNAL_KEY}
+        token = get_token()
+        headers = {"Authorization": "Bearer " + token}
         response = requests.get(GATEWAY_KEY_URL, headers=headers, timeout=10)
         response.raise_for_status()
         new_key = response.text.strip()

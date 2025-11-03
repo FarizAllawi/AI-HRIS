@@ -6,7 +6,7 @@ import uuid
 
 class JobPosting(Base):
     __tablename__ = 'job_posting'
-    id = Column(UUID, primary_key=True, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
     title = Column(String(255), nullable=False)
     description = Column(Text, nullable=False)
 
@@ -59,8 +59,8 @@ class JobPosting(Base):
 
 class JobPostingQuestion(Base):
     __tablename__ = 'job_posting_question'
-    id = Column(UUID, primary_key=True, index=True)
-    job_posting_id = Column(UUID, ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    job_posting_id = Column(UUID(as_uuid=True), ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
     question = Column(Text, nullable=False)
     weight = Column(Float, nullable=False)  # Weight of the question in overall screening
     mapped_competencies = Column(JSON)  # List of competency IDs mapped to this question
@@ -89,7 +89,7 @@ class JobPostingQuestion(Base):
 class JobPostingEmbedding(Base):
     __tablename__ = 'job_posting_embedding'
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4, index=True)
-    job_posting_id = Column(UUID, ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
+    job_posting_id = Column(UUID(as_uuid=True), ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
 
     # Compentency Identification
     competency_type = Column(Text) # responsibility, required_skill, preferred_skill, qualification

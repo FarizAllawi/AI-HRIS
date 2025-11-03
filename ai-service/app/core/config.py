@@ -1,20 +1,37 @@
 from pydantic_settings import BaseSettings
 from typing import List
-
+import os
 
 class Settings(BaseSettings):
     # API Settings
+    API_NAME: str = "AI-Service"
     API_HOST: str = "0.0.0.0"
     API_PORT: int = 8100
     DEBUG: bool = True
 
-    HRMS_BASE_URL: str = "http://localhost:8000"
+    GATEWAY_BASE_URL: str = "http://localhost:8000"
+
+    # OAuth
+    OAUTH_PUBLIC_KEY: str = "/keys/oauth_public.key"
+    OAUTH_EXPECTED_AUDIENCES: str = ""  # Comma-separated list of acceptable 'aud' values (optional)
+
+    # Machine-to-machine (client_credentials) settings
+    API_CLIENT_ID: str = os.getenv("API_CLIENT_ID", "supersecretkey")
+    API_CLIENT_SECRET: str = os.getenv("API_CLIENT_SECRET", "supersecretkey")
+    OAUTH_TOKEN_URL: str = GATEWAY_BASE_URL + "/oauth/token"
+    API_TOKEN_SCOPE: str = "ai-service:*"
+    TOKEN_CACHE_BUFFER: int = 30  # seconds to subtract from token expiry when caching
 
     # CORS
     CORS_ORIGINS: List[str] = ["*"]
 
     # Database
-    DATABASE_URL: str = "postgresql://admin:secret@localhost:5432/fastapi_db"
+    # Default to a local sqlite file for development (supports embedding JSON storage).
+    # Override with DATABASE_URL in .env for production (e.g. postgresql://...)
+    DATABASE_URL: str = "sqlite:///./data/dev.db"
+
+    # Path where vector index files will be stored (used by local dev vector search)
+    VECTOR_INDEX_PATH: str = "./data/embeddings/embeddings_hnsw.bin"
 
     # Redis
     REDIS_URL: str = "redis://localhost:6379/0"

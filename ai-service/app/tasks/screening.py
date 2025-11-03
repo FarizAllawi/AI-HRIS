@@ -7,6 +7,7 @@ import logging
 from app.core.config import settings
 from app.core.database import SessionLocal
 from app.core.ml_loader import get_model
+from app.core.oauth_token_manager import get_token
 
 from app.services.screening_service import ScreeningService
 from app.utils.parser import to_serializable
@@ -77,10 +78,14 @@ def screen_applicant_batch_async(
     max_retries=10,
 )
 def send_screening_batch_result_to_hrms(self, screening_results: List[Dict]):
-    hrms_url = f"{settings.HRMS_BASE_URL}/HRMS/screening/callback"
+    gateway_url = f"{settings.GATEWAY_BASE_URL}/api/HRMS/screening/callback"
     try:
         response = requests.post(
-            url=hrms_url,
+            url=gateway_url,
+            headers={
+                'Authorization': f"Bearer {get_token()}",
+                'Accept': 'application/json',
+            },
             json={"screening_results": screening_results},
             timeout=10
         )

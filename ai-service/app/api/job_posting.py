@@ -36,7 +36,7 @@ def create_job_posting(
 
         job_data = to_serializable(job_data)
         job_posting = JobPosting(
-            id=str(job_data['id']),
+            id=job_data['id'],
             title=job_data['title'],
             description=job_data['description'],
             requirements=to_serializable(job_data['requirements']),
@@ -55,7 +55,7 @@ def create_job_posting(
         # Questions are already converted to dicts by the validator
         background_tasks.add_task(
             lambda: process_job_posting_profile.delay(
-                str(job_posting.id),
+               job_posting.id,
                 job_data['questions'],
             )
         )
