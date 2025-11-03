@@ -85,4 +85,67 @@ class ApplyJobRepository implements ApplyJobRepositoryInterface
         $filename = time() . '_' . $file->getClientOriginalName();
         return $file->storeAs('resumes', $filename, 'public');
     }
+
+    /**
+     * Apply screening results to applied jobs and answers.
+     *
+     * @param array $screeningResults Either an array of results or an array with key 'screening_result'.
+     * @return void
+     */
+    public function applyJobResult(array $screeningResults): void
+    {
+        DB::transaction(function () use ($screeningResults) {
+            $entries = $screeningResults['screening_result'] ?? $screeningResults;
+
+            if (!is_array($entries)) {
+                return;
+            }
+
+            foreach ($entries as $result) {
+                if (empty($result['applicant_id']) || empty($result['job_posting_id'])) {
+                    continue;
+                }
+
+                // Find the applied job for this applicant + job posting
+                $appliedJob = AppliedJob::where('job_posting_id', $result['job_posting_id'])
+                    ->where('applicant_id', $result['applicant_id'])
+                    ->first();
+
+                if (! $appliedJob) {
+                    // No applied job found, skip
+                    continue;
+                }
+
+                // Update the overall AI screening score if provided
+                if (array_key_exists('total_score', $result)) {
+                    $appliedJob->ai_screening_score = $result['total_score'];
+                    $appliedJob->save();
+                }
+
+                // Update per-question AI scores
+                if (!empty($result['question_scores']) && is_array($result['question_scores'])) {
+                    foreach ($result['question_scores'] as $q) {
+                        if (empty($q['question_id'])) {
+                            continue;
+                        }
+
+                        $answer = AppliedJobAnswer::where('applied_job_id', $appliedJob->id)
+                            ->where('job_posting_question_id', $q['question_id'])
+                            ->first();
+
+                        if ($answer) {
+                            if (array_key_exists('score', $q)) {
+                                $answer->ai_score = $q['score'];
+                            }
+
+                            // mark as completed and set screened timestamp if not set
+                            $answer->status = $answer->status ?? 'completed';
+                            $answer->ai_screened_at = $answer->ai_screened_at ?? now();
+                            $answer->save();
+                        }
+                    }
+                }
+            }
+        });
+    }
 }

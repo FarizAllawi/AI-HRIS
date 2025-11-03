@@ -3,34 +3,35 @@
 namespace App\Http\Controllers\HRMS;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\HRMS\ScreeningRequest;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\DB;
 
 class ScreeningController extends Controller
 {
-    public function callback(Request $request)
+    public function callback(ScreeningRequest $request): Response
     {
-        $data = $request->all();
-
-        dd($data);
+        $data = $request->validated();
 
         Log::info('📥 FastAPI callback received:', $data);
 
-        // Validate payload
-        if (!isset($data['job_description']) || !isset($data['results'])) {
+        // Validate payload structure expected by ScreeningRequest
+        if (!isset($data['screening_result']) || !is_array($data['screening_result'])) {
             Log::warning('⚠️ Invalid callback payload', $data);
             return response()->json(['error' => 'Invalid payload'], 400);
         }
 
-        // Store results (example)
-        // DB::table('screening_results')->insert([
-        //     'job_description' => $data['job_description'],
-        //     'results' => json_encode($data['results']),
-        //     'created_at' => now(),
-        //     'updated_at' => now(),
-        // ]);
+        try {
+            // Resolve repository and apply results
+            $repo = app(\App\Repositories\ApplyJob\ApplyJobRepository::class);
+            $repo->applyJobResult($data);
+        } catch (\Throwable $e) {
+            Log::error('❌ Failed to apply screening results: ' . $e->getMessage(), ['exception' => $e]);
+            return response()->json(['error' => 'Failed to process results'], 500);
+        }
 
         return response()->json(['status' => 'received']);
     }

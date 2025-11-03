@@ -34,7 +34,7 @@ php artisan passport:client --client
   Client ID ......................... 019a462e-0517-7142-8a16-8f242747f41d  
   Client Secret ................. 3wffec4FvAC15n5YhdCoNNM0qiGjT1ulMjYk5Qh7
 ```
-NOTE: Set the CLIENT SECRET in ai-service/.env file
+NOTE: Set the CLIENT SECRET in ai-service/.env file for API_SECRET_KEY value
 ```Bash
   # Run this command to copy public key to ai-service project
   cp storage/oauth-public.key ../ai-service/keys/oauth-public.key

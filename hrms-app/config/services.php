@@ -13,6 +13,12 @@ return [
     | a conventional file to locate the various service credentials.
     |
     */
+    'ai-service' => [
+        'base_url' => env('AI_SERVICE_BASE_URL'),
+        'client_id' => env('AI_SERVICE_CLIENT_ID'),
+        'client_secret' => env('AI_SERVICE_CLIENT_SECRET'),
+        'scope' => 'ai-service:*'
+    ],
 
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),

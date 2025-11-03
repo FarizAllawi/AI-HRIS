@@ -2,10 +2,10 @@
 
 use App\Http\Controllers\JobPostingPublicController;
 use App\Http\Controllers\MediaController;
+
+use Laravel\Passport\Passport;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
-
-
 
 Route::prefix('media')->group(function () {
     Route::get('/', [MediaController::class, 'index']);
@@ -40,9 +40,78 @@ Route::prefix('HRMS')->group(function() {
     });
 });
 
+Route::group([
+    'as' => 'passport.',
+    'prefix' => config('passport.path', 'oauth'),
+    'namespace' => '\Laravel\Passport\Http\Controllers',
+], function () {
+    Route::post('/token', [
+        'uses' => 'AccessTokenController@issueToken',
+        'as' => 'token',
+        'middleware' => 'throttle',
+    ]);
+
+    Route::get('/authorize', [
+        'uses' => 'AuthorizationController@authorize',
+        'as' => 'authorizations.authorize',
+        'middleware' => 'web',
+    ]);
+
+    if (Passport::$deviceCodeGrantEnabled) {
+        Route::get('/device', [
+            'uses' => 'DeviceUserCodeController',
+            'as' => 'device',
+            'middleware' => 'web',
+        ]);
+
+        Route::post('/device/code', [
+            'uses' => 'DeviceCodeController',
+            'as' => 'device.code',
+            'middleware' => 'throttle',
+        ]);
+    }
+
+    $guard = config('passport.guard', null);
+
+    Route::middleware(['web', $guard ? 'auth:'.$guard : 'auth'])->group(function () {
+        Route::post('/token/refresh', [
+            'uses' => 'TransientTokenController@refresh',
+            'as' => 'token.refresh',
+        ]);
+
+        Route::post('/authorize', [
+            'uses' => 'ApproveAuthorizationController@approve',
+            'as' => 'authorizations.approve',
+        ]);
+
+        Route::delete('/authorize', [
+            'uses' => 'DenyAuthorizationController@deny',
+            'as' => 'authorizations.deny',
+        ]);
+
+        if (Passport::$deviceCodeGrantEnabled) {
+            Route::get('/device/authorize', [
+                'uses' => 'DeviceAuthorizationController',
+                'as' => 'device.authorizations.authorize',
+            ]);
+
+            Route::post('/device/authorize', [
+                'uses' => 'ApproveDeviceAuthorizationController',
+                'as' => 'device.authorizations.approve',
+            ]);
+
+            Route::delete('/device/authorize', [
+                'uses' => 'DenyDeviceAuthorizationController',
+                'as' => 'device.authorizations.deny',
+            ]);
+        }
+    });
+});
+
+
+
 require __DIR__.'/settings.php';
 require __DIR__.'/auth.php';
-require __DIR__.'/HRMS/screening.php';
 require __DIR__.'/HRMS/job-posting.php';
 require __DIR__.'/HRMS/applicant.php';
 require __DIR__.'/HRMS/employee.php';

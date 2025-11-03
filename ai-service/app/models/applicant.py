@@ -6,9 +6,9 @@ import uuid
 
 class Applicant(Base):
     __tablename__ = 'applicants'
-    id = Column(UUID, primary_key=True, index=True)
-    job_posting_id = Column(UUID, ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
-    user_id = Column(UUID, nullable=False, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    job_posting_id = Column(UUID(as_uuid=True), ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
+    user_id = Column(UUID(as_uuid=True), nullable=False, index=True)
 
     # Metadata
     created_at = Column(
@@ -38,9 +38,9 @@ class ApplicantAnswer(Base):
     '''
     __tablename__ = 'applicant_answers'
 
-    id = Column(UUID, primary_key=True, index=True)
-    applicant_id = Column(UUID, ForeignKey('applicants.id'), nullable=False, index=True)
-    question_id = Column(UUID, ForeignKey('job_posting_question.id'), nullable=False, index=True)
+    id = Column(UUID(as_uuid=True), primary_key=True, index=True, default=uuid.uuid4)
+    applicant_id = Column(UUID(as_uuid=True), ForeignKey('applicants.id'), nullable=False, index=True)
+    question_id = Column(UUID(as_uuid=True), ForeignKey('job_posting_question.id'), nullable=False, index=True)
     answer = Column(Text, nullable=False)
 
     created_at = Column(
@@ -59,8 +59,8 @@ class ScreeningResult(Base):
   '''
   __tablename__ = 'screening_results'
   id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
-  applicant_id = Column(UUID, ForeignKey('applicants.id', ondelete='CASCADE'), nullable=False)
-  job_posting_id = Column(UUID, ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
+  applicant_id = Column(UUID(as_uuid=True), ForeignKey('applicants.id', ondelete='CASCADE'), nullable=False)
+  job_posting_id = Column(UUID(as_uuid=True), ForeignKey('job_posting.id', ondelete='CASCADE'), nullable=False, index=True)
 
   # Overall Score
   total_score = Column(Float) # Weighted aggreate S(c)

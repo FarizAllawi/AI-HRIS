@@ -7,6 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 
@@ -92,14 +93,20 @@ class SyncJobPostingExternalApi implements ShouldQueue
     {
         $url = env('AI_SERVICE_URL', 'http://localhost:8100').'/job-posting';
 
+        // Prepare headers and include Authorization if available
+        $headers = [
+            'Accept' => 'application/json',
+            'Content-Type' => 'application/json',
+        ];
+
+        $token = $this->fetchAiServiceToken();
+        $headers['Authorization'] = 'Bearer ' . $token;
+
         $response = Http::timeout(30)
             ->retry(3, 100, function ($exception, $request) {
                 return $exception instanceof ConnectionException;
             })
-            ->withHeaders([
-                'Accept' => 'application/json',
-                'Content-Type' => 'application/json',
-            ]);
+            ->withHeaders($headers);
 
         if ($action === 'create') {
             $response = $response->post($url, $payload);
@@ -320,4 +327,53 @@ class SyncJobPostingExternalApi implements ShouldQueue
             ]);
         }
     }
+
+    // Fetch and cache client_credentials token for AI service
+    private function fetchAiServiceToken(): ?string
+    {
+        $cacheKey = 'ai_service:access_token';
+
+        if (Cache::has($cacheKey)) {
+            return Cache::get($cacheKey);
+        }
+
+        $tokenUrl = config('app.url', 'http://localhost:8000') . '/oauth/token';
+        $clientId = config('services.ai-service.client_id');
+        $clientSecret = config('services.ai-service.client_secret');
+        $scope = config('services.ai-service.scope', 'ai-service');
+
+        if (empty($clientId) || empty($clientSecret)) {
+            Log::warning('AI client credentials not configured for job posting sync.');
+            return null;
+        }
+
+        try {
+            $resp = Http::asForm()->post($tokenUrl, [
+                'grant_type' => 'client_credentials',
+                'client_id' => $clientId,
+                'client_secret' => $clientSecret,
+                'scope' => $scope,
+            ]);
+
+            if ($resp->successful()) {
+                $data = $resp->json();
+                if (!empty($data['access_token'])) {
+                    $expiresIn = isset($data['expires_in']) ? intval($data['expires_in']) : 300;
+                    $ttl = max(60, $expiresIn - 30);
+                    Cache::put($cacheKey, $data['access_token'], $ttl);
+                    Log::info('Fetched AI service token for job posting sync.');
+                    Log::info("Access Token: " . $data['access_token']);
+                    return $data['access_token'];
+                }
+                Log::error('Invalid token response from OAuth server during job posting sync', ['body' => $resp->body()]);
+            } else {
+                Log::error('Failed to fetch AI service token during job posting sync', ['status' => $resp->status(), 'body' => $resp->body()]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Exception when fetching AI service token during job posting sync: ' . $e->getMessage());
+        }
+
+        return null;
+    }
+
 }
