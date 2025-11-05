@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('answer');
             $table->double('ai_score')->nullable();
             $table->double('hr_score')->nullable();
+            $table->text('ai_score_meta')->nullable();
             $table->enum('status', ['pending', 'processing', 'completed', 'failed'])->default('pending');
             $table->text('last_error')->nullable();
             $table->timestamp('ai_screened_at')->nullable();

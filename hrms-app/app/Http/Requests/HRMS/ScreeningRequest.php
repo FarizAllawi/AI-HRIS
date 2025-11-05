@@ -19,7 +19,7 @@ class ScreeningRequest extends FormRequest
      *
      * Expected payload structure:
      * {
-     *   "screening_result": [
+     *   "screening_results": [
      *     {
      *       "id": "uuid",
      *       "applicant_id": "uuid",
@@ -40,27 +40,27 @@ class ScreeningRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'screening_result' => ['required', 'array', 'min:1'],
+            'screening_results' => ['required', 'array', 'min:1'],
 
-            'screening_result.*.id' => ['required', 'uuid'],
-            'screening_result.*.applicant_id' => ['required', 'uuid'],
-            'screening_result.*.job_posting_id' => ['required', 'uuid'],
-            'screening_result.*.total_score' => ['required', 'numeric'],
+            'screening_results.*.id' => ['required', 'uuid'],
+            'screening_results.*.applicant_id' => ['required', 'uuid'],
+            'screening_results.*.job_posting_id' => ['required', 'uuid'],
+            'screening_results.*.total_score' => ['required', 'numeric'],
 
-            'screening_result.*.question_scores' => ['required', 'array'],
-            'screening_result.*.question_scores.*.question_id' => ['required', 'uuid'],
-            'screening_result.*.question_scores.*.score' => ['required', 'numeric'],
-            'screening_result.*.question_scores.*.weight' => ['required', 'numeric'],
-            'screening_result.*.question_scores.*.weighted_score' => ['required', 'numeric'],
+            'screening_results.*.question_scores' => ['required', 'array'],
+            'screening_results.*.question_scores.*.question_id' => ['required', 'uuid'],
+            'screening_results.*.question_scores.*.score' => ['required', 'numeric'],
+            'screening_results.*.question_scores.*.weight' => ['required', 'numeric'],
+            'screening_results.*.question_scores.*.weighted_score' => ['required', 'numeric'],
 
-            'screening_result.*.decision' => ['required', 'string'],
-            'screening_result.*.weight_version' => ['required', 'integer'],
-            'screening_result.*.model_version' => ['required', 'string'],
-            'screening_result.*.created_at' => ['required', 'date'],
+            'screening_results.*.decision' => ['required', 'string'],
+            'screening_results.*.weight_version' => ['required', 'integer'],
+            'screening_results.*.model_version' => ['required', 'string'],
+            'screening_results.*.created_at' => ['required', 'date'],
 
-            'screening_result.*.hr_rating' => ['nullable', 'numeric'],
-            'screening_result.*.hr_decision' => ['nullable', 'string'],
-            'screening_result.*.hr_notes' => ['nullable', 'string'],
+            'screening_results.*.hr_rating' => ['nullable', 'numeric'],
+            'screening_results.*.hr_decision' => ['nullable', 'string'],
+            'screening_results.*.hr_notes' => ['nullable', 'string'],
         ];
     }
 
@@ -70,11 +70,11 @@ class ScreeningRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'screening_result.required' => 'The screening_result array is required.',
-            'screening_result.array' => 'The screening_result must be an array of results.',
-            'screening_result.*.id.uuid' => 'Each screening result must include a valid id (UUID).',
-            'screening_result.*.applicant_id.uuid' => 'Each screening result must include a valid applicant_id (UUID).',
-            'screening_result.*.job_posting_id.uuid' => 'Each screening result must include a valid job_posting_id (UUID).',
+            'screening_results.required' => 'The screening_results array is required.',
+            'screening_results.array' => 'The screening_results must be an array of results.',
+            'screening_results.*.id.uuid' => 'Each screening result must include a valid id (UUID).',
+            'screening_results.*.applicant_id.uuid' => 'Each screening result must include a valid applicant_id (UUID).',
+            'screening_results.*.job_posting_id.uuid' => 'Each screening result must include a valid job_posting_id (UUID).',
         ];
     }
 }

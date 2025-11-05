@@ -89,13 +89,13 @@ class ApplyJobRepository implements ApplyJobRepositoryInterface
     /**
      * Apply screening results to applied jobs and answers.
      *
-     * @param array $screeningResults Either an array of results or an array with key 'screening_result'.
+     * @param array $screeningResults Either an array of results or an array with key 'screening_results'.
      * @return void
      */
     public function applyJobResult(array $screeningResults): void
     {
         DB::transaction(function () use ($screeningResults) {
-            $entries = $screeningResults['screening_result'] ?? $screeningResults;
+            $entries = $screeningResults['screening_results'] ?? $screeningResults;
 
             if (!is_array($entries)) {
                 return;

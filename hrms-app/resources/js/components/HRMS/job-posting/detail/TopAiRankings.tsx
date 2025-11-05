@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from '@/components/ui/tooltip';
 import {
-  IconBrain,
+  IconBrain, IconHash,
   IconMailPlus,
   IconRobot,
   IconSparkles,
@@ -14,7 +14,7 @@ import {
 } from '@tabler/icons-react';
 
 type AiRanking = {
-  id: string;
+  applicantId: string;
   fullName: string;
   aiScore?: number;
   avatarUrl?: string;
@@ -37,9 +37,10 @@ export default function TopAiRankings({ aiRankings }: Props) {
   };
 
   const getRankIcon = (rank: number) => {
-    if (rank === 1) return <IconTrophy className="h-4 w-4 text-yellow-500" />;
-    if (rank <= 3) return <IconSparkles className="h-4 w-4 text-purple-500" />;
-    return <IconBrain className="h-4 w-4 text-blue-500" />;
+    if (rank === 1) return <IconTrophy className="h-8 w-8 mt-1 text-secondary" />;
+    if (rank <= 3) return <IconSparkles className="h-8 w-8 text-secondary" />;
+    if (rank <= 15) return <IconBrain className="h-8 w-8 text-secondary" />;
+    return <IconHash className="h-8 w-8 text-secondary" />;
   };
 
   const getRankBadgeColor = (rank: number) => {
@@ -55,6 +56,12 @@ export default function TopAiRankings({ aiRankings }: Props) {
     if (score >= 70) return 'text-purple-600 dark:text-purple-400';
     return 'text-orange-600 dark:text-orange-400';
   };
+
+  const formatScore = (score: number) => {
+    return (score * 100).toFixed(1); // round to 2 decimal places
+  }
+
+  console.log("aiRangkings:", aiRankings);
 
   return (
     <div className="rounded-lg border bg-gradient-to-br from-indigo-50/50 via-purple-50/30 to-pink-50/50 p-6 dark:from-indigo-950/20 dark:via-purple-950/15 dark:to-pink-950/20">
@@ -86,21 +93,17 @@ export default function TopAiRankings({ aiRankings }: Props) {
         <div className="space-y-3">
           {aiRankings.slice(0, 5).map((a) => (
             <div
-              key={a.id}
+              key={a.applicantId}
               className="group relative overflow-hidden rounded-xl border bg-gradient-to-r from-white/80 to-gray-50/80 p-4 transition-all hover:shadow-lg hover:shadow-purple-100/50 dark:from-gray-900/80 dark:to-gray-800/80 dark:hover:shadow-purple-900/20"
             >
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-50/20 to-transparent opacity-0 transition-opacity group-hover:opacity-100 dark:via-purple-900/10"></div>
 
               <div className="relative flex items-center space-x-4">
                 <div className="flex items-center space-x-3">
-                  <div
-                    className={`flex h-8 w-8 items-center justify-center rounded-full ${getRankBadgeColor(a.aiRank)} shadow-lg`}
-                  >
-                    <span className="text-sm font-bold text-white">
-                      #{a.aiRank}
-                    </span>
+                  <div className={`relative flex h-10 w-10 items-center justify-center rounded-full ${getRankBadgeColor(a.aiRank)} shadow-lg`}>
+                    <div className="absolute z-10 opacity-30">{getRankIcon(a.aiRank)}</div>
+                    <div className="z-20 text-sm font-bold text-white">{a.aiRank}</div>
                   </div>
-                  {getRankIcon(a.aiRank)}
                 </div>
 
                 <div className="flex items-center space-x-3">
@@ -144,9 +147,9 @@ export default function TopAiRankings({ aiRankings }: Props) {
                         <div className="flex items-center space-x-1">
                           <IconBrain className="h-4 w-4 text-purple-500" />
                           <span
-                            className={`text-lg font-bold ${getScoreColor(a.aiScore || 0)}`}
+                            className={`text-lg font-bold ${getScoreColor(a.aiScore ? parseFloat(formatScore(a.aiScore)) : 0)}`}
                           >
-                            {typeof a.aiScore === 'number' ? a.aiScore : '–'}
+                            {a?.aiScore ? formatScore(a.aiScore) : '–'}
                           </span>
                         </div>
                         <span className="text-[10px] text-muted-foreground">
@@ -155,19 +158,19 @@ export default function TopAiRankings({ aiRankings }: Props) {
                       </div>
                     </TooltipTrigger>
                     <TooltipContent>
-                      AI Screening Score: {a.aiScore}%
+                      AI Screening Score: {a?.aiScore ? formatScore(a.aiScore) : 0}
                     </TooltipContent>
                   </Tooltip>
 
                   <div className="flex space-x-2">
-                    {a.profileUrl && (
+                    {a.applicantId && (
                       <Button
                         variant="ghost"
                         size="sm"
                         className="h-8 text-xs"
                         asChild
                       >
-                        <a href={a.profileUrl} target="_blank" rel="noreferrer">
+                        <a href={`/HRMS/applicant/${a.applicantId}`} target="_blank" rel="noreferrer">
                           View
                         </a>
                       </Button>
@@ -179,7 +182,7 @@ export default function TopAiRankings({ aiRankings }: Props) {
                           size="sm"
                           className="h-8 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-sm hover:from-purple-600 hover:to-pink-600"
                           onClick={() =>
-                            console.log('Invite AI-ranked candidate', a.id)
+                            console.log('Invite AI-ranked candidate', a.applicantId)
                           }
                         >
                           <IconMailPlus className="h-4 w-4" />

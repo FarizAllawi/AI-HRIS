@@ -28,7 +28,10 @@ export default function ApplicantDetail({ applicant }: Props) {
         { title: 'Applicant', href: '/HRMS/applicant' },
         { title: applicant.fullName, href: '#' },
     ];
-
+    const formatScore = (score: number) => {
+      return  // round to 2 decimal places
+    }
+    console.log("applicant:", applicant)
     const getStatusVariant = (status: string): "default" | "secondary" | "destructive" | "outline" => {
         const statusLower = status?.toLowerCase() || 'new';
         if (statusLower.includes('approved') || statusLower.includes('hired') || statusLower.includes('completed')) return 'default';

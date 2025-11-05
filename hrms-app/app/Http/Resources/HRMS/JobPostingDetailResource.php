@@ -10,6 +10,7 @@ class JobPostingDetailResource extends JsonResource
 {
     public function toArray(Request $request): array
     {
+        $questions = $this->questions()->get();
         $appliedJobs = $this->appliedJobs()
             ->with(['applicant.user'])
             ->orderBy('created_at', 'desc')
@@ -36,6 +37,7 @@ class JobPostingDetailResource extends JsonResource
             'required_skills' => $this->required_skills,
             'preferred_skills' => $this->preferred_skills,
             'benefits' => $this->benefits,
+            'questions' => $questions,
             'applicants' => $applicants,
             'rankings' => $rankings,
             'aiRankings' => $aiRankings,
@@ -61,7 +63,6 @@ class JobPostingDetailResource extends JsonResource
                 'applicationDate' => $appliedJob->created_at->toDateString(),
                 'applicationDateTime' => $appliedJob->created_at->toISOString(),
                 'status' => $status,
-                'resumeScore' => $appliedJob->ai_screening_score,
                 'aiScore' => $appliedJob->ai_screening_score,
                 'hrScore' => $appliedJob->hr_screening_score,
                 'portfolioLink' => $applicant->portfolio_link,
@@ -89,16 +90,16 @@ class JobPostingDetailResource extends JsonResource
     {
         return collect($applicants)
             ->filter(function ($a) {
-                return $a['status'] !== 'new' && $a['resumeScore'] !== null;
+                return $a['status'] !== 'new' && $a['aiScore'] !== null;
             })
-            ->sortByDesc('resumeScore')
+            ->sortByDesc('aiScore')
             ->values()
             ->map(function ($a, $idx) {
                 $a['rank'] = $idx + 1;
-                $a['aiScore'] = (int)($a['resumeScore'] ?? 0);
-                $a['hrScore'] = (int)($a['hrScore'] ?? 0);
+                $a['aiScore'] = (float)($a['aiScore'] ?? 0);
+                $a['hrScore'] = (float)($a['hrScore'] ?? 0);
                 $a['finalScore'] = $a['hrScore'] > 0
-                    ? (int) round(($a['aiScore'] + $a['hrScore']) / 2)
+                    ? (float) round(($a['aiScore'] + $a['hrScore']) / 2)
                     : $a['aiScore'];
                 return $a;
             })->toArray();
@@ -119,7 +120,7 @@ class JobPostingDetailResource extends JsonResource
     {
         $total = count($applicants);
         $aiScreened = collect($applicants)->filter(function ($a) {
-            return isset($a['resumeScore']) && $a['resumeScore'] !== null;
+            return isset($a['aiScore']) && $a['aiScore'] !== null;
         })->count();
 
         $inReview = collect($applicants)->filter(function ($a) {
@@ -148,8 +149,8 @@ class JobPostingDetailResource extends JsonResource
     private function generateStatistics(array $applicants): array
     {
         $scores = collect($applicants)
-            ->whereNotNull('resumeScore')
-            ->pluck('resumeScore');
+            ->whereNotNull('aiScore')
+            ->pluck('aiScore');
 
         $today = collect($applicants)
             ->where('isNew', true)

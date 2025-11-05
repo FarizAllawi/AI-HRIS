@@ -58,7 +58,6 @@ def process_job_posting_profile(self, job_posting_id: str, questions: list) -> D
         jpp_service = JobPostingService(model, db)
         question_list: List[JobPostingQuestion] = []
         for q in questions:
-            print(q)
             question_list.append(JobPostingQuestion(
                 id=q['id'],
                 job_posting_id=q['job_posting_id'],
@@ -67,7 +66,6 @@ def process_job_posting_profile(self, job_posting_id: str, questions: list) -> D
                 mapped_competencies=q['mapped_competencies'],
                 weight_version=q['weight_version'],
             ))
-        print(question_list)
         job_posting = jpp_service.create_job_posting_profile(job_posting, question_list)
 
         embeddings_count = db.query(JobPostingEmbedding).filter(
@@ -172,6 +170,10 @@ def regenerate_embeddings(self, job_posting_id: str) -> Dict:
         if not job_posting:
             raise ValueError(f"Job posting {job_posting_id} not found")
 
+        questions = db.query(JobPostingQuestion).filter(
+            JobPostingQuestion.job_posting_id == job_posting_id
+        ).all()
+
         # Delete old embeddings
         deleted_count = db.query(JobPostingEmbedding).filter(
             JobPostingEmbedding.job_posting_id == job_posting_id
@@ -181,7 +183,11 @@ def regenerate_embeddings(self, job_posting_id: str) -> Dict:
 
         # Generate new embeddings
         jd_service = JobPostingService(model, db)
-        jd_service._generate_embeddings(job_posting)
+        jd_service.generate_embeddings(job_posting)
+
+        # Step 3: Generate and cache embeddings for combined question + competency
+        for question in questions:
+            jd_service.generate_combined_embeddings(job_posting, question)
 
         db.commit()
 
@@ -205,6 +211,7 @@ def regenerate_embeddings(self, job_posting_id: str) -> Dict:
 
     finally:
         db.close()
+
 
 
 

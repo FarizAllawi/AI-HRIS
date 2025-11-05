@@ -1,13 +1,7 @@
 import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
 import AiScreeningProgress from '@/components/HRMS/job-posting/detail/AiScreeningProgress';
 import ApplicantCard from '@/components/HRMS/job-posting/ApplicantCard';
-import JobDescription from '@/components/HRMS/job-posting/detail/JobDescription';
 import JobOverview from '@/components/HRMS/job-posting/detail/JobOverview';
-import JobRequirements from '@/components/HRMS/job-posting/detail/JobRequirements';
-import JobQualifications from '@/components/HRMS/job-posting/detail/JobQualifications';
-import JobPreferredSkills from '@/components/HRMS/job-posting/detail/JobPreferredSkills';
-import JobRequiredSkills from '@/components/HRMS/job-posting/detail/JobRequiredSkills';
-import JobResponsibilities from '@/components/HRMS/job-posting/detail/JobResponsibilities';
 import TopAiRankings from '@/components/HRMS/job-posting/detail/TopAiRankings';
 import TopCandidates from '@/components/HRMS/job-posting/detail/TopCandidates';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +24,7 @@ import {
   IconUsers,
 } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
+import JobQuestions from '@/components/HRMS/job-posting/detail/JobQuestions';
 
 // Utility function to format badge text
 const formatBadgeText = (text: string) => {
@@ -83,6 +78,14 @@ type Statistics = {
   averageScoreText: string;
 };
 
+type QuestionItem = {
+  id?: string;
+  question: string;
+  desciption: string;
+  weight: string;
+  mapped_compentencies: string[]
+}
+
 type Props = {
   jobPosting: {
     id: string;
@@ -100,6 +103,7 @@ type Props = {
     required_skills?: ArrayItem[];
     preferred_skills?: ArrayItem[];
     benefits?: ArrayItem[];
+    questions?: QuestionItem[];
     applicants?: Applicant[];
     rankings?: RankedApplicant[];
     aiRankings?: AiRankedApplicant[];
@@ -165,7 +169,9 @@ export default function JobPostingDetail({ jobPosting }: Props) {
     });
   }, [jobPosting.applicants, query, timeRange, statusFilter]);
 
-  console.log("jobPosting", jobPosting);
+  const formatScore = (score: number) => {
+    return (score * 100).toFixed(1); // round to 2 decimal places
+  }
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -221,11 +227,11 @@ export default function JobPostingDetail({ jobPosting }: Props) {
               <span className="text-sm font-medium">Average Score</span>
             </div>
             <div className="mt-1 text-2xl font-bold">
-              {jobPosting.statistics?.averageScoreText ?? 'N/A'}
+              {jobPosting.statistics?.averageScore ? formatScore(jobPosting.statistics.averageScore) : 'N/A'}
             </div>
             <p className="text-xs text-muted-foreground">
-              Range: {jobPosting.statistics?.lowestScore ?? 0}-
-              {jobPosting.statistics?.highestScore ?? 0}
+              Range: {jobPosting.statistics?.lowestScore ? formatScore(jobPosting.statistics?.lowestScore) : 0} {" - "}
+              {jobPosting.statistics?.highestScore ? formatScore(jobPosting.statistics.highestScore) : 0}
             </p>
           </div>
         </div>
@@ -277,54 +283,7 @@ export default function JobPostingDetail({ jobPosting }: Props) {
         </div>
         <div className="grid gap-4 md:grid-cols-2">
           <JobOverview jobPosting={jobPosting} />
-          <JobDescription description={jobPosting.description} />
-          <JobRequirements requirements={jobPosting.requirements} />
-          <JobResponsibilities responsibilities={jobPosting.responsibilities} />
-          <JobQualifications qualifications={jobPosting.qualifications} />
-          <JobRequiredSkills required_skills={jobPosting.preferred_skills} />
-          <JobPreferredSkills preferred_skills={jobPosting.preferred_skills} />
-
-          {jobPosting.benefits && jobPosting.benefits.length > 0 && (
-            <div className="rounded-lg border bg-card p-6">
-              <div className="mb-4 flex items-center space-x-2">
-                <IconGift className="h-5 w-5 text-purple-500 dark:text-purple-400" />
-                <h3 className="text-lg font-semibold">Benefits & Perks</h3>
-                <Badge variant="outline" className="ml-auto">
-                  {jobPosting.benefits.length} items
-                </Badge>
-              </div>
-
-              <div className="space-y-3">
-                {jobPosting.benefits.map((benefit, index) => (
-                  <div
-                    key={index}
-                    className="flex items-start space-x-3 rounded-md border bg-purple-50/50 p-3 dark:bg-purple-950/20"
-                  >
-                    <div className="mt-0.5 h-2 w-2 flex-shrink-0 rounded-full bg-purple-500 dark:bg-purple-400" />
-                    <span className="text-sm leading-relaxed">{benefit.value}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {jobPosting.salary && (
-            <div className="rounded-lg border bg-card p-6">
-              <div className="mb-4 flex items-center space-x-2">
-                <IconCurrencyDollar className="h-5 w-5 text-green-500 dark:text-green-400" />
-                <h3 className="text-lg font-semibold">Compensation</h3>
-              </div>
-
-              <div className="rounded-md border bg-green-50/50 p-4 dark:bg-green-950/20">
-                <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                  {jobPosting.salary}
-                </p>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Base salary range
-                </p>
-              </div>
-            </div>
-          )}
+          <JobQuestions jobPosting={jobPosting} />
 
           <div className="grid gap-4 md:col-span-2 md:grid-cols-3">
             <AiScreeningProgress aiProgress={jobPosting.aiProgress} />

@@ -19,7 +19,7 @@ class ScreeningService:
     '''
 
     def __init__(self, model:IndoBERTModel, db: Session):
-        self.mode = model
+        self.model = model
         self.db = db
         self.scorer = CandidateScorer(model)
         self.job_service = JobPostingService(model, db)
@@ -75,6 +75,14 @@ class ScreeningService:
                 logger.warning(f"No answers found for applicant: {applicant_id}")
                 raise ValueError(f"No answers found for applicant {applicant_id}")
 
+            # 🚨 FIX: Remove duplicate answers
+            applicant_answers = self._deduplicate_answers(applicant_answers)
+
+            # Debug: Check for duplicates
+            question_ids = [ans.question_id for ans in applicant_answers]
+            if len(question_ids) != len(set(question_ids)):
+                logger.error(f"Duplicate questions still exist after deduplication for applicant {applicant_id}")
+
             # Get Job Posting Embeddings organized by question
             try:
                 jp_embeddings = self.job_service.get_job_posting_embeddings_for_questions(
@@ -95,6 +103,7 @@ class ScreeningService:
                         'question_id': answer.question_id,
                         'answer': answer.answer,
                         'weight': question.weight,
+                        'mapped_competencies': question.mapped_competencies,
                     })
                 else:
                     logger.warning(f"Question {answer.question_id} not found for answer {answer.id}")
@@ -105,6 +114,7 @@ class ScreeningService:
 
             # Score candidate
             try:
+                print("jp_embeddings:", jp_embeddings)
                 total_score, question_scores = self.scorer.score_candidate(
                     answers,
                     jp_embeddings,
@@ -253,4 +263,20 @@ class ScreeningService:
                 "p75": float(sorted(scores)[3 * len(scores) // 4]),
             }
         }
+
+    def _deduplicate_answers(self, applicant_answers: List[ApplicantAnswer]) -> List[ApplicantAnswer]:
+        """
+        Remove duplicate answers for the same question, keeping only the first one
+        """
+        seen_questions = set()
+        unique_answers = []
+
+        for answer in applicant_answers:
+            if answer.question_id not in seen_questions:
+                seen_questions.add(answer.question_id)
+                unique_answers.append(answer)
+            else:
+                logger.warning(f"Duplicate answer found for question {answer.question_id}, keeping first one")
+
+        return unique_answers
 

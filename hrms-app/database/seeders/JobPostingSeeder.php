@@ -91,7 +91,7 @@ class JobPostingSeeder extends Seeder
                 $questions = [
                     [
                         'question' => 'Ceritakan pengalaman kerja terdahulu. Anda boleh menceritakan relevansi pengalaman kerja dulu dengan lowongan kerja yang Bapak/Ibu lamar.',
-                        'weight' => 0.3,
+                        'weight' => 0.35,
                         'mapped_competencies' => json_encode(['requirement_4', 'preferred_skill_3']),
                     ],
                     [

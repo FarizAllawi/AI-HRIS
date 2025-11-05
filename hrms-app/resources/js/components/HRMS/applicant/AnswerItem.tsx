@@ -11,6 +11,7 @@ export default function AnswerItem({
   answer,
   score,
 }: AnswerItemProps) {
+  score = parseFloat((score * 100).toFixed(1))
   return (
     <Card className="mb-2">
       <CardContent className="p-3">

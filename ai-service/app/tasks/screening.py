@@ -60,7 +60,7 @@ def screen_applicant_batch_async(
         return {
             "status": "success",
             "job_posting_id": job_posting_id,
-            "candidates_processed": len(results),
+            "applicants_processed": len(results),
             "summary": summary
         }
 
@@ -80,12 +80,12 @@ def screen_applicant_batch_async(
 def send_screening_batch_result_to_hrms(self, screening_results: List[Dict]):
     gateway_url = f"{settings.GATEWAY_BASE_URL}/api/HRMS/screening/callback"
     try:
+        token = get_token()
+        logger.info(f"Request with token: {token}")
+        headers = {'Authorization': f'Bearer {token}'}
         response = requests.post(
             url=gateway_url,
-            headers={
-                'Authorization': f"Bearer {get_token()}",
-                'Accept': 'application/json',
-            },
+            headers=headers,
             json={"screening_results": screening_results},
             timeout=10
         )

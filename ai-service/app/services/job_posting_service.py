@@ -44,30 +44,31 @@ class JobPostingService:
         #   Qualifications
         #   Required Skills
         #   Preferred Skills
-        self._generate_embeddings(job_posting)
+        self.generate_embeddings(job_posting)
+
+        # Step 3: Generate and chache embeddings for combined question + competency
+        for question in questions:
+            self.generate_combined_embeddings(job_posting, question)
 
         self.db.commit()
         self.db.refresh(job_posting)
         return job_posting
 
     def get_job_posting_embeddings_for_questions(
-        self,
-        job_posting_id: str
-    ) -> Dict[str, List[np.ndarray]]:
+            self,
+            job_posting_id: str
+    ) -> Dict[str, Dict[str, List]]:
         '''
         Get Job Posting Embeddings organized by question ID
-
-        Args:
-            job_posting_id: Job Posting ID
-
-        Returns:
-           Dict mapping question_id to list of relevant Job Posting embeddings
         '''
+        print(f"🔍 Retrieving embeddings for job posting: {job_posting_id}")
+
         job_posting = self.db.query(JobPosting).filter(
             JobPosting.id == job_posting_id
         ).first()
 
         if not job_posting:
+            print("❌ Job posting not found")
             return {}
 
         # Get all embeddings
@@ -75,83 +76,175 @@ class JobPostingService:
             JobPostingEmbedding.job_posting_id == job_posting_id
         ).all()
 
+        print(f"📊 Total embeddings found: {len(jp_embeddings)}")
+
+        # Print all embedding IDs for debugging
+        for emb in jp_embeddings:
+            print(f"  - {emb.competency_id} (type: {emb.competency_type})")
+
         # Get all questions
         questions = self.db.query(JobPostingQuestion).filter(
             JobPostingQuestion.job_posting_id == job_posting_id
         ).all()
 
-        # Organize by question based on mapped_competencies
+        print(f"❓ Questions found: {len(questions)}")
+
+        # Organize by question with proper structure
         question_embeddings = {}
 
         for question in questions:
-            qid = question.id
-            mapped_comps = question.mapped_competencies
+            qid = f"question_{question.id}"
+            mapped_comps = question.mapped_competencies or []
 
-            # Get embeddings for mapped competencies
-            relevant_embeddings = []
+            print(f"🔧 Processing question: {qid}")
+            print(f"  Mapped competencies: {mapped_comps}")
+
+            # Initialize embedding lists for this question
+            question_emb = []
+            competency_emb = []
+            combined_emb = []
+
             for emb in jp_embeddings:
-                if emb.competency_id in mapped_comps:
-                    relevant_embeddings.append(
-                        np.array(emb.embedding, dtype=np.float32)
-                    )
-            question_embeddings[qid] = relevant_embeddings
+                cid = emb.competency_id or ""
+
+                # Question-only embeddings
+                if cid == f"question_{question.id}":
+                    question_emb.append(np.array(emb.embedding, dtype=np.float32))
+                    print(f"  ✅ Found question-only embedding")
+
+                # Combined embeddings for this question
+                elif cid.startswith("combined_"):
+                    # Format: "combined_{comp_id}_for_question_{question.id}"
+                    expected_suffix = f"_for_question_{question.id}"
+                    if cid.endswith(expected_suffix):
+                        comp_name = cid.replace("combined_", "").replace(expected_suffix, "")
+                        combined_emb.append((comp_name, np.array(emb.embedding, dtype=np.float32)))
+                        print(f"  ✅ Found combined embedding: {comp_name}")
+
+                # Competency embeddings from mapped competencies
+                elif cid in mapped_comps:
+                    competency_emb.append((cid, np.array(emb.embedding, dtype=np.float32)))
+                    print(f"  ✅ Found competency embedding: {cid}")
+
+            print(
+                f"  📊 Results - Question: {len(question_emb)}, Competencies: {len(competency_emb)}, Combined: {len(combined_emb)}")
+
+            question_embeddings[qid] = {
+                "question": question_emb,
+                "competencies": competency_emb,
+                "combined": combined_emb
+            }
+
         return question_embeddings
 
-    def _generate_embeddings(self, job_posting: JobPosting):
-        """Generate embeddings for all competencies"""
-
+    def generate_embeddings(self, job_posting: JobPosting):
+        """Generate embeddings for all competencies with error handling"""
         embedding_data = []
 
-        # Responsibilities
-        job_posting.responsibilities = self._safe_json_parse(job_posting.responsibilities)
-        embedding_data.extend(self._process_embedding_items(
-            job_posting.id,
-            job_posting.responsibilities,
-            'responsibilities',
-        ))
+        competency_sources = [
+            ('responsibilities', job_posting.responsibilities),
+            ('requirements', job_posting.requirements),
+            ('qualifications', job_posting.qualifications),
+            ('preferred_skills', job_posting.preferred_skills),
+            ('required_skills', job_posting.required_skills)
+        ]
 
-        # Requirements
-        job_posting.requirements = self._safe_json_parse(job_posting.requirements)
-        embedding_data.extend(self._process_embedding_items(
-            job_posting.id,
-            job_posting.requirements,
-            'requirements',
-        ))
-
-        # Qualifications
-        job_posting.qualifications = self._safe_json_parse(job_posting.qualifications)
-        embedding_data.extend(self._process_embedding_items(
-            job_posting.id,
-            job_posting.qualifications,
-            'qualifications',
-        ))
-
-        # Preferred skills
-        job_posting.preferred_skills = self._safe_json_parse(job_posting.preferred_skills)
-        embedding_data.extend(self._process_embedding_items(
-            job_posting.id,
-            job_posting.preferred_skills,
-            'preferred_skills',
-        ))
-
-        # Required skills
-        job_posting.required_skills = self._safe_json_parse(job_posting.required_skills)
-        embedding_data.extend(self._process_embedding_items(
-            job_posting.id,
-            job_posting.required_skills,
-            'required_skills',
-        ))
+        for data_type, data in competency_sources:
+            parsed_data = self._safe_json_parse(data)
+            embedding_data.extend(self._process_embedding_items(
+                job_posting.id,
+                parsed_data,
+                data_type,
+            ))
 
         # Save to database
         for emb_dict in embedding_data:
-            jd_emb = JobPostingEmbedding(
+            # Check if embedding already exists
+            existing = self.db.query(JobPostingEmbedding).filter(
+                JobPostingEmbedding.job_posting_id == job_posting.id,
+                JobPostingEmbedding.competency_id == emb_dict["competency_id"],
+                JobPostingEmbedding.competency_type == emb_dict["competency_type"]
+            ).first()
+
+            if not existing:
+                jd_emb = JobPostingEmbedding(
+                    job_posting_id=job_posting.id,
+                    competency_type=emb_dict["competency_type"],
+                    competency_id=emb_dict["competency_id"],
+                    text=emb_dict["text"],
+                    embedding=emb_dict["embedding"]
+                )
+                self.db.add(jd_emb)
+
+    def generate_combined_embeddings(self, job_posting: JobPosting, questionItem: JobPostingQuestion):
+        """
+        Generate embeddings for each question with better ID format
+        """
+        print(f"🔧 Generating combined embeddings for question: {questionItem.id}")
+
+        # --- 🧠 1️⃣ Question-only embedding ---
+        q_text = questionItem.question.strip()
+        q_embedding = self.model.encode(q_text)[0].tolist()
+
+        self.db.add(JobPostingEmbedding(
+            job_posting_id=job_posting.id,
+            competency_type="question",
+            competency_id=f"question_{questionItem.id}",
+            text=q_text,
+            embedding=q_embedding
+        ))
+
+        # --- 🧩 2️⃣ Combine all competency sources into a lookup dict ---
+        competency_sources = [
+            job_posting.responsibilities,
+            job_posting.requirements,
+            job_posting.qualifications,
+            job_posting.preferred_skills,
+            job_posting.required_skills
+        ]
+
+        # Flatten and safely parse all
+        competencies = []
+        for source in competency_sources:
+            parsed_source = self._safe_json_parse(source, default=[])
+            competencies.extend(parsed_source)
+            print(f"  Parsed {len(parsed_source)} competencies from {source}")
+
+        # Build a lookup dictionary
+        competency_dict = {c["id"]: c["value"] for c in competencies if
+                           isinstance(c, dict) and "id" in c and "value" in c}
+        print(f"  Competency dictionary: {list(competency_dict.keys())}")
+
+        # --- ⚙️ 3️⃣ Generate combined embeddings ---
+        mapped_competencies = getattr(questionItem, "mapped_competencies", [])
+        print(f"  Mapped competencies for question: {mapped_competencies}")
+
+        combined_count = 0
+        for comp_id in mapped_competencies:
+            comp_value = competency_dict.get(comp_id)
+            if not comp_value:
+                print(f"  ❌ Competency {comp_id} not found in dictionary")
+                continue
+
+            combined_text = f"{q_text} {comp_value}".strip()
+            print(f"  Creating combined embedding: {comp_id} -> {combined_text[:100]}...")
+
+            combined_embedding = self.model.encode(combined_text)[0].tolist()
+
+            # 🚨 IMPROVED: Use a more parse-friendly format
+            combined_id = f"combined_{comp_id}_for_question_{questionItem.id}"
+
+            self.db.add(JobPostingEmbedding(
                 job_posting_id=job_posting.id,
-                competency_type=emb_dict["competency_type"],
-                competency_id=emb_dict["competency_id"],
-                text=emb_dict["text"],
-                embedding=emb_dict["embedding"]
-            )
-            self.db.add(jd_emb)
+                competency_type="combined_question_embedding",
+                competency_id=combined_id,
+                text=combined_text,
+                embedding=combined_embedding
+            ))
+            combined_count += 1
+
+        print(f"  ✅ Created {combined_count} combined embeddings for question {questionItem.id}")
+        self.db.commit()  # Commit after each question to see progress
 
     def _process_embedding_items(self,job_posting_id, data_list, data_type):
         """

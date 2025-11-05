@@ -2,6 +2,8 @@ from pydantic_settings import BaseSettings
 from typing import List
 import os
 
+BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), ""))
+
 class Settings(BaseSettings):
     # API Settings
     API_NAME: str = "AI-Service"
@@ -28,7 +30,8 @@ class Settings(BaseSettings):
     # Database
     # Default to a local sqlite file for development (supports embedding JSON storage).
     # Override with DATABASE_URL in .env for production (e.g. postgresql://...)
-    DATABASE_URL: str = "sqlite:///./data/dev.db"
+    DATABASE_URL: str = f"sqlite:///{os.path.join(BASE_DIR, 'data/dev.db')}"
+    print("DATABASE_URL", DATABASE_URL)
 
     # Path where vector index files will be stored (used by local dev vector search)
     VECTOR_INDEX_PATH: str = "./data/embeddings/embeddings_hnsw.bin"

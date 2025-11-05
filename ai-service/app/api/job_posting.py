@@ -56,7 +56,7 @@ def create_job_posting(
         background_tasks.add_task(
             lambda: process_job_posting_profile.delay(
                job_posting.id,
-                job_data['questions'],
+               job_data['questions'],
             )
         )
 

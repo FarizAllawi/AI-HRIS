@@ -42,7 +42,7 @@ class ApplicantResource extends JsonResource
                         return [
                             'question' => $questionText,
                             'answer' => $ans->answer,
-                            'score' => (int)($ans->hr_score ?? $ans->ai_score ?? 0),
+                            'score' => (float)($ans->hr_score ?? $ans->ai_score ?? 0),
                         ];
                     });
                 }

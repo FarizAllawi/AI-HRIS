@@ -34,6 +34,10 @@ type Props = {
 };
 
 export default function ApplicantCard({ applicant }: Props) {
+
+  const formatScore = (score: number) => {
+    return (score * 100).toFixed(1); // round to 2 decimal places
+  }
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new':
@@ -108,13 +112,13 @@ export default function ApplicantCard({ applicant }: Props) {
 
         <div className="flex items-center space-x-6">
           <div className="flex items-center space-x-4">
-            {applicant.resumeScore && (
+            {applicant.aiScore && (
               <div className="flex flex-col items-center rounded-lg bg-purple-50/80 px-3 py-2 dark:bg-purple-950/30">
                 <div className="text-xs font-medium text-purple-600 dark:text-purple-400">
                   AI Score
                 </div>
                 <div className="text-xl font-bold text-purple-700 dark:text-purple-300">
-                  {applicant.resumeScore}%
+                  {applicant?.aiScore ? formatScore(applicant.aiScore) : 0}
                 </div>
               </div>
             )}
