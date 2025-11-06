@@ -17,7 +17,8 @@ class AppliedJobAnswer extends Model
         'answer',
         'ai_score',
         'hr_score',
-        'status', // pending, processing, completed, failed
+        'ai_score_meta',
+        'status', // pending, processing, completed, failed,
         'last_error',
         'ai_screened_at',
     ];

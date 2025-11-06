@@ -1,17 +1,35 @@
 import { Card, CardContent } from '@/components/ui/card';
 
+type CompetenciesScore = {
+  total_competencies_scores: number;
+}
+
+type CombinedScore = {
+  total_combined_scores: number;
+}
+
+type AIMetaScore = {
+  question_id: string;
+  question: number;
+  competencies: CompetenciesScore;
+  combined_question_competencies_scores: CombinedScore;
+  total_question_score: number;
+}
+
 export type AnswerItemProps = {
   question: string;
   answer: string;
-  score: number;
+  ai_score: number;
+  ai_meta_score: AIMetaScore[];
 };
 
 export default function AnswerItem({
   question,
   answer,
-  score,
+  ai_score,
+  ai_meta_score,
 }: AnswerItemProps) {
-  score = parseFloat((score * 100).toFixed(1))
+  ai_score = parseFloat((ai_score * 100).toFixed(1))
   return (
     <Card className="mb-2">
       <CardContent className="p-3">
@@ -21,14 +39,14 @@ export default function AnswerItem({
           AI Screening Score:{' '}
           <span
             className={
-              score > 70
+              ai_score > 70
                 ? 'text-green-600'
-                : score > 40
+                : ai_score > 40
                   ? 'text-yellow-600'
                   : 'text-red-600'
             }
           >
-            {score}
+            {ai_score}
           </span>
         </div>
       </CardContent>

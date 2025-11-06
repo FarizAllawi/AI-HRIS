@@ -1,180 +1,148 @@
 import numpy as np
-from typing import List, Dict, Tuple
-from app.utils.similarity import cosine_similarity
+import torch
+from typing import Dict, List, Tuple
 
 
 class CandidateScorer:
     """
-    Implements the weighted scoring algorithm:
+    CandidateScorer
+    ----------------
+    Compute similarity between candidate answers and job posting embeddings.
 
-    For candidate c, questions Q, weights w_q, answers a_q, JD embeddings E_q:
-    1. Answer embedding: v(a_q) via IndoBERT
-    2. Question score (max-pool): s_q = max_{e in E_q} cosine(v(a_q), e)
-    3. Weighted aggregate: S(c) = sum(w_q * s_q)
+    Each candidate's answer is compared against:
+        1. Question-only embedding
+        2. Competency embeddings (mapped from job posting)
+        3. Combined question+competency embeddings
     """
 
-    def __init__(self, model):
+    def __init__(self, model, similarity_metric: str = "cosine"):
         self.model = model
+        self.similarity_metric = similarity_metric
 
-    def _compute_similarity_scores(self, answer_emb, embeddings, weight, prefix: str):
-        """
-        Compute similarity scores - now returns both unweighted mean and weighted individual scores
+    # =====================================================
+    # COSINE SIMILARITY FUNCTION
+    # =====================================================
+    def _cosine_similarity(self, a: np.ndarray, b: np.ndarray) -> float:
+        if a is None or b is None:
+            return 0.0
+        a = a / (np.linalg.norm(a) + 1e-9)
+        b = b / (np.linalg.norm(b) + 1e-9)
+        return float(np.dot(a, b))
 
-        Returns:
-            (unweighted_mean_score, weighted_individual_scores_dict)
-        """
-        if not embeddings:
-            return 0.0, {}
-
-        similarities = []
-        weighted_scores = {}
-
-        for i, emb in enumerate(embeddings):
-            try:
-                sim = cosine_similarity(answer_emb, emb)
-                similarities.append(sim)
-                weighted_scores[f"{prefix}_{i + 1}_score"] = float(weight * sim)
-            except Exception as e:
-                logger.warning(f"Similarity computation failed: {e}")
-                continue
-
-        if not similarities:
-            return 0.0, {}
-
-        unweighted_mean = float(np.mean(similarities))
-        return unweighted_mean, weighted_scores
-
+    # =====================================================
+    # MAIN SCORING METHOD
+    # =====================================================
     def score_candidate(
             self,
-            answers: List[Dict],
-            jd_embeddings: Dict[str, Dict[str, List[np.ndarray]]]
+            candidate_answers: Dict[str, str],
+            job_posting_embeddings: Dict[str, Dict[str, List]],
+            questions_metadata: Dict[str, Dict] = None
     ) -> Tuple[float, List[Dict]]:
-        question_scores = []
+        """
+        Compute similarity scores for each question and overall score.
+
+        Args:
+            candidate_answers: dict mapping question_id -> candidate answer text
+            job_posting_embeddings: dict from JobPostingService.get_job_posting_embeddings_for_questions()
+            questions_metadata: dict mapping question_id -> metadata (e.g., weight, mapped competencies)
+
+        Returns:
+            Tuple of (total_score, question_scores)
+        """
         total_scores = []
+        question_scores = []
 
-        for answer_dict in answers:
-            qid = f"question_{answer_dict['question_id']}"
-            answer_text = answer_dict["answer"]
-            weight = answer_dict["weight"]
+        for q_key, q_emb_data in job_posting_embeddings.items():
+            question_id = q_key.replace("question_", "")
 
-            # Encode candidate's answer
-            answer_emb = self.model.encode(answer_text)[0]
+            # Get answer text
+            answer = candidate_answers.get(question_id)
+            if not answer:
+                continue
 
-            # Get embeddings for this question
-            jd_data = jd_embeddings.get(qid, {})
-            q_embs = jd_data.get("question", [])
-            comp_embs = jd_data.get("competencies", [])  # Now list of (name, embedding)
-            comb_embs = jd_data.get("combined", [])  # Now list of (name, embedding)
+            meta = questions_metadata.get(question_id, {}) if questions_metadata else {}
+            weight = meta.get("weight", 1.0)
 
-            # --- 1️⃣ Question-only score (weighted) ---
-            q_similarities = [cosine_similarity(answer_emb, emb) for emb in q_embs] if q_embs else [0.0]
-            question_weighted_score = float(weight * np.mean(q_similarities))
+            # --- Encode candidate answer ---
+            cand_embedding = self.model.encode(answer)[0]
 
-            # --- 2️⃣ Competencies scores ---
-            comp_similarities = []
-            comp_individual_scores = {}
+            # --- Question-only embeddings ---
+            q_embeddings = q_emb_data.get("question", [])
+            if not q_embeddings:
+                continue
+            q_similarities = [
+                self._cosine_similarity(cand_embedding, q_emb) for q_emb in q_embeddings
+            ]
 
-            # Process competencies with their actual names
-            for comp_name, emb in comp_embs:
-                similarity = cosine_similarity(answer_emb, emb)
-                comp_similarities.append(similarity)
-                # Use the actual competency name in the score key
-                score_key = f"competency_{comp_name}_score"
-                comp_individual_scores[score_key] = float(weight * similarity)
+            # 🧮 Step 1: Compute mean similarity (no redundant weighting)
+            question_weighted_score = np.mean(q_similarities)
 
-            total_competencies_score = float(np.mean(comp_similarities)) if comp_similarities else 0.0
+            # --- Competency embeddings ---
+            comp_scores = {}
+            for comp_id, comp_emb in q_emb_data.get("competencies", []):
+                comp_scores[comp_id] = self._cosine_similarity(cand_embedding, comp_emb)
 
-            competencies_block = {
-                "total_competencies_scores": total_competencies_score,
-                **comp_individual_scores
-            }
+            # --- Combined question+competency embeddings ---
+            comb_scores = {}
+            for comb_id, comb_emb in q_emb_data.get("combined", []):
+                comb_scores[comb_id] = self._cosine_similarity(cand_embedding, comb_emb)
 
-            # --- 3️⃣ Combined question + competencies scores ---
-            comb_similarities = []
-            comb_individual_scores = {}
+            # --- Compute total question score ---
+            comp_vals = list(comp_scores.values())
+            comb_vals = list(comb_scores.values())
 
-            # Process combined embeddings with their actual competency names
-            for comp_name, emb in comb_embs:
-                similarity = cosine_similarity(answer_emb, emb)
-                comb_similarities.append(similarity)
-                # Use the actual competency name in the score key
-                score_key = f"combined_question_competencies_{comp_name}_score"
-                comb_individual_scores[score_key] = float(weight * similarity)
+            all_parts = [question_weighted_score, *comp_vals, *comb_vals]
+            total_question_score = float(np.mean(all_parts)) if all_parts else 0.0
 
-            total_combined_score = float(np.mean(comb_similarities)) if comb_similarities else 0.0
-
-            combined_block = {
-                "total_combined_scores": total_combined_score,
-                **comb_individual_scores
-            }
-
-            # --- 4️⃣ Calculate total question score ---
-            weighted_components = [question_weighted_score]
-            weighted_components.extend(comp_individual_scores.values())
-            weighted_components.extend(comb_individual_scores.values())
-
-            total_question_score = float(np.mean(weighted_components)) if weighted_components else 0.0
-            total_scores.append(total_question_score)
-
-            # --- 5️⃣ Structured per-question result ---
             question_scores.append({
-                "question_id": answer_dict['question_id'],
+                "question_id": question_id,
                 "question_score": question_weighted_score,
-                "competencies_scores": competencies_block,
-                "combined_question_competencies_scores": combined_block,
+                "competencies_scores": {
+                    "total_competencies_scores": np.mean(comp_vals) if comp_vals else 0.0,
+                    **{f"competency_{i + 1}_score": v for i, v in enumerate(comp_vals)}
+                },
+                "combined_question_competencies_scores": {
+                    "total_combined_scores": np.mean(comb_vals) if comb_vals else 0.0,
+                    **{f"combined_question_competencies_{i + 1}_score": v for i, v in enumerate(comb_vals)}
+                },
                 "total_question_score": total_question_score
             })
 
-        # --- 🔚 Final total score (mean of all question scores) ---
-        total_score = float(np.mean(total_scores))
+            total_scores.append(total_question_score)
+
+        # =====================================================
+        # FINAL TOTAL SCORE
+        # =====================================================
+        if not total_scores:
+            total_score = 0.0
+        else:
+            total_score = float(np.mean(total_scores))
 
         return total_score, question_scores
 
-    def batch_score_candidates(
-            self,
-            candidates: List[Dict],
-            jd_embeddings: Dict[int, List[np.ndarray]]
-    ) -> List[Tuple[float, List[Dict]]]:
-        """
-        Score multiple candidates
-
-        Args:
-            candidates: List of candidate dicts with answers
-            jd_embeddings: JD embeddings for the job
-
-        Returns:
-            List of (total_score, question_scores) tuples
-        """
-        results = []
-        for candidate in candidates:
-            score, breakdown = self.score_candidate(
-                candidate["answers"],
-                jd_embeddings
-            )
-            results.append((score, breakdown))
-
-        return results
-
+    # =====================================================
+    # DECISION DETERMINATION METHOD
+    # =====================================================
     def determine_decision(
             self,
-            score: float,
+            total_score: float,
             shortlist_threshold: float,
             flag_threshold: float
     ) -> str:
         """
-        Determine screening decision based on score and thresholds
+        Determine hiring decision based on score and thresholds
 
         Args:
-            score: Candidate's total score
-            shortlist_threshold: P75 threshold
-            flag_threshold: P25 threshold
+            total_score: Candidate's total score (0.0 - 1.0)
+            shortlist_threshold: Minimum score for shortlisting (e.g., 0.75)
+            flag_threshold: Minimum score to avoid flagging (e.g., 0.25)
 
         Returns:
-            Decision: "shortlist", "review", "flag", or "reject"
+            Decision string: "shortlist", "review", or "flag"
         """
-        if score >= shortlist_threshold:
+        if total_score >= shortlist_threshold:
             return "shortlist"
-        elif score >= flag_threshold:
+        elif total_score >= flag_threshold:
             return "review"
         else:
             return "flag"

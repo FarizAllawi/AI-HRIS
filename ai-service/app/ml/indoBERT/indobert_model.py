@@ -22,53 +22,67 @@ class IndoBERTModel:
         self.model.eval()
         print(f"✅ Model loaded on {self.device}")
 
-    def encode(
-            self,
-            texts: Union[str, List[str]],
-            batch_size: int = 32,
-            normalize: bool = True
-    ) -> np.ndarray:
-        """
-        Generate embeddings for text(s)
+    '''
+        [CLS] TOKEN Pooling method (OLD VERSION)
+    '''
+    # def encode(
+    #         self,
+    #         texts: Union[str, List[str]],
+    #         batch_size: int = 32,
+    #         normalize: bool = True
+    # ) -> np.ndarray:
+    #     if isinstance(texts, str):
+    #         texts = [texts]
+    #     embeddings = []
+    #     with torch.no_grad():
+    #         for i in range(0, len(texts), batch_size):
+    #             batch_texts = texts[i:i + batch_size]
+    #             encoded = self.tokenizer(
+    #                 batch_texts,
+    #                 padding=True,
+    #                 truncation=True,
+    #                 max_length=settings.MAX_SEQ_LENGTH,
+    #                 return_tensors="pt"
+    #             )
+    #             input_ids = encoded["input_ids"].to(self.device)
+    #             attention_mask = encoded["attention_mask"].to(self.device)
+    #             outputs = self.model(
+    #                 input_ids=input_ids,
+    #                 attention_mask=attention_mask
+    #             )
+    #             batch_embeddings = outputs.last_hidden_state[:, 0, :].cpu().numpy()
+    #             embeddings.append(batch_embeddings)
+    #     embeddings = np.vstack(embeddings)
+    #     if normalize:
+    #         embeddings = embeddings / (np.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-9)
+    #     return embeddings
 
-        Args:
-            texts: Single text or list of texts
-            batch_size: Batch size for processing
-            normalize: Whether to L2-normalize embeddings
-
-        Returns:
-            numpy array of shape (n_texts, embedding_dim)
-        """
-        if isinstance(texts, str):
-            texts = [texts]
-
+    '''
+        MEAN POOLING version (NEW)
+    '''
+    def encode(self, texts, normalize=True):
+        self.model.eval()
         embeddings = []
 
         with torch.no_grad():
-            for i in range(0, len(texts), batch_size):
-                batch_texts = texts[i:i + batch_size]
-
-                # Tokenize
+            for batch_texts in self._batchify(texts):
                 encoded = self.tokenizer(
                     batch_texts,
                     padding=True,
                     truncation=True,
-                    max_length=settings.MAX_SEQ_LENGTH,
-                    return_tensors="pt"
-                )
+                    return_tensors="pt",
+                    max_length=512
+                ).to(self.device)
 
-                # Move to device
-                input_ids = encoded["input_ids"].to(self.device)
-                attention_mask = encoded["attention_mask"].to(self.device)
+                outputs = self.model(**encoded)
 
-                # Get embeddings
-                outputs = self.model(
-                    input_ids=input_ids,
-                    attention_mask=attention_mask
-                )
+                # === Mean pooling ===
+                attention_mask = encoded["attention_mask"].unsqueeze(-1)
+                embeddings_tensor = outputs.last_hidden_state
+                masked_embeddings = embeddings_tensor * attention_mask
+                mean_pooled = masked_embeddings.sum(dim=1) / attention_mask.sum(dim=1)
+                batch_embeddings = mean_pooled.cpu().numpy()
 
-                # Use [CLS] token embedding (mean pooling alternative)
-                batch_embeddings = outputs.last_hidden_state[:, 0, :].cpu().numpy()
                 embeddings.append(batch_embeddings)
 
         embeddings = np.vstack(embeddings)
@@ -77,6 +91,13 @@ class IndoBERTModel:
             embeddings = embeddings / (np.linalg.norm(embeddings, axis=1, keepdims=True) + 1e-9)
 
         return embeddings
+
+    def _batchify(self, texts, batch_size=8):
+        """Yield successive batches of texts."""
+        if isinstance(texts, str):
+            texts = [texts]
+        for i in range(0, len(texts), batch_size):
+            yield texts[i:i + batch_size]
 
     def save_checkpoint(self, path: str):
         """Save model checkpoint"""

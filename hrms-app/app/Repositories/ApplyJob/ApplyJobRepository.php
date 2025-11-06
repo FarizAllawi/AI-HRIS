@@ -134,13 +134,15 @@ class ApplyJobRepository implements ApplyJobRepositoryInterface
                             ->first();
 
                         if ($answer) {
-                            if (array_key_exists('score', $q)) {
-                                $answer->ai_score = $q['score'];
+                            if (array_key_exists('total_question_score', $q)) {
+                                $answer->ai_score = $q['total_question_score'];
                             }
 
                             // mark as completed and set screened timestamp if not set
-                            $answer->status = $answer->status ?? 'completed';
+                            $answer->ai_score_meta = $result['question_scores'];
+                            $answer->status = 'completed';
                             $answer->ai_screened_at = $answer->ai_screened_at ?? now();
+
                             $answer->save();
                         }
                     }

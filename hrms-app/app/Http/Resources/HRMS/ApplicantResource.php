@@ -39,10 +39,18 @@ class ApplicantResource extends JsonResource
                         if ($ans->relationLoaded('jobPostingQuestion')) {
                             $questionText = $ans->jobPostingQuestion->question;
                         }
+                        // Try to decode the JSON string
+                        $aiMetaScore = json_decode($ans->ai_score_meta, true);
+
+                        // If decoding was successful, replace the string with the array
+                        $aiMetaScore = json_last_error() === JSON_ERROR_NONE && is_array($aiMetaScore) ? $aiMetaScore : [];
+
                         return [
                             'question' => $questionText,
                             'answer' => $ans->answer,
-                            'score' => (float)($ans->hr_score ?? $ans->ai_score ?? 0),
+                            'ai_score' => (float)($ans->ai_score ?? 0),
+                            'hr_score' => (float)($ans->hr_score ?? 0),
+                            'ai_meta_score' =>  $aiMetaScore,
                         ];
                     });
                 }

@@ -58,14 +58,16 @@ def process_job_posting_profile(self, job_posting_id: str, questions: list) -> D
         jpp_service = JobPostingService(model, db)
         question_list: List[JobPostingQuestion] = []
         for q in questions:
-            question_list.append(JobPostingQuestion(
+            question_data = JobPostingQuestion(
                 id=q['id'],
                 job_posting_id=q['job_posting_id'],
                 question=q['question'],
                 weight=q['weight'],
                 mapped_competencies=q['mapped_competencies'],
                 weight_version=q['weight_version'],
-            ))
+            )
+            question_list.append(question_data)
+            db.add(question_data)
         job_posting = jpp_service.create_job_posting_profile(job_posting, question_list)
 
         embeddings_count = db.query(JobPostingEmbedding).filter(

@@ -27,16 +27,6 @@ class ScreeningService:
     def screen_applicant(self, applicant_id: str) -> Optional[ScreeningResult]:
         """
         Screen an applicant and calculate their score.
-
-        Args:
-            applicant_id: UUID of the applicant to screen
-
-        Returns:
-            ScreeningResult object if successful, None if failed
-
-        Raises:
-            ValueError: If applicant not found or invalid data
-            Exception: For other unexpected errors
         """
         try:
             # Fetch applicant
@@ -57,13 +47,12 @@ class ScreeningService:
                 logger.error(f"Job posting not found: {applicant.job_posting_id}")
                 raise ValueError(f"Job posting not found for applicant {applicant_id}")
 
-            # Find questions for this job posting
+            # Find screening questions
             questions = self.db.query(JobPostingQuestion).filter(
                 JobPostingQuestion.job_posting_id == applicant.job_posting_id
-            ).all()  # Changed to .all() to get all questions
+            ).all()
 
             if not questions:
-                logger.warning(f"No questions found for job posting: {applicant.job_posting_id}")
                 raise ValueError(f"No screening questions found for job posting {applicant.job_posting_id}")
 
             # Find applicant answers
@@ -72,126 +61,105 @@ class ScreeningService:
             ).all()
 
             if not applicant_answers:
-                logger.warning(f"No answers found for applicant: {applicant_id}")
                 raise ValueError(f"No answers found for applicant {applicant_id}")
 
-            # 🚨 FIX: Remove duplicate answers
+            # Remove duplicate answers (keep first)
             applicant_answers = self._deduplicate_answers(applicant_answers)
 
-            # Debug: Check for duplicates
-            question_ids = [ans.question_id for ans in applicant_answers]
-            if len(question_ids) != len(set(question_ids)):
-                logger.error(f"Duplicate questions still exist after deduplication for applicant {applicant_id}")
-
-            # Get Job Posting Embeddings organized by question
-            try:
-                jp_embeddings = self.job_service.get_job_posting_embeddings_for_questions(
-                    applicant.job_posting_id,
-                )
-            except Exception as e:
-                logger.error(f"Failed to get embeddings for job {applicant.job_posting_id}: {str(e)}")
-                raise ValueError(f"Failed to retrieve job embeddings: {str(e)}")
-
-            # Prepare answers with weights
-            answers = []
+            # Build map for quick lookup
             question_map = {q.id: q for q in questions}
 
-            for answer in applicant_answers:
-                question = question_map.get(answer.question_id)
-                if question:
-                    answers.append({
-                        'question_id': answer.question_id,
-                        'answer': answer.answer,
-                        'weight': question.weight,
-                        'mapped_competencies': question.mapped_competencies,
-                    })
-                else:
-                    logger.warning(f"Question {answer.question_id} not found for answer {answer.id}")
+            # ✅ FIX: Prepare answers as Dict[str, str] mapping question_id -> answer text
+            candidate_answers_dict = {}
 
-            if not answers:
-                logger.error(f"No valid answers to score for applicant {applicant_id}")
+            for ans in applicant_answers:
+                q = question_map.get(ans.question_id)
+                if not q:
+                    logger.warning(f"Answer {ans.id} refers to missing question {ans.question_id}")
+                    continue
+
+                # Convert UUID to string for consistency
+                candidate_answers_dict[str(ans.question_id)] = ans.answer
+
+            if not candidate_answers_dict:
                 raise ValueError(f"No valid answers matched with questions for applicant {applicant_id}")
 
-            # Score candidate
+            # Retrieve job posting embeddings
+            jp_embeddings = self.job_service.get_job_posting_embeddings_for_questions(applicant.job_posting_id)
+
+            # ✅ Convert questions list to dict metadata for scorer
+            questions_metadata = {
+                str(q.id): {
+                    "weight": getattr(q, "weight", 1.0),
+                    "mapped_competencies": getattr(q, "mapped_competencies", []) or []
+                }
+                for q in questions
+            }
+
+            # ✅ Call scorer with correct parameters
             try:
-                print("jp_embeddings:", jp_embeddings)
                 total_score, question_scores = self.scorer.score_candidate(
-                    answers,
+                    candidate_answers_dict,  # ✅ Now passing Dict[str, str]
                     jp_embeddings,
+                    questions_metadata
                 )
             except Exception as e:
-                logger.error(f"Scoring failed for applicant {applicant_id}: {str(e)}")
+                logger.error(f"Scoring failed for applicant {applicant_id}: {e}")
                 raise ValueError(f"Failed to score candidate: {str(e)}")
 
-            # Determine decision
-            try:
-                decision = self.scorer.determine_decision(
-                    total_score,
-                    job_posting.shortlist_threshold or 0.75,
-                    job_posting.flag_threshold or 0.25
-                )
-            except Exception as e:
-                logger.error(f"Decision determination failed for applicant {applicant_id}: {str(e)}")
-                raise ValueError(f"Failed to determine decision: {str(e)}")
+            # Determine decision (shortlist/review/flag)
+            decision = self.scorer.determine_decision(
+                total_score,
+                job_posting.shortlist_threshold or 0.75,
+                job_posting.flag_threshold or 0.25
+            )
 
-            # Create or update screening result
+            # Create/update screening result
             existing = self.db.query(ScreeningResult).filter(
                 ScreeningResult.applicant_id == applicant_id,
                 ScreeningResult.job_posting_id == job_posting.id
             ).first()
 
             if existing:
-                # Update existing
                 existing.total_score = total_score
                 existing.question_scores = to_serializable(question_scores)
                 existing.decision = decision
-                existing.weight_version = question.weight_version
+                existing.weight_version = getattr(questions[0], "weight_version", "1")
                 result = existing
                 logger.info(f"Updated screening result for applicant {applicant_id}")
             else:
-                # Create new
                 result = ScreeningResult(
                     job_posting_id=job_posting.id,
                     applicant_id=applicant_id,
                     total_score=total_score,
                     question_scores=to_serializable(question_scores),
                     decision=decision,
-                    weight_version=question.weight_version,
-                    model_version='v1.0'
+                    weight_version=getattr(questions[0], "weight_version", "1"),
+                    model_version="v1.0"
                 )
                 self.db.add(result)
                 logger.info(f"Created new screening result for applicant {applicant_id}")
 
-            # Commit changes
+            # Commit and return
             self.db.commit()
             self.db.refresh(result)
-
-            logger.info(f"Successfully screened applicant {applicant_id} with score {total_score}")
+            logger.info(f"✅ Successfully screened applicant {applicant_id} | Score: {total_score}")
             return result
 
         except ValueError as e:
-            # Known validation errors - rollback and re-raise
             self.db.rollback()
-            logger.error(f"Validation error screening applicant {applicant_id}: {str(e)}")
+            logger.error(f"Validation error screening applicant {applicant_id}: {e}")
             raise
 
         except SQLAlchemyError as e:
-            # Database errors
             self.db.rollback()
-            logger.error(f"Database error screening applicant {applicant_id}: {str(e)}", exc_info=True)
+            logger.error(f"Database error screening applicant {applicant_id}: {e}", exc_info=True)
             raise Exception(f"Database error during screening: {str(e)}")
 
         except Exception as e:
-            # Unexpected errors
             self.db.rollback()
-            logger.error(f"Unexpected error screening applicant {applicant_id}: {str(e)}", exc_info=True)
+            logger.error(f"Unexpected error screening applicant {applicant_id}: {e}", exc_info=True)
             raise Exception(f"Unexpected error during screening: {str(e)}")
-
-        finally:
-            # Ensure database session is cleaned up if needed
-            # Note: Only close if you're managing the session lifecycle here
-            # If using dependency injection, the session will be closed elsewhere
-            pass
 
     def screen_applicant_batch(self, job_posting_id: str,  applicant_ids: List[str]) :
         '''

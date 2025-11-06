@@ -33,10 +33,10 @@ class JobPostingService:
             Updated JobPosting with embeddings cached
         """
         # Step 1: Normalize question weights
-        total_weight = sum(q.weight for q in questions)
-        for q in questions:
-            q.weight = q.weight / total_weight
-            self.db.add(q)
+        # total_weight = sum(q.weight for q in questions)
+        # for q in questions:
+        #     q.weight = q.weight / total_weight
+        #     self.db.add(q)
 
         # Step 2: Generate and cache embeddings for job posting competency:
         #   Requirements
@@ -78,10 +78,6 @@ class JobPostingService:
 
         print(f"📊 Total embeddings found: {len(jp_embeddings)}")
 
-        # Print all embedding IDs for debugging
-        for emb in jp_embeddings:
-            print(f"  - {emb.competency_id} (type: {emb.competency_type})")
-
         # Get all questions
         questions = self.db.query(JobPostingQuestion).filter(
             JobPostingQuestion.job_posting_id == job_posting_id
@@ -112,14 +108,14 @@ class JobPostingService:
                     question_emb.append(np.array(emb.embedding, dtype=np.float32))
                     print(f"  ✅ Found question-only embedding")
 
-                # Combined embeddings for this question
-                elif cid.startswith("combined_"):
-                    # Format: "combined_{comp_id}_for_question_{question.id}"
-                    expected_suffix = f"_for_question_{question.id}"
-                    if cid.endswith(expected_suffix):
-                        comp_name = cid.replace("combined_", "").replace(expected_suffix, "")
-                        combined_emb.append((comp_name, np.array(emb.embedding, dtype=np.float32)))
-                        print(f"  ✅ Found combined embedding: {comp_name}")
+                # Combined embeddings for this question - FIXED LOGIC
+                # Format: "question_{comp_id}_{question.id}"
+                elif cid.startswith("question_") and cid.endswith(
+                        f"_{question.id}") and cid != f"question_{question.id}":
+                    # Extract competency name from between "question_" and "_{question.id}"
+                    comp_name = cid.replace("question_", "").replace(f"_{question.id}", "")
+                    combined_emb.append((comp_name, np.array(emb.embedding, dtype=np.float32)))
+                    print(f"  ✅ Found combined embedding: {comp_name}")
 
                 # Competency embeddings from mapped competencies
                 elif cid in mapped_comps:
@@ -208,16 +204,13 @@ class JobPostingService:
         for source in competency_sources:
             parsed_source = self._safe_json_parse(source, default=[])
             competencies.extend(parsed_source)
-            print(f"  Parsed {len(parsed_source)} competencies from {source}")
 
         # Build a lookup dictionary
         competency_dict = {c["id"]: c["value"] for c in competencies if
                            isinstance(c, dict) and "id" in c and "value" in c}
-        print(f"  Competency dictionary: {list(competency_dict.keys())}")
 
         # --- ⚙️ 3️⃣ Generate combined embeddings ---
         mapped_competencies = getattr(questionItem, "mapped_competencies", [])
-        print(f"  Mapped competencies for question: {mapped_competencies}")
 
         combined_count = 0
         for comp_id in mapped_competencies:
@@ -231,8 +224,21 @@ class JobPostingService:
 
             combined_embedding = self.model.encode(combined_text)[0].tolist()
 
-            # 🚨 IMPROVED: Use a more parse-friendly format
-            combined_id = f"combined_{comp_id}_for_question_{questionItem.id}"
+            # OPTION 1: Keep existing format (recommended since data already exists)
+            combined_id = f"question_{comp_id}_{questionItem.id}"
+
+            # OPTION 2: Use new format (requires regenerating all embeddings)
+            # combined_id = f"combined_{comp_id}_for_question_{questionItem.id}"
+
+            # Check if combined embedding already exists
+            existing = self.db.query(JobPostingEmbedding).filter(
+                JobPostingEmbedding.job_posting_id == job_posting.id,
+                JobPostingEmbedding.competency_id == combined_id
+            ).first()
+
+            if existing:
+                print(f"  ⚠️  Combined embedding {combined_id} already exists, skipping")
+                continue
 
             self.db.add(JobPostingEmbedding(
                 job_posting_id=job_posting.id,
@@ -243,8 +249,12 @@ class JobPostingService:
             ))
             combined_count += 1
 
-        print(f"  ✅ Created {combined_count} combined embeddings for question {questionItem.id}")
-        self.db.commit()  # Commit after each question to see progress
+        try:
+            self.db.commit()
+            print(f"  ✅ Created {combined_count} combined embeddings for question {questionItem.id}")
+        except Exception as e:
+            print(f"  ❌ Failed to commit combined embeddings: {e}")
+            self.db.rollback()
 
     def _process_embedding_items(self,job_posting_id, data_list, data_type):
         """

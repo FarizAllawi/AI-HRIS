@@ -3,13 +3,14 @@ import AnswerItem, { AnswerItemProps } from './AnswerItem';
 
 function getOverallScore(answers: AnswerItemProps[]): number {
   if (!answers || answers.length === 0) return 0;
-  const total = answers.reduce((sum, a) => sum + (a.score * 100), 0);
-  return (total / answers.length).toFixed(1);
+  const total = answers.reduce((sum, a) => sum + (a.ai_score * 100), 0);
+  return parseFloat((total / answers.length).toFixed(1));
 }
 
 export default function ApplicantAnswers({ answers }: { answers: AnswerItemProps[] }) {
   if (!answers || answers.length === 0) return null;
   const overallScore = getOverallScore(answers);
+  console.log("answers", answers);
   return (
     <Card className="mb-2">
       <CardHeader className="pb-2">

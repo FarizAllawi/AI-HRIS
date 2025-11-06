@@ -36,6 +36,15 @@ def to_serializable(value: Any):
     if isinstance(value, datetime):
         return value.isoformat()
 
+    if isinstance(value, str):
+        try:
+            parsed = json.loads(value)
+            # only return if it's a list or dict (i.e, Valid JSON context)
+            if isinstance(parsed, (list, dict)):
+                return parsed
+        except Exception:
+            pass
+
     # ✅ Fallback: primitive or already serializable
     return value
 
