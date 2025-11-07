@@ -41,15 +41,15 @@ export default function ApplicantCard({ applicant }: Props) {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'new':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
+        return 'hidden md:flex bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400';
       case 'in_review':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
+        return 'hidden md:flex bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400';
       case 'approved':
-        return 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
+        return 'hidden md:flex bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400';
       case 'rejected':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
+        return 'hidden md:flex bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400';
       default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
+        return 'hidden md:flex bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
     }
   };
 
@@ -59,7 +59,7 @@ export default function ApplicantCard({ applicant }: Props) {
 
       <div className="relative flex items-center justify-between">
         <div className="flex items-center space-x-5">
-          <div className="relative">
+          <div className="hidden sm:relative">
             <img
               src={applicant.avatarUrl}
               alt={applicant.fullName}
@@ -72,11 +72,11 @@ export default function ApplicantCard({ applicant }: Props) {
 
           <div className="flex-1">
             <div className="mb-2 flex items-center space-x-3">
-              <h4 className="text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-700 dark:text-gray-100 dark:group-hover:text-blue-300">
+              <h4 className="text-sm sm:text-lg font-bold text-gray-900 transition-colors group-hover:text-blue-700 dark:text-gray-100 dark:group-hover:text-blue-300">
                 {applicant.fullName}
               </h4>
               {applicant.isNew && (
-                <Badge className="animate-pulse bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm">
+                <Badge className="hidden md:flex animate-pulse bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-sm">
                   ✨ New
                 </Badge>
               )}
@@ -85,7 +85,7 @@ export default function ApplicantCard({ applicant }: Props) {
               </Badge>
             </div>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              <span className="flex items-center space-x-1">
+              <span className="hidden sm:flex text-xs sm:text-sm items-center space-x-1">
                 <span>📧</span>
                 <span>{applicant.email}</span>
               </span>
@@ -95,7 +95,7 @@ export default function ApplicantCard({ applicant }: Props) {
                   <span>{applicant.phone}</span>
                 </span>
               )}
-              <span className="flex items-center space-x-1">
+              <span className="hidden sm:flex items-center space-x-1">
                 <span>📅</span>
                 <span>
                   Applied{' '}
@@ -173,10 +173,10 @@ export default function ApplicantCard({ applicant }: Props) {
             <Button
               variant="default"
               size="sm"
-              className="bg-gradient-to-r from-slate-600 to-gray-600 shadow-md transition-all hover:from-slate-700 hover:to-gray-700 hover:shadow-lg"
+              className="text-sm bg-gradient-to-r from-slate-600 to-gray-600 shadow-md transition-all hover:from-slate-700 hover:to-gray-700 hover:shadow-lg"
               asChild
             >
-              <a href={`/HRMS/applicant/${applicant.applicantId}`}>👤 View Profile</a>
+              <a href={`/HRMS/applicant/${applicant.applicantId}`}>View</a>
             </Button>
           </div>
         </div>

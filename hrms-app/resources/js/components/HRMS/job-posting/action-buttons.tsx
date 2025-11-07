@@ -1,3 +1,4 @@
+// action-buttons.tsx
 import { Button } from '@/components/ui/button';
 import { useJobPostingToasts } from '@/hooks/use-job-posting-toasts';
 import { JobPosting } from '@/types/job-posting';
@@ -22,14 +23,14 @@ interface ActionButtonsProps {
 }
 
 export function ActionButtons({
-  jobPosting,
-  onView,
-  onEdit,
-  onDelete,
-  onToggleStatus,
-  onArchive,
-  onUnpublish,
-}: ActionButtonsProps) {
+                                jobPosting,
+                                onView,
+                                onEdit,
+                                onDelete,
+                                onToggleStatus,
+                                onArchive,
+                                onUnpublish,
+                              }: ActionButtonsProps) {
   const { showInfo } = useJobPostingToasts();
 
   const handleView = () => {
@@ -62,15 +63,15 @@ export function ActionButtons({
   };
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1">
       <Button
         variant="ghost"
         size="sm"
         onClick={handleView}
-        className="h-8 w-8 cursor-pointer p-0"
+        className="h-8 w-8 cursor-pointer p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
         title="View Details"
       >
-        <IconEye className="h-4 w-4" />
+        <IconEye className="h-4 w-4 text-blue-600 dark:text-blue-400" />
       </Button>
 
       {jobPosting.status === 'published' && (
@@ -79,19 +80,19 @@ export function ActionButtons({
             variant="ghost"
             size="sm"
             onClick={handleUnpublish}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-orange-100 dark:hover:bg-orange-900/30 rounded-lg transition-colors"
             title="Unpublish"
           >
-            <IconToggleRight className="h-4 w-4 text-green-600" />
+            <IconToggleRight className="h-4 w-4 text-green-600 dark:text-green-400" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleArchive}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             title="Archive"
           >
-            <IconArchive className="h-4 w-4 text-orange-600" />
+            <IconArchive className="h-4 w-4 text-orange-600 dark:text-orange-400" />
           </Button>
         </>
       )}
@@ -102,28 +103,28 @@ export function ActionButtons({
             variant="ghost"
             size="sm"
             onClick={handleEdit}
-            className="h-8 w-8 cursor-pointer p-0"
+            className="h-8 w-8 cursor-pointer p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
             title="Edit Job Posting"
           >
-            <IconEdit className="h-4 w-4" />
+            <IconEdit className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleToggleStatus}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
             title="Publish"
           >
-            <IconToggleLeft className="h-4 w-4 text-gray-400" />
+            <IconToggleLeft className="h-4 w-4 text-gray-500 dark:text-gray-400" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleArchive}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
             title="Archive"
           >
-            <IconArchive className="h-4 w-4 text-orange-600" />
+            <IconArchive className="h-4 w-4 text-orange-600 dark:text-orange-400" />
           </Button>
         </>
       )}
@@ -134,25 +135,25 @@ export function ActionButtons({
             variant="ghost"
             size="sm"
             onClick={handleEdit}
-            className="h-8 w-8 cursor-pointer p-0"
+            className="h-8 w-8 cursor-pointer p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
             title="Edit Job Posting"
           >
-            <IconEdit className="h-4 w-4" />
+            <IconEdit className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleToggleStatus}
-            className="h-8 w-8 p-0"
+            className="h-8 w-8 p-0 hover:bg-green-100 dark:hover:bg-green-900/30 rounded-lg transition-colors"
             title="Publish"
           >
-            <IconToggleLeft className="h-4 w-4 text-gray-400" />
+            <IconToggleLeft className="h-4 w-4 text-gray-500 dark:text-gray-400" />
           </Button>
           <Button
             variant="ghost"
             size="sm"
             onClick={handleDelete}
-            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+            className="h-8 w-8 p-0 hover:bg-red-100 dark:hover:bg-red-900/30 rounded-lg transition-colors text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300"
             title="Delete Job Posting"
           >
             <IconTrash className="h-4 w-4" />
@@ -165,10 +166,10 @@ export function ActionButtons({
           variant="ghost"
           size="sm"
           onClick={handleToggleStatus}
-          className="h-8 w-8 p-0"
+          className="h-8 w-8 p-0 hover:bg-blue-100 dark:hover:bg-blue-900/30 rounded-lg transition-colors"
           title="Unarchive"
         >
-          <IconArchiveOff className="h-4 w-4 text-blue-600" />
+          <IconArchiveOff className="h-4 w-4 text-blue-600 dark:text-blue-400" />
         </Button>
       )}
     </div>

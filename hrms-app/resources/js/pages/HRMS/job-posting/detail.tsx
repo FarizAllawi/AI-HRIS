@@ -1,3 +1,4 @@
+// detail.tsx - Fixed mobile layout
 import HRMSContentLayout from '@/components/HRMS/hrms-content-Layout';
 import AiScreeningProgress from '@/components/HRMS/job-posting/detail/AiScreeningProgress';
 import ApplicantCard from '@/components/HRMS/job-posting/ApplicantCard';
@@ -22,11 +23,15 @@ import {
   IconCurrencyDollar,
   IconGift,
   IconUsers,
+  IconArchive,
+  IconWorldUpload,
+  IconWorldDownload,
+  IconLayoutGrid,
+  IconList,
 } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import JobQuestions from '@/components/HRMS/job-posting/detail/JobQuestions';
 
-// Utility function to format badge text
 const formatBadgeText = (text: string) => {
   return text
     .split(/[-_\s]+/)
@@ -127,12 +132,9 @@ export default function JobPostingDetail({ jobPosting }: Props) {
   ];
 
   const [query, setQuery] = useState('');
-  const [timeRange, setTimeRange] = useState<'all' | 'today' | '7d' | '30d'>(
-    'all',
-  );
-  const [statusFilter, setStatusFilter] = useState<
-    'all' | 'new' | 'in_review' | 'approved' | 'rejected'
-  >('all');
+  const [timeRange, setTimeRange] = useState<'all' | 'today' | '7d' | '30d'>('all');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'new' | 'in_review' | 'approved' | 'rejected'>('all');
+  const [activeTab, setActiveTab] = useState<'details' | 'applicants'>('details');
 
   const filteredApplicants = useMemo(() => {
     const list = jobPosting.applicants ?? [];
@@ -145,7 +147,6 @@ export default function JobPostingDetail({ jobPosting }: Props) {
         (a.email && a.email.toLowerCase().includes(q));
       if (!matchesQuery) return false;
 
-      // Status filter
       if (statusFilter !== 'all' && a.status !== statusFilter) return false;
 
       if (timeRange === 'all') return true;
@@ -170,8 +171,12 @@ export default function JobPostingDetail({ jobPosting }: Props) {
   }, [jobPosting.applicants, query, timeRange, statusFilter]);
 
   const formatScore = (score: number) => {
-    return (score * 100).toFixed(1); // round to 2 decimal places
+    return (score * 100).toFixed(1);
   }
+
+  const handleStatusAction = (action: string) => {
+    console.log(`${action} job posting`, jobPosting.id);
+  };
 
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
@@ -180,229 +185,364 @@ export default function JobPostingDetail({ jobPosting }: Props) {
         title={jobPosting.title}
         description={`${jobPosting.department ?? ''} ${jobPosting.location ? `• ${jobPosting.location}` : ''} ${jobPosting.employmentType ? `• ${jobPosting.employmentType}` : ''}`.trim()}
       >
-        {/* Statistics Overview */}
-        <div className="mb-6 grid gap-4 md:grid-cols-4">
-          <div className="rounded-lg border bg-card p-4">
+        {/* Mobile-first Statistics Grid */}
+        <div className="mb-4 grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <div className="rounded-xl border bg-card p-3">
             <div className="flex items-center space-x-2">
-              <IconUsers className="h-5 w-5 text-blue-500 dark:text-blue-400" />
-              <span className="text-sm font-medium">Total Applications</span>
+              <IconUsers className="h-4 w-4 text-blue-500" />
+              <span className="text-xs font-medium">Applications</span>
             </div>
-            <div className="mt-1 text-2xl font-bold">
+            <div className="mt-1 text-lg font-bold">
               {jobPosting.statistics?.totalApplications ?? 0}
             </div>
             <p className="text-xs text-muted-foreground">
-              {jobPosting.statistics?.applicationsToday ?? 0} today,{' '}
-              {jobPosting.statistics?.applicationsThisWeek ?? 0} this week
+              {jobPosting.statistics?.applicationsToday ?? 0} today
             </p>
           </div>
 
-          <div className="rounded-lg border bg-card p-4">
+          <div className="rounded-xl border bg-card p-3">
             <div className="flex items-center space-x-2">
-              <IconBrain className="h-5 w-5 text-purple-500 dark:text-purple-400" />
-              <span className="text-sm font-medium">AI Screening</span>
+              <IconBrain className="h-4 w-4 text-purple-500" />
+              <span className="text-xs font-medium">AI Progress</span>
             </div>
-            <div className="mt-1 text-2xl font-bold">
+            <div className="mt-1 text-lg font-bold">
               {jobPosting.aiProgress?.screeningProgress ?? 0}%
             </div>
             <p className="text-xs text-muted-foreground">
-              {jobPosting.aiProgress?.aiScreenedCount ?? 0} screened,{' '}
-              {jobPosting.aiProgress?.pendingScreening ?? 0} pending
+              {jobPosting.aiProgress?.aiScreenedCount ?? 0} screened
             </p>
           </div>
 
-          <div className="rounded-lg border bg-card p-4">
+          <div className="rounded-xl border bg-card p-3">
             <div className="flex items-center space-x-2">
-              <div className="h-3 w-3 rounded-full bg-green-500 dark:bg-green-400"></div>
-              <span className="text-sm font-medium">Approved</span>
+              <div className="h-2 w-2 rounded-full bg-green-500"></div>
+              <span className="text-xs font-medium">Approved</span>
             </div>
-            <div className="mt-1 text-2xl font-bold text-green-600">
+            <div className="mt-1 text-lg font-bold text-green-600">
               {jobPosting.aiProgress?.approvedCount ?? 0}
             </div>
-            <p className="text-xs text-muted-foreground">Ready for interview</p>
+            <p className="text-xs text-muted-foreground">Ready</p>
           </div>
 
-          <div className="rounded-lg border bg-card p-4">
+          <div className="rounded-xl border bg-card p-3">
             <div className="flex items-center space-x-2">
-              <div className="h-3 w-3 rounded-full bg-orange-500 dark:bg-orange-400"></div>
-              <span className="text-sm font-medium">Average Score</span>
+              <div className="h-2 w-2 rounded-full bg-orange-500"></div>
+              <span className="text-xs font-medium">Avg Score</span>
             </div>
-            <div className="mt-1 text-2xl font-bold">
+            <div className="mt-1 text-lg font-bold">
               {jobPosting.statistics?.averageScore ? formatScore(jobPosting.statistics.averageScore) : 'N/A'}
             </div>
-            <p className="text-xs text-muted-foreground">
-              Range: {jobPosting.statistics?.lowestScore ? formatScore(jobPosting.statistics?.lowestScore) : 0} {" - "}
-              {jobPosting.statistics?.highestScore ? formatScore(jobPosting.statistics.highestScore) : 0}
-            </p>
+            <p className="text-xs text-muted-foreground">Overall</p>
           </div>
         </div>
 
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <Badge
-            variant={
-              jobPosting.publishedStatus === 'published'
-                ? 'default'
-                : 'secondary'
-            }
-          >
-            {formatBadgeText(jobPosting.publishedStatus || '')}
-          </Badge>
+        {/* Mobile Tab Navigation */}
+        <div className="mb-4 lg:hidden">
+          <div className="flex border-b">
+            <button
+              onClick={() => setActiveTab('details')}
+              className={`flex-1 py-3 text-center font-medium ${
+                activeTab === 'details'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500'
+              }`}
+            >
+              <IconLayoutGrid className="h-4 w-4 mx-auto mb-1" />
+              <span className="text-xs">Job Details</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('applicants')}
+              className={`flex-1 py-3 text-center font-medium ${
+                activeTab === 'applicants'
+                  ? 'border-b-2 border-blue-500 text-blue-600'
+                  : 'text-gray-500'
+              }`}
+            >
+              <IconUsers className="h-4 w-4 mx-auto mb-1" />
+              <span className="text-xs">Applicants ({jobPosting.applicants?.length || 0})</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Status and Actions - Mobile Optimized */}
+        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-2">
+            <Badge
+              variant={
+                jobPosting.publishedStatus === 'published'
+                  ? 'default'
+                  : jobPosting.publishedStatus === 'archived'
+                    ? 'secondary'
+                    : 'outline'
+              }
+              className="text-xs"
+            >
+              {formatBadgeText(jobPosting.publishedStatus || '')}
+            </Badge>
+            <span className="text-xs text-muted-foreground hidden sm:block">
+              Created {new Date(jobPosting.dateCreated).toLocaleDateString()}
+            </span>
+          </div>
 
           <div className="flex gap-2">
             {jobPosting.publishedStatus === 'published' ? (
               <>
                 <Button
                   variant="outline"
-                  onClick={() =>
-                    console.log('Unpublish job posting', jobPosting.id)
-                  }
+                  size="sm"
+                  className="flex-1 text-xs sm:flex-none sm:text-sm"
+                  onClick={() => handleStatusAction('unpublish')}
                 >
-                  Unpublish
+                  <IconWorldDownload className="h-3 w-3 mr-1 sm:h-4 sm:w-4" />
+                  <span className="hidden sm:inline">Unpublish</span>
+                  <span className="sm:hidden">Unpublish</span>
                 </Button>
                 <Button
                   variant="destructive"
-                  onClick={() => {
-                    // Replace with real archive action
-                    // e.g., router.post(route('job-posting.archive', jobPosting.id))
-                    console.log('Archive job posting', jobPosting.id);
-                  }}
+                  size="sm"
+                  className="flex-1 text-xs sm:flex-none sm:text-sm"
+                  onClick={() => handleStatusAction('archive')}
                 >
-                  Archive
+                  <IconArchive className="h-3 w-3 mr-1 sm:h-4 sm:w-4" />
+                  <span>Archive</span>
                 </Button>
               </>
-            ) : (
+            ) : jobPosting.publishedStatus === 'archived' ? (
               <Button
                 variant="outline"
-                onClick={() =>
-                  console.log('Archive job posting', jobPosting.id)
-                }
+                size="sm"
+                className="flex-1 text-xs sm:flex-none sm:text-sm"
+                onClick={() => handleStatusAction('unarchive')}
               >
-                Archive
+                <IconWorldUpload className="h-3 w-3 mr-1 sm:h-4 sm:w-4" />
+                <span className="hidden sm:inline">Unarchive</span>
+                <span className="sm:hidden">Restore</span>
+              </Button>
+            ) : (
+              <Button
+                variant="default"
+                size="sm"
+                className="flex-1 text-xs sm:flex-none sm:text-sm"
+                onClick={() => handleStatusAction('publish')}
+              >
+                <IconWorldUpload className="h-3 w-3 mr-1 sm:h-4 sm:w-4" />
+                <span>Publish</span>
               </Button>
             )}
           </div>
         </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <JobOverview jobPosting={jobPosting} />
-          <JobQuestions jobPosting={jobPosting} />
 
-          <div className="grid gap-4 md:col-span-2 md:grid-cols-3">
-            <AiScreeningProgress aiProgress={jobPosting.aiProgress} />
-            <TopAiRankings aiRankings={jobPosting.aiRankings} />
-            <TopCandidates rankings={jobPosting.rankings} />
-          </div>
-
-          <div className="md:col-span-2">
-            <div className="rounded-lg border bg-gradient-to-br from-slate-50/50 via-gray-50/30 to-zinc-50/50 p-6 dark:from-slate-950/20 dark:via-gray-950/15 dark:to-zinc-950/20">
-              <div className="mb-6 flex items-center space-x-3">
-                <div className="rounded-xl bg-gradient-to-r from-slate-500 to-gray-600 p-2.5">
-                  <IconUsers className="h-6 w-6 text-white" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="bg-gradient-to-r from-slate-700 to-gray-700 bg-clip-text text-xl font-bold text-transparent dark:from-slate-300 dark:to-gray-300">
-                    All Applications
-                  </h3>
-                  <p className="text-sm text-muted-foreground">
-                    {filteredApplicants.length} of{' '}
-                    {jobPosting.applicants?.length || 0} applicants shown
-                  </p>
-                </div>
-                <div className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-2 shadow-lg">
-                  <span className="text-lg font-bold text-white">
-                    {filteredApplicants.length}
-                  </span>
-                </div>
-              </div>
-
-              <div className="mb-6 rounded-xl border bg-white/80 p-4 shadow-sm dark:bg-gray-900/80">
-                <div className="flex flex-wrap gap-3">
-                  <div className="min-w-64 flex-1">
-                    <Input
-                      placeholder="🔍 Search by name or email..."
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      className="h-11 border-2 border-gray-200 bg-gray-50/50 text-base transition-all focus:border-blue-400 focus:bg-white dark:border-gray-700 dark:bg-gray-800/50 dark:focus:border-blue-500 dark:focus:bg-gray-800"
-                    />
-                  </div>
-
-                  <Select
-                    value={statusFilter}
-                    onValueChange={(
-                      value:
-                        | 'all'
-                        | 'new'
-                        | 'in_review'
-                        | 'approved'
-                        | 'rejected',
-                    ) => setStatusFilter(value)}
-                  >
-                    <SelectTrigger className="h-11 w-40 border-2 border-gray-200 bg-gray-50/50 transition-all hover:bg-white dark:border-gray-700 dark:bg-gray-800/50 dark:hover:bg-gray-800">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Status</SelectItem>
-                      <SelectItem value="new">
-                        {formatBadgeText('new')}
-                      </SelectItem>
-                      <SelectItem value="in_review">
-                        {formatBadgeText('in_review')}
-                      </SelectItem>
-                      <SelectItem value="approved">
-                        {formatBadgeText('approved')}
-                      </SelectItem>
-                      <SelectItem value="rejected">
-                        {formatBadgeText('rejected')}
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-
-                  <Select
-                    value={timeRange}
-                    onValueChange={(value: 'all' | 'today' | '7d' | '30d') =>
-                      setTimeRange(value)
-                    }
-                  >
-                    <SelectTrigger className="h-11 w-40 border-2 border-gray-200 bg-gray-50/50 transition-all hover:bg-white dark:border-gray-700 dark:bg-gray-800/50 dark:hover:bg-gray-800">
-                      <SelectValue placeholder="Time" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Time</SelectItem>
-                      <SelectItem value="today">Today</SelectItem>
-                      <SelectItem value="7d">7 Days</SelectItem>
-                      <SelectItem value="30d">30 Days</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
+        {/* Mobile Content */}
+        <div className="lg:hidden">
+          {activeTab === 'details' ? (
+            <div className="space-y-4">
+              {/* Job Details */}
               <div className="space-y-4">
+                <JobOverview jobPosting={jobPosting} />
+                <JobQuestions jobPosting={jobPosting} />
+              </div>
+
+              {/* Analytics Cards for Mobile */}
+              <div className="space-y-4">
+                <AiScreeningProgress aiProgress={jobPosting.aiProgress} />
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <TopAiRankings aiRankings={jobPosting.aiRankings} />
+                  <TopCandidates rankings={jobPosting.rankings} />
+                </div>
+              </div>
+
+
+            </div>
+          ) : (
+            /* Applicants Tab */
+            <div className="space-y-4">
+              {/* Filters */}
+              <div className="rounded-xl border bg-white p-4 dark:bg-gray-900">
+                <div className="space-y-3">
+                  <Input
+                    placeholder="🔍 Search applicants..."
+                    value={query}
+                    onChange={(e) => setQuery(e.target.value)}
+                    className="h-11 w-full"
+                  />
+                  <div className="grid grid-cols-2 gap-2">
+                    <Select
+                      value={statusFilter}
+                      onValueChange={(value: 'all' | 'new' | 'in_review' | 'approved' | 'rejected') => setStatusFilter(value)}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Status</SelectItem>
+                        <SelectItem value="new">{formatBadgeText('new')}</SelectItem>
+                        <SelectItem value="in_review">{formatBadgeText('in_review')}</SelectItem>
+                        <SelectItem value="approved">{formatBadgeText('approved')}</SelectItem>
+                        <SelectItem value="rejected">{formatBadgeText('rejected')}</SelectItem>
+                      </SelectContent>
+                    </Select>
+
+                    <Select
+                      value={timeRange}
+                      onValueChange={(value: 'all' | 'today' | '7d' | '30d') => setTimeRange(value)}
+                    >
+                      <SelectTrigger className="h-11">
+                        <SelectValue placeholder="Time" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Time</SelectItem>
+                        <SelectItem value="today">Today</SelectItem>
+                        <SelectItem value="7d">7 Days</SelectItem>
+                        <SelectItem value="30d">30 Days</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              {/* Applicants Count */}
+              <div className="flex items-center justify-between">
+                <h3 className="font-semibold">
+                  Applicants ({filteredApplicants.length})
+                </h3>
+                <Badge variant="secondary">
+                  {filteredApplicants.length} of {jobPosting.applicants?.length || 0}
+                </Badge>
+              </div>
+
+              {/* Applicants List */}
+              <div className="space-y-3">
                 {filteredApplicants.length === 0 ? (
-                  <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/50 py-16 dark:border-gray-700 dark:bg-gray-800/30">
-                    <IconUsers className="mb-4 h-16 w-16 text-gray-400" />
-                    <h4 className="mb-2 text-lg font-semibold text-gray-600 dark:text-gray-400">
+                  <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/50 py-12 dark:border-gray-700 dark:bg-gray-800/30">
+                    <IconUsers className="mb-3 h-12 w-12 text-gray-400" />
+                    <h4 className="mb-1 text-base font-semibold text-gray-600 dark:text-gray-400">
                       No applicants found
                     </h4>
-                    <p className="text-sm text-gray-500 dark:text-gray-500">
-                      Try adjusting your search criteria or filters
+                    <p className="text-sm text-gray-500 dark:text-gray-500 text-center px-4">
+                      Try adjusting your search criteria
                     </p>
                   </div>
                 ) : (
-                  filteredApplicants.map((applicant, index) => (
-                    <div
-                      key={applicant.id}
-                      className="group relative transform transition-all duration-200 hover:scale-[1.01]"
-                      style={{
-                        animationDelay: `${index * 50}ms`,
-                        animation: 'fadeInUp 0.5s ease-out forwards',
-                      }}
-                    >
+                  filteredApplicants.map((applicant) => (
+                    <div key={applicant.id}>
                       <ApplicantCard applicant={applicant} />
                     </div>
                   ))
                 )}
               </div>
             </div>
-          </div>
+          )}
         </div>
+
+        {/* Desktop Layout */}
+       <div className="hidden lg:flex lg:flex-col gap-6">
+         <div className="grid grid-cols-2 gap-6">
+           {/* Left Column - Job Details */}
+           <div className="space-y-6">
+             <JobOverview jobPosting={jobPosting} />
+             <JobQuestions jobPosting={jobPosting} />
+           </div>
+
+           {/* Right Column - Analytics & Applications */}
+           <div className="space-y-6">
+             {/* Analytics Cards */}
+             <div className="grid gap-6">
+               <AiScreeningProgress aiProgress={jobPosting.aiProgress} />
+               <div className="grid gap-6 md:grid-cols-2">
+                 <TopAiRankings aiRankings={jobPosting.aiRankings} />
+                 <TopCandidates rankings={jobPosting.rankings} />
+               </div>
+             </div>
+           </div>
+
+         </div>
+         {/* All Applications Section */}
+         <div className="rounded-xl border bg-gradient-to-br from-slate-50/50 via-gray-50/30 to-zinc-50/50 p-6 dark:from-slate-950/20 dark:via-gray-950/15 dark:to-zinc-950/20">
+           <div className="mb-6 flex items-center justify-between">
+             <div className="flex items-center space-x-3">
+               <div className="rounded-lg bg-gradient-to-r from-slate-500 to-gray-600 p-2">
+                 <IconUsers className="h-5 w-5 text-white" />
+               </div>
+               <div>
+                 <h3 className="text-lg font-bold text-slate-700 dark:text-slate-300">
+                   All Applications
+                 </h3>
+                 <p className="text-sm text-muted-foreground">
+                   {filteredApplicants.length} of {jobPosting.applicants?.length || 0} applicants
+                 </p>
+               </div>
+             </div>
+             <div className="rounded-full bg-gradient-to-r from-blue-500 to-indigo-500 px-4 py-2">
+                  <span className="text-lg font-bold text-white">
+                    {filteredApplicants.length}
+                  </span>
+             </div>
+           </div>
+
+           {/* Filters */}
+           <div className="mb-6 space-y-3">
+             <Input
+               placeholder="🔍 Search by name or email..."
+               value={query}
+               onChange={(e) => setQuery(e.target.value)}
+               className="h-11 w-full"
+             />
+             <div className="flex gap-3">
+               <Select
+                 value={statusFilter}
+                 onValueChange={(value: 'all' | 'new' | 'in_review' | 'approved' | 'rejected') => setStatusFilter(value)}
+               >
+                 <SelectTrigger className="h-11 flex-1">
+                   <SelectValue placeholder="Status" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="all">All Status</SelectItem>
+                   <SelectItem value="new">{formatBadgeText('new')}</SelectItem>
+                   <SelectItem value="in_review">{formatBadgeText('in_review')}</SelectItem>
+                   <SelectItem value="approved">{formatBadgeText('approved')}</SelectItem>
+                   <SelectItem value="rejected">{formatBadgeText('rejected')}</SelectItem>
+                 </SelectContent>
+               </Select>
+
+               <Select
+                 value={timeRange}
+                 onValueChange={(value: 'all' | 'today' | '7d' | '30d') => setTimeRange(value)}
+               >
+                 <SelectTrigger className="h-11 flex-1">
+                   <SelectValue placeholder="Time" />
+                 </SelectTrigger>
+                 <SelectContent>
+                   <SelectItem value="all">All Time</SelectItem>
+                   <SelectItem value="today">Today</SelectItem>
+                   <SelectItem value="7d">7 Days</SelectItem>
+                   <SelectItem value="30d">30 Days</SelectItem>
+                 </SelectContent>
+               </Select>
+             </div>
+           </div>
+
+           {/* Applicants List */}
+           <div className="space-y-4">
+             {filteredApplicants.length === 0 ? (
+               <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-300 bg-gray-50/50 py-12 dark:border-gray-700 dark:bg-gray-800/30">
+                 <IconUsers className="mb-3 h-12 w-12 text-gray-400" />
+                 <h4 className="mb-1 text-base font-semibold text-gray-600 dark:text-gray-400">
+                   No applicants found
+                 </h4>
+                 <p className="text-sm text-gray-500 dark:text-gray-500 text-center px-4">
+                   Try adjusting your search criteria or filters
+                 </p>
+               </div>
+             ) : (
+               filteredApplicants.map((applicant) => (
+                 <div key={applicant.id}>
+                   <ApplicantCard applicant={applicant} />
+                 </div>
+               ))
+             )}
+           </div>
+         </div>
+       </div>
       </HRMSContentLayout>
     </AppLayout>
   );

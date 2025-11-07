@@ -218,8 +218,8 @@ class JobPostingService:
             if not comp_value:
                 print(f"  ❌ Competency {comp_id} not found in dictionary")
                 continue
-
-            combined_text = f"{q_text} {comp_value}".strip()
+                
+            combined_text = f"{comp_value} {q_text}".strip()
             print(f"  Creating combined embedding: {comp_id} -> {combined_text[:100]}...")
 
             combined_embedding = self.model.encode(combined_text)[0].tolist()

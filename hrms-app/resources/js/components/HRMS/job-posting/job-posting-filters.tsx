@@ -1,3 +1,4 @@
+// job-posting-filters.tsx
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -36,9 +37,9 @@ interface JobPostingFiltersProps {
 }
 
 export function JobPostingFiltersComponent({
-  jobPostings,
-  onFiltersChange,
-}: JobPostingFiltersProps) {
+                                             jobPostings,
+                                             onFiltersChange,
+                                           }: JobPostingFiltersProps) {
   const { filters: filterToasts, showInfo } = useJobPostingToasts();
   const [filters, setFilters] = useState<JobPostingFilters>({
     search: '',
@@ -211,33 +212,35 @@ export function JobPostingFiltersComponent({
   const activeFiltersCount = getActiveFiltersCount();
 
   return (
-    <Card className="mb-6 w-full shadow-sm">
+    <Card className="w-full shadow-lg border-0 bg-gradient-to-r from-blue-50/50 to-purple-50/50 dark:from-gray-800 dark:to-blue-900/20">
       <Collapsible open={isExpanded} onOpenChange={setIsExpanded}>
         <CardHeader className="pb-3">
-          <div className="flex w-full flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex w-full gap-3 flex-col sm:flex-row items-start sm:items-center justify-between">
             <div className="flex items-center gap-3">
-              <CardTitle className="flex items-center gap-2 text-lg font-semibold">
-                <IconFilter className="h-5 w-5 text-blue-600" />
+              <CardTitle className="flex items-center gap-2 text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                <div className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-500 p-1.5">
+                  <IconFilter className="h-4 w-4 text-white" />
+                </div>
                 Filters
+                {activeFiltersCount > 0 && (
+                  <Badge
+                    variant="secondary"
+                    className="ml-2 border-blue-200 bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-300 dark:border-blue-800"
+                  >
+                    {activeFiltersCount} active
+                  </Badge>
+                )}
               </CardTitle>
-              {activeFiltersCount > 0 && (
-                <Badge
-                  variant="secondary"
-                  className="border-blue-200 bg-blue-100 text-blue-800"
-                >
-                  {activeFiltersCount} active
-                </Badge>
-              )}
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 w-full sm:w-auto">
               {activeFiltersCount > 0 && (
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={clearAllFilters}
-                  className="h-8 px-3 text-muted-foreground hover:bg-gray-50 hover:text-foreground"
+                  className="h-8 px-3 text-xs text-muted-foreground hover:bg-red-50 hover:text-red-600 dark:hover:bg-red-900/20 dark:hover:text-red-400 border-red-200 dark:border-red-800"
                 >
-                  <IconFilterOff className="mr-1 h-4 w-4" />
+                  <IconFilterOff className="mr-1 h-3 w-3" />
                   Clear All
                 </Button>
               )}
@@ -245,7 +248,7 @@ export function JobPostingFiltersComponent({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="h-8 w-8 p-0 hover:bg-gray-100"
+                  className="h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full"
                 >
                   {isExpanded ? (
                     <IconChevronUp className="h-4 w-4" />
@@ -259,97 +262,28 @@ export function JobPostingFiltersComponent({
 
           {/* Active filters display */}
           {activeFiltersCount > 0 && (
-            <div className="flex w-full flex-wrap gap-2 pt-2">
-              {filters.search && (
-                <Badge variant="outline" className="gap-1">
-                  Search: {filters.search}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => removeFilter('search')}
-                  >
-                    <IconX className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              )}
-              {filters.status && (
-                <Badge variant="outline" className="gap-1">
-                  Status: {filters.status}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => removeFilter('status')}
-                  >
-                    <IconX className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              )}
-              {filters.type && (
-                <Badge variant="outline" className="gap-1">
-                  Type: {filters.type}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => removeFilter('type')}
-                  >
-                    <IconX className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              )}
-              {filters.department && (
-                <Badge variant="outline" className="gap-1">
-                  Department: {filters.department}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => removeFilter('department')}
-                  >
-                    <IconX className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              )}
-              {filters.location && (
-                <Badge variant="outline" className="gap-1">
-                  Location: {filters.location}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => removeFilter('location')}
-                  >
-                    <IconX className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              )}
-              {filters.dateRange && (
-                <Badge variant="outline" className="gap-1">
-                  Date: {filters.dateRange}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => removeFilter('dateRange')}
-                  >
-                    <IconX className="h-3 w-3" />
-                  </Button>
-                </Badge>
-              )}
-              {filters.applicantRange && (
-                <Badge variant="outline" className="gap-1">
-                  Applicants: {filters.applicantRange}
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className="h-4 w-4 p-0 hover:bg-transparent"
-                    onClick={() => removeFilter('applicantRange')}
-                  >
-                    <IconX className="h-3 w-3" />
-                  </Button>
-                </Badge>
+            <div className="flex w-full flex-wrap gap-2 pt-3">
+              {Object.entries(filters).map(([key, value]) =>
+                  value && (
+                    <Badge
+                      key={key}
+                      variant="outline"
+                      className="gap-1 text-xs bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm border-blue-200 dark:border-blue-800"
+                    >
+                      {key === 'search' ? `Search: ${value}` :
+                        key === 'dateRange' ? `Date: ${value}` :
+                          key === 'applicantRange' ? `Applicants: ${value}` :
+                            `${key}: ${value}`}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-3 w-3 p-0 hover:bg-transparent hover:text-red-600"
+                        onClick={() => removeFilter(key as keyof JobPostingFilters)}
+                      >
+                        <IconX className="h-2 w-2" />
+                      </Button>
+                    </Badge>
+                  )
               )}
             </div>
           )}
@@ -357,11 +291,11 @@ export function JobPostingFiltersComponent({
 
         <CollapsibleContent>
           <CardContent className="w-full pt-0">
-            <div className="grid gap-6 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {/* Search Input */}
-              <div className="space-y-2">
+              <div className="space-y-2 sm:col-span-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="search">Search</Label>
+                  <Label htmlFor="search" className="font-semibold">Search</Label>
                   {filters.search && (
                     <Button
                       variant="ghost"
@@ -377,12 +311,12 @@ export function JobPostingFiltersComponent({
                   <IconSearch className="absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform text-muted-foreground" />
                   <Input
                     id="search"
-                    placeholder="Search by title, description, department..."
+                    placeholder="Search job postings..."
                     value={filters.search}
                     onChange={(e) =>
                       handleFilterChange('search', e.target.value)
                     }
-                    className="pl-10"
+                    className="pl-10 border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors"
                   />
                 </div>
               </div>
@@ -390,7 +324,7 @@ export function JobPostingFiltersComponent({
               {/* Status Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Status</Label>
+                  <Label className="font-semibold">Status</Label>
                   {filters.status && (
                     <Button
                       variant="ghost"
@@ -406,7 +340,7 @@ export function JobPostingFiltersComponent({
                   value={filters.status}
                   onValueChange={(value) => handleFilterChange('status', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors">
                     <SelectValue placeholder="All statuses" />
                   </SelectTrigger>
                   <SelectContent>
@@ -421,7 +355,7 @@ export function JobPostingFiltersComponent({
               {/* Type Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Job Type</Label>
+                  <Label className="font-semibold">Job Type</Label>
                   {filters.type && (
                     <Button
                       variant="ghost"
@@ -437,7 +371,7 @@ export function JobPostingFiltersComponent({
                   value={filters.type}
                   onValueChange={(value) => handleFilterChange('type', value)}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors">
                     <SelectValue placeholder="All types" />
                   </SelectTrigger>
                   <SelectContent>
@@ -452,7 +386,7 @@ export function JobPostingFiltersComponent({
               {/* Department Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Department</Label>
+                  <Label className="font-semibold">Department</Label>
                   {filters.department && (
                     <Button
                       variant="ghost"
@@ -470,7 +404,7 @@ export function JobPostingFiltersComponent({
                     handleFilterChange('department', value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors">
                     <SelectValue placeholder="All departments" />
                   </SelectTrigger>
                   <SelectContent>
@@ -486,7 +420,7 @@ export function JobPostingFiltersComponent({
               {/* Location Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Location</Label>
+                  <Label className="font-semibold">Location</Label>
                   {filters.location && (
                     <Button
                       variant="ghost"
@@ -504,7 +438,7 @@ export function JobPostingFiltersComponent({
                     handleFilterChange('location', value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors">
                     <SelectValue placeholder="All locations" />
                   </SelectTrigger>
                   <SelectContent>
@@ -520,7 +454,7 @@ export function JobPostingFiltersComponent({
               {/* Date Range Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Date Created</Label>
+                  <Label className="font-semibold">Date Created</Label>
                   {filters.dateRange && (
                     <Button
                       variant="ghost"
@@ -538,7 +472,7 @@ export function JobPostingFiltersComponent({
                     handleFilterChange('dateRange', value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors">
                     <SelectValue placeholder="All dates" />
                   </SelectTrigger>
                   <SelectContent>
@@ -553,7 +487,7 @@ export function JobPostingFiltersComponent({
               {/* Applicant Range Filter */}
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label>Applicants</Label>
+                  <Label className="font-semibold">Applicants</Label>
                   {filters.applicantRange && (
                     <Button
                       variant="ghost"
@@ -571,7 +505,7 @@ export function JobPostingFiltersComponent({
                     handleFilterChange('applicantRange', value)
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="border-2 focus:border-blue-500 dark:focus:border-blue-400 transition-colors">
                     <SelectValue placeholder="All ranges" />
                   </SelectTrigger>
                   <SelectContent>

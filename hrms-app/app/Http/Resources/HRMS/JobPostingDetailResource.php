@@ -12,14 +12,14 @@ class JobPostingDetailResource extends JsonResource
     {
         $questions = $this->questions()->get();
         $appliedJobs = $this->appliedJobs()
-            ->with(['applicant.user'])
+            ->with(['applicant.user', 'jobPostingAnswers']) // Added jobPostingAnswers
             ->orderBy('created_at', 'desc')
             ->get();
 
         $applicants = $this->transformApplicants($appliedJobs);
         $rankings = $this->generateRankings($applicants, $appliedJobs);
         $aiRankings = $this->generateAiRankings($rankings);
-        $aiProgress = $this->calculateAiProgress($applicants);
+        $aiProgress = $this->calculateAiProgress($appliedJobs); // Changed to pass appliedJobs
 
         return [
             'id' => $this->id,
@@ -71,8 +71,36 @@ class JobPostingDetailResource extends JsonResource
                 'avatarUrl' => "https://ui-avatars.com/api/?name=" . urlencode($user->name) . "&background=random&size=100",
                 'daysAgo' => $appliedJob->created_at->diffInDays(now()),
                 'isNew' => $appliedJob->created_at->isToday(),
+                'answersStatus' => $this->getAnswersStatus($appliedJob), // Added answers status
             ];
         })->toArray();
+    }
+
+    private function getAnswersStatus($appliedJob): array
+    {
+        $answers = $appliedJob->jobPostingAnswers;
+
+        if ($answers->isEmpty()) {
+            return [
+                'total' => 0,
+                'completed' => 0,
+                'pending' => 0,
+                'processing' => 0,
+                'failed' => 0,
+                'all_completed' => false
+            ];
+        }
+
+        $statusCounts = $answers->groupBy('status')->map->count();
+
+        return [
+            'total' => $answers->count(),
+            'completed' => $statusCounts->get('completed', 0),
+            'pending' => $statusCounts->get('pending', 0),
+            'processing' => $statusCounts->get('processing', 0),
+            'failed' => $statusCounts->get('failed', 0),
+            'all_completed' => $statusCounts->get('completed', 0) === $answers->count()
+        ];
     }
 
     private function determineApplicantStatus($appliedJob): string
@@ -80,9 +108,24 @@ class JobPostingDetailResource extends JsonResource
         if ($appliedJob->hr_screening_score !== null) {
             return $appliedJob->hr_screening_score >= 70 ? 'approved' : 'rejected';
         }
-        if ($appliedJob->ai_screening_score !== null) {
+
+        // Check if all answers are completed for AI screening
+        $answersStatus = $this->getAnswersStatus($appliedJob);
+
+        if ($answersStatus['all_completed'] && $appliedJob->ai_screening_score !== null) {
             return 'in_review';
         }
+
+        // If answers are still being processed
+        if ($answersStatus['processing'] > 0 || $answersStatus['pending'] > 0) {
+            return 'processing';
+        }
+
+        // If all answers failed
+        if ($answersStatus['failed'] > 0 && $answersStatus['failed'] === $answersStatus['total']) {
+            return 'failed';
+        }
+
         return 'new';
     }
 
@@ -90,7 +133,7 @@ class JobPostingDetailResource extends JsonResource
     {
         return collect($applicants)
             ->filter(function ($a) {
-                return $a['status'] !== 'new' && $a['aiScore'] !== null;
+                return $a['status'] !== 'new' && $a['status'] !== 'processing' && $a['aiScore'] !== null;
             })
             ->sortByDesc('aiScore')
             ->values()
@@ -116,33 +159,41 @@ class JobPostingDetailResource extends JsonResource
             })->toArray();
     }
 
-    private function calculateAiProgress(array $applicants): array
+    private function calculateAiProgress(Collection $appliedJobs): array
     {
-        $total = count($applicants);
-        $aiScreened = collect($applicants)->filter(function ($a) {
-            return isset($a['aiScore']) && $a['aiScore'] !== null;
-        })->count();
+        $total = $appliedJobs->count();
 
-        $inReview = collect($applicants)->filter(function ($a) {
-            return $a['status'] === 'in_review';
-        })->count();
+        $statusCounts = [
+            'completed' => 0,
+            'processing' => 0,
+            'pending' => 0,
+            'failed' => 0,
+            'in_review' => 0,
+            'approved' => 0,
+            'rejected' => 0,
+            'new' => 0,
+        ];
 
-        $approved = collect($applicants)->filter(function ($a) {
-            return $a['status'] === 'approved';
-        })->count();
+        foreach ($appliedJobs as $appliedJob) {
+            $status = $this->determineApplicantStatus($appliedJob);
+            $statusCounts[$status]++;
+        }
 
-        $rejected = collect($applicants)->filter(function ($a) {
-            return $a['status'] === 'rejected';
-        })->count();
+        $aiScreened = $statusCounts['in_review'] + $statusCounts['approved'] + $statusCounts['rejected'];
+        $aiScreeningCurrent = $statusCounts['processing'];
 
         return [
             'totalApplicants' => $total,
             'aiScreenedCount' => $aiScreened,
-            'aiScreeningCurrent' => $inReview,
-            'pendingScreening' => $total - $aiScreened,
-            'approvedCount' => $approved,
-            'rejectedCount' => $rejected,
+            'aiScreeningCurrent' => $aiScreeningCurrent,
+            'pendingScreening' => $statusCounts['pending'] + $statusCounts['new'],
+            'approvedCount' => $statusCounts['approved'],
+            'rejectedCount' => $statusCounts['rejected'],
+            'failedCount' => $statusCounts['failed'],
+            'inReviewCount' => $statusCounts['in_review'],
+            'processingCount' => $statusCounts['processing'],
             'screeningProgress' => $total > 0 ? round(($aiScreened / $total) * 100, 1) : 0,
+            'statusBreakdown' => $statusCounts, // Added for detailed breakdown
         ];
     }
 

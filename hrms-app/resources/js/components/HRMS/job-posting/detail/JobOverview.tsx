@@ -79,62 +79,62 @@ export default function JobOverview({ jobPosting }: Props) {
   };
 
   return (
-    <div className="rounded-lg border bg-card p-6">
+    <div className="w-auto rounded-lg border bg-card p-4 md:p-6">
       <div className="mb-4 flex items-center space-x-2">
         <IconEye className="h-5 w-5 text-blue-500 dark:text-blue-400" />
         <h3 className="text-lg font-semibold">Job Overview</h3>
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3 md:space-y-4">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="w-1/2 flex items-center space-x-2">
             <IconId className="h-4 w-4 text-slate-500 dark:text-slate-400" />
             <span className="text-sm font-medium">Job ID</span>
           </div>
-          <span className="font-mono text-sm text-muted-foreground">
+          <span className="w-1/2 text-end font-mono text-sm text-muted-foreground">
             {jobPosting.id}
           </span>
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="w-1/2 flex items-center space-x-2">
             <IconCalendar className="h-4 w-4 text-emerald-500 dark:text-emerald-400" />
             <span className="text-sm font-medium">Created</span>
           </div>
-          <span className="text-sm">
+          <div className="w-1/2 text-sm text-end">
             {new Date(jobPosting.dateCreated).toLocaleDateString('en-US', {
               year: 'numeric',
-              month: 'long',
+              month: 'short',
               day: 'numeric',
             })}
-          </span>
+          </div>
         </div>
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
+          <div className="w-1/2 flex items-center space-x-2">
             <IconEye className="h-4 w-4 text-violet-500 dark:text-violet-400" />
             <span className="text-sm font-medium">Status</span>
           </div>
-          <Badge variant={getStatusBadgeVariant(jobPosting.publishedStatus)}>
-            {formatBadgeText(jobPosting.publishedStatus || 'Draft')}
-          </Badge>
+          <div className="w-1/2 text-end">
+            <Badge variant={getStatusBadgeVariant(jobPosting.publishedStatus)} className="text-xs">
+              {formatBadgeText(jobPosting.publishedStatus || 'Draft')}
+            </Badge>
+          </div>
         </div>
 
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <IconBriefcase className="h-4 w-4 text-orange-500 dark:text-orange-400" />
-            <span className="text-sm font-medium">Employment Type</span>
+        {jobPosting.employmentType && (
+          <div className="flex items-center justify-between">
+            <div className="w-1/2 flex items-center space-x-2">
+              <IconBriefcase className="h-4 w-4 text-orange-500 dark:text-orange-400" />
+              <span className="text-sm font-medium">Type</span>
+            </div>
+            <div className="w-1/2 text-end">
+              <Badge className={`text-xs ${getEmploymentTypeBadge(jobPosting.employmentType)}`}>
+                {formatBadgeText(jobPosting.employmentType)}
+              </Badge>
+            </div>
           </div>
-          {jobPosting.employmentType ? (
-            <Badge
-              className={getEmploymentTypeBadge(jobPosting.employmentType)}
-            >
-              {formatBadgeText(jobPosting.employmentType)}
-            </Badge>
-          ) : (
-            <span className="text-sm text-muted-foreground">Not specified</span>
-          )}
-        </div>
+        )}
 
         {jobPosting.location && (
           <div className="flex items-center justify-between">
@@ -142,7 +142,7 @@ export default function JobOverview({ jobPosting }: Props) {
               <IconMapPin className="h-4 w-4 text-red-500 dark:text-red-400" />
               <span className="text-sm font-medium">Location</span>
             </div>
-            <span className="text-sm">{jobPosting.location}</span>
+            <span className="text-sm text-right">{jobPosting.location}</span>
           </div>
         )}
 
@@ -152,9 +152,10 @@ export default function JobOverview({ jobPosting }: Props) {
               <IconBuilding className="h-4 w-4 text-cyan-500 dark:text-cyan-400" />
               <span className="text-sm font-medium">Department</span>
             </div>
-            <span className="text-sm">{jobPosting.department}</span>
+            <span className="text-sm text-right">{jobPosting.department}</span>
           </div>
         )}
+
         <Accordion
           type="single"
           collapsible

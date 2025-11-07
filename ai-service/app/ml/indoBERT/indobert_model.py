@@ -1,6 +1,5 @@
 import torch
 from transformers import AutoTokenizer, AutoModel
-from typing import List, Union
 import numpy as np
 from app.core.config import settings
 
@@ -60,7 +59,7 @@ class IndoBERTModel:
     '''
         MEAN POOLING version (NEW)
     '''
-    def encode(self, texts, normalize=True):
+    def encode(self, texts, normalize=False):
         self.model.eval()
         embeddings = []
 

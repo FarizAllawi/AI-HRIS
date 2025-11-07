@@ -12,10 +12,10 @@ import {
   DeleteConfirmationDialog,
   JobPostingFiltersComponent,
   JobPostingTable,
+  JobPostingCardView,
 } from '@/components/HRMS/job-posting';
 
 import { JobPosting, JobPostingFilters } from '@/types/job-posting';
-// import { dummyJobPostings } from '@/data/job-postings';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -25,8 +25,8 @@ const breadcrumbs: BreadcrumbItem[] = [
 ];
 
 export default function JobPostingIndex({
-  jobPostings,
-}: {
+                                          jobPostings,
+                                        }: {
   jobPostings: JobPosting[];
 }) {
   const {
@@ -53,6 +53,7 @@ export default function JobPostingIndex({
   const [jobPostingToDelete, setJobPostingToDelete] =
     useState<JobPosting | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [viewMode, setViewMode] = useState<'table' | 'card'>('card');
 
   const handleCreateNew = () => {
     showInfo(
@@ -111,10 +112,8 @@ export default function JobPostingIndex({
 
   const handleToggleStatus = (jobPosting: JobPosting) => {
     if (jobPosting.status === 'published') {
-      // This shouldn't be called for published jobs as they use separate unpublish handler
       handleUnpublish(jobPosting);
     } else if (jobPosting.status === 'archived') {
-      // Unarchive - set back to draft for editing
       toasts.actionStarted.unarchiving(jobPosting.title);
       router.put(
         `/HRMS/job-posting/${jobPosting.id}/unarchive`,
@@ -132,7 +131,6 @@ export default function JobPostingIndex({
         },
       );
     } else {
-      // Publish draft or unpublished job
       toasts.actionStarted.publishing(jobPosting.title);
       router.put(
         `/HRMS/job-posting/${jobPosting.id}/publish`,
@@ -190,7 +188,6 @@ export default function JobPostingIndex({
       setActiveFilters(filters);
       setFilteredCount(filtered.length);
 
-      // Show filter toast if filters are applied
       const hasActiveFilters = Object.values(filters).some(
         (value) => value !== '',
       );
@@ -213,6 +210,15 @@ export default function JobPostingIndex({
   useEffect(() => {
     setFilteredJobPostings(jobPostings || []);
     setFilteredCount(jobPostings?.length || 0);
+
+    // Set view mode based on screen size
+    const handleResize = () => {
+      setViewMode(window.innerWidth < 1024 ? 'card' : 'table');
+    };
+
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
   }, [jobPostings]);
 
   return (
@@ -233,27 +239,76 @@ export default function JobPostingIndex({
             />
           </div>
 
-          {/* Results Summary */}
-          <div className="flex w-full items-center justify-between">
-            <p className="text-sm text-muted-foreground">
+          {/* Header with View Toggle */}
+          <div className="flex w-full flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <p className="text-sm text-muted-foreground font-medium">
               {getFilterSummary()}
             </p>
-            {Object.values(activeFilters).some((value) => value !== '') && (
-              <p className="text-xs text-muted-foreground">Filters applied</p>
-            )}
+
+            <div className="flex items-center gap-3">
+              {Object.values(activeFilters).some((value) => value !== '') && (
+                <span className="text-xs font-semibold bg-gradient-to-r from-blue-500 to-purple-500 text-white px-3 py-1.5 rounded-full shadow-sm">
+                  Filters Active
+                </span>
+              )}
+
+              {/* Enhanced View Toggle */}
+              <div className="flex items-center gap-1 border rounded-xl p-1 bg-gray-50 dark:bg-gray-800 shadow-sm">
+                <button
+                  onClick={() => setViewMode('table')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    viewMode === 'table'
+                      ? 'bg-white dark:bg-gray-700 shadow-sm border text-gray-900 dark:text-white'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current rounded"></div>
+                    Table
+                  </div>
+                </button>
+                <button
+                  onClick={() => setViewMode('card')}
+                  className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                    viewMode === 'card'
+                      ? 'bg-white dark:bg-gray-700 shadow-sm border text-gray-900 dark:text-white'
+                      : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-current rounded-sm"></div>
+                    Cards
+                  </div>
+                </button>
+              </div>
+            </div>
           </div>
 
-          {/* Table */}
-          <div className="w-full overflow-hidden">
-            <JobPostingTable
-              jobPostings={filteredJobPostings}
-              onView={handleView}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-              onToggleStatus={handleToggleStatus}
-              onArchive={handleArchive}
-              onUnpublish={handleUnpublish}
-            />
+          {/* Content */}
+          <div className="w-full">
+            {viewMode === 'table' ? (
+              <div className="hidden lg:block overflow-hidden">
+                <JobPostingTable
+                  jobPostings={filteredJobPostings}
+                  onView={handleView}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onToggleStatus={handleToggleStatus}
+                  onArchive={handleArchive}
+                  onUnpublish={handleUnpublish}
+                />
+              </div>
+            ) : (
+              <JobPostingCardView
+                jobPostings={filteredJobPostings}
+                onView={handleView}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onToggleStatus={handleToggleStatus}
+                onArchive={handleArchive}
+                onUnpublish={handleUnpublish}
+              />
+            )}
           </div>
 
           {/* Delete Confirmation Dialog */}

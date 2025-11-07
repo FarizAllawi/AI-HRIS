@@ -107,11 +107,20 @@ class ScreeningService:
                 logger.error(f"Scoring failed for applicant {applicant_id}: {e}")
                 raise ValueError(f"Failed to score candidate: {str(e)}")
 
-            # Determine decision (shortlist/review/flag)
+
+            # ✅ Get number of questions
+            num_questions = len(questions)
+
+            # ✅ Null-safe ratios for SUM scoring
+            shortlist_ratio = job_posting.shortlist_threshold if job_posting.shortlist_threshold is not None else 0.70
+            flag_ratio = job_posting.flag_threshold if job_posting.flag_threshold is not None else 0.30
+
+            # ✅ Determine decision
             decision = self.scorer.determine_decision(
-                total_score,
-                job_posting.shortlist_threshold or 0.75,
-                job_posting.flag_threshold or 0.25
+                total_score=total_score,
+                num_questions=num_questions,
+                shortlist_ratio=shortlist_ratio,
+                flag_ratio=flag_ratio
             )
 
             # Create/update screening result

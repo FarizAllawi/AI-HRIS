@@ -139,7 +139,7 @@ class ApplyJobRepository implements ApplyJobRepositoryInterface
                             }
 
                             // mark as completed and set screened timestamp if not set
-                            $answer->ai_score_meta = $result['question_scores'];
+                            $answer->ai_score_meta = $q;
                             $answer->status = 'completed';
                             $answer->ai_screened_at = $answer->ai_screened_at ?? now();
 

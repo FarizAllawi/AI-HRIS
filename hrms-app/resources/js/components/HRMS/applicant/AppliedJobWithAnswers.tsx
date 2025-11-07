@@ -8,9 +8,9 @@ export type AppliedJobWithAnswersProps = {
 };
 
 export default function AppliedJobWithAnswers({
-  job,
-  answers,
-}: AppliedJobWithAnswersProps) {
+                                                job,
+                                                answers,
+                                              }: AppliedJobWithAnswersProps) {
   return (
     <div className="mb-6 p-0">
       <AppliedJobCard job={job} />
