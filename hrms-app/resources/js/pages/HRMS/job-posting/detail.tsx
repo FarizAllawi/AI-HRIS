@@ -31,6 +31,7 @@ import {
 } from '@tabler/icons-react';
 import { useMemo, useState } from 'react';
 import JobQuestions from '@/components/HRMS/job-posting/detail/JobQuestions';
+import { Briefcase } from 'lucide-react';
 
 const formatBadgeText = (text: string) => {
   return text
@@ -182,6 +183,7 @@ export default function JobPostingDetail({ jobPosting }: Props) {
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Job Posting — ${jobPosting.title}`} />
       <HRMSContentLayout
+        iconTitle={<Briefcase className="w-6 h-6 text-white"/> }
         title={jobPosting.title}
         description={`${jobPosting.department ?? ''} ${jobPosting.location ? `• ${jobPosting.location}` : ''} ${jobPosting.employmentType ? `• ${jobPosting.employmentType}` : ''}`.trim()}
       >

@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Plus, FileText, ListChecks, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from 'sonner';
 
 export function RequirementsSection({ form }: any) {
-  const { control, register, formState: { errors } } = form;
+  const { control, register, watch, formState: { errors } } = form;
   const { fields, append, remove } = useFieldArray({
     control,
     name: "requirements",
@@ -15,8 +16,14 @@ export function RequirementsSection({ form }: any) {
 
   const handleAddRequirement = () => {
     const nextIndex = fields.length + 1;
-    const newId = `requirements_id_${nextIndex}`;
-    append({ id: newId, value: "" });
+    const newId = `requirements_${nextIndex}`;
+
+    const currentRequirementsValue = watch(`requirements.${fields.length-1}.value`);
+    if (fields.length !== 0 && (!currentRequirementsValue || currentRequirementsValue.trim() === '')) {
+      toast.warning("Please fill the Requirements field")
+    } else {
+      return append({ id: newId, value: "" });
+    }
   };
 
   return (
@@ -44,13 +51,13 @@ export function RequirementsSection({ form }: any) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-4 sm:p-6 space-y-6">
         {/* Requirements List */}
         <div className="space-y-4">
           {fields.map((field, i) => (
             <div
               key={field.id}
-              className="flex gap-3 group transition-all duration-200 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 p-4 rounded-xl border border-transparent hover:border-orange-200 dark:hover:border-orange-800"
+              className="flex gap-3 group transition-all duration-200 hover:bg-orange-50/50 dark:hover:bg-orange-900/10 sm:p-4 rounded-xl border border-transparent hover:border-orange-200 dark:hover:border-orange-800"
             >
               {/* Requirement Number and Indicator */}
               <div className="hidden sm:flex flex-col items-center pt-1">
@@ -70,9 +77,9 @@ export function RequirementsSection({ form }: any) {
                   <Input
                     {...register(`requirements.${i}.value`)}
                     placeholder='e.g., "Proficient in using office applications (Microsoft Office, Google Workspace)"'
-                    className="pl-10 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
+                    className="sm:pl-10 focus:ring-2 focus:ring-orange-500 focus:border-orange-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
                   />
-                  <FileText className="h-5 w-5 text-orange-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <FileText className="hidden sm:flex h-5 w-5 text-orange-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 </div>
                 {errors.requirements?.[i]?.value && (
                   <p className="text-sm text-red-500 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mt-2">
@@ -102,7 +109,7 @@ export function RequirementsSection({ form }: any) {
                 No requirements added yet
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-                Start by adding the key qualifications and skills needed for this position.
+                Start by adding the key requirement needed for this position.
               </p>
             </div>
           )}
@@ -124,7 +131,7 @@ export function RequirementsSection({ form }: any) {
                 Add Requirement
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                Click to add another qualification or skill requirement
+                Click to add requirement
               </div>
             </div>
           </div>

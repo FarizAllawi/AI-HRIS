@@ -8,6 +8,7 @@ import {
 } from '@/components/HRMS/job-posting/action/JobPostingForm';
 import { JobPostingFormValues } from '@/components/HRMS/job-posting/action/schema';
 import AppLayout from '@/layouts/app-layout';
+import { Briefcase } from 'lucide-react';
 
 export default function JobPostingDetail({
   jobPosting,
@@ -95,6 +96,7 @@ export default function JobPostingDetail({
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Job Posting | ${isCreate ? 'Create' : 'Edit'}`} />
       <HRMSContentLayout
+        iconTitle={<Briefcase className="w-6 h-6 text-white"/> }
         title="Job Posting"
         description={`${isCreate ? 'Create a new ' : 'Update '}job posting to attract top talent.`}
       >

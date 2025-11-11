@@ -5,6 +5,7 @@ import AppLayout from '@/layouts/app-layout';
 import { index as applicant } from '@/routes/applicant';
 import { type BreadcrumbItem } from '@/types';
 import { Head, router } from '@inertiajs/react';
+import { Briefcase, Users } from 'lucide-react';
 
 const breadcrumbs: BreadcrumbItem[] = [
   {
@@ -27,6 +28,7 @@ export default function Applicant({
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title="Applicant" />
       <HRMSContentLayout
+        iconTitle={<Users className="w-6 h-6 text-white"/> }
         title="Applicant"
         description="Manage and track all Applicant data in your organization."
       >

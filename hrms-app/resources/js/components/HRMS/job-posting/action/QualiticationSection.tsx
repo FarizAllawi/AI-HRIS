@@ -44,13 +44,13 @@ export function QualificationSection({ form }: any) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-4 sm:p-6 space-y-6">
         {/* Qualifications List */}
         <div className="space-y-4">
           {fields.map((field, i) => (
             <div
               key={field.id}
-              className="flex gap-3 group transition-all duration-200 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 p-4 rounded-xl border border-transparent hover:border-purple-200 dark:hover:border-purple-800"
+              className="flex gap-3 group transition-all duration-200 hover:bg-purple-50/50 dark:hover:bg-purple-900/10 sm:p-4 rounded-xl border border-transparent hover:border-purple-200 dark:hover:border-purple-800"
             >
               {/* Qualification Number and Indicator */}
               <div className="hidden sm:flex flex-col items-center pt-1">
@@ -70,9 +70,9 @@ export function QualificationSection({ form }: any) {
                   <Input
                     {...register(`qualifications.${i}.value`)}
                     placeholder='e.g., "Minimum of an associate degree (D3) in Office Administration or related field"'
-                    className="pl-10 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
+                    className="sm:pl-10 focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
                   />
-                  <BookOpen className="h-5 w-5 text-purple-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <BookOpen className="hidden sm:flex h-5 w-5 text-purple-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 </div>
                 {errors.qualifications?.[i]?.value && (
                   <p className="text-sm text-red-500 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mt-2">
@@ -102,7 +102,7 @@ export function QualificationSection({ form }: any) {
                 No qualifications added yet
               </h3>
               <p className="text-sm text-gray-500 dark:text-gray-400 max-w-sm mx-auto">
-                Add the educational qualifications needed for this position.
+                Add qualifications needed for this position.
               </p>
             </div>
           )}
@@ -124,7 +124,7 @@ export function QualificationSection({ form }: any) {
                 Add Qualification
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                Click to add another educational qualification
+                Click to add another qualification
               </div>
             </div>
           </div>

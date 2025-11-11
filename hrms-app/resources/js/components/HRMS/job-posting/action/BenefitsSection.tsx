@@ -5,19 +5,41 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Plus, Gift, Heart, Sparkles } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from 'sonner';
 
 export function BenefitsSection({ form }: any) {
-  const { control, register, formState: { errors } } = form;
+  const { control, register, watch, formState: { errors } } = form;
 
-  const { fields, append, remove } = useFieldArray({
+  const { fields, append, remove, update } = useFieldArray({
     control,
     name: "benefits",
   });
 
   const handleBenefits = () => {
     const nextIndex = fields.length + 1;
-    const newId = `benefits_id_${nextIndex}`;
-    append({ id: newId, value: "" });
+    const newId = `benefits_${nextIndex}`;
+
+    const currentBenefitValue = watch(`benefits.${fields.length - 1}.value`);
+
+    if (fields.length !== 0 && (!currentBenefitValue || currentBenefitValue.trim() === '')) {
+      toast.warning("Please fill the Benefits")
+    } else {
+      append({ id: newId, value: "" });
+    }
+  };
+
+  // Function to handle quick add benefits with the same logic
+  const handleQuickAddBenefit = (benefit: string) => {
+    const currentBenefitValue = watch(`benefits.${fields.length - 1}.value`);
+
+    if (!currentBenefitValue || currentBenefitValue.trim() === '') {
+      // If first benefit is empty, insert at index 1
+      return update(fields.length - 1, { id: `benefits_${fields.length - 1}`, value: benefit });
+    } else {
+      const nextIndex = fields.length + 1;
+      const newId = `benefits_${nextIndex}`;
+      return append({ id: newId, value: benefit });
+    }
   };
 
   const popularBenefits = [
@@ -52,13 +74,13 @@ export function BenefitsSection({ form }: any) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-4 sm:p-6 space-y-6">
         {/* Benefits List */}
         <div className="space-y-4">
           {fields.map((field, i) => (
             <div
               key={field.id}
-              className="flex gap-3 group transition-all duration-200 hover:bg-green-50/50 dark:hover:bg-green-900/10 p-4 rounded-xl border border-transparent hover:border-green-200 dark:hover:border-green-800"
+              className="flex gap-3 group transition-all duration-200 hover:bg-green-50/50 dark:hover:bg-green-900/10 sm:p-4 rounded-xl border border-transparent hover:border-green-200 dark:hover:border-green-800"
             >
               {/* Benefit Number and Indicator */}
               <div className="hidden sm:flex flex-col items-center pt-1">
@@ -78,9 +100,9 @@ export function BenefitsSection({ form }: any) {
                   <Input
                     {...register(`benefits.${i}.value`)}
                     placeholder='e.g., "Comprehensive health insurance with dental and vision coverage"'
-                    className="pl-10 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
+                    className="sm:pl-10 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
                   />
-                  <Gift className="h-5 w-5 text-green-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <Gift className="hidden sm:flex h-5 w-5 text-green-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 </div>
                 {errors.benefits?.[i]?.value && (
                   <p className="text-sm text-red-500 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mt-2">
@@ -116,6 +138,28 @@ export function BenefitsSection({ form }: any) {
           )}
         </div>
 
+        {/* Add Benefit Button */}
+        <Button
+          type="button"
+          onClick={handleBenefits}
+          variant="outline"
+          className="w-full border-dashed border-2 border-green-300 dark:border-green-700 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-950/20 transition-all duration-200 group py-6 rounded-xl"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-green-500 text-white rounded-lg group-hover:scale-110 transition-transform duration-200">
+              <Plus className="h-4 w-4" />
+            </div>
+            <div className="text-left">
+              <div className="font-semibold text-gray-700 dark:text-gray-300">
+                Add Custom Benefit
+              </div>
+              <div className="text-xs text-gray-500 dark:text-gray-400">
+                Click to add a unique benefit
+              </div>
+            </div>
+          </div>
+        </Button>
+
         {/* Quick Add Benefits Suggestions */}
         <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4">
           <div className="flex items-start gap-3 mb-3">
@@ -135,35 +179,13 @@ export function BenefitsSection({ form }: any) {
                 key={benefit}
                 type="button"
                 className="text-xs bg-white dark:bg-gray-800 border border-emerald-200 dark:border-emerald-700 px-3 py-2 rounded-lg cursor-pointer hover:bg-emerald-500 hover:text-white hover:border-emerald-500 dark:hover:bg-emerald-600 transition-all duration-200 hover:scale-105 shadow-sm"
-                onClick={() => append({ id: `benefit_${Date.now()}`, value: benefit })}
+                onClick={() => handleQuickAddBenefit(benefit)}
               >
                 {benefit}
               </button>
             ))}
           </div>
         </div>
-
-        {/* Add Benefit Button */}
-        <Button
-          type="button"
-          onClick={handleBenefits}
-          variant="outline"
-          className="w-full border-dashed border-2 border-green-300 dark:border-green-700 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-950/20 transition-all duration-200 group py-6 rounded-xl"
-        >
-          <div className="flex items-center gap-3">
-            <div className="p-2 bg-green-500 text-white rounded-lg group-hover:scale-110 transition-transform duration-200">
-              <Plus className="h-4 w-4" />
-            </div>
-            <div className="text-left">
-              <div className="font-semibold text-gray-700 dark:text-gray-300">
-                Add Custom Benefit
-              </div>
-              <div className="text-xs text-gray-500 dark:text-gray-400">
-                Click to add a unique benefit not listed above
-              </div>
-            </div>
-          </div>
-        </Button>
 
         {/* Benefits Impact Tip */}
         <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">

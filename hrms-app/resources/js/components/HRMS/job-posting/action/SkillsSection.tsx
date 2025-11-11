@@ -6,22 +6,65 @@ import { Trash2, Plus, Star, Zap, Target, Award } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from 'sonner';
 
 export function SkillsSection({ form }: any) {
-  const { control, register, formState: { errors } } = form;
+  const { control, register, watch, formState: { errors } } = form;
   const required = useFieldArray({ control, name: "required_skills" });
   const preferred = useFieldArray({ control, name: "preferred_skills" });
 
   const handleRequiredSkills = () => {
     const nextIndex = required.fields.length + 1;
-    const newId = `required_skills_id_${nextIndex}`;
-    required.append({ id: newId, value: "" });
+    const newId = `required_skills_${nextIndex}`;
+    // Check if first benefit field is empty or undefined
+    const currentRequiredSkillValue = watch(`required_skills.${required.fields.length - 1}.value`);
+
+    if (required.fields.length !== 0 && (!currentRequiredSkillValue || currentRequiredSkillValue.trim() === '')) {
+      // If first benefit is empty, insert new benefit at index 1 (second position)
+      toast.warning("Please fill the first Required Skills")
+    } else {
+      // Otherwise, append to the end as normal
+      return required.append({ id: newId, value: "" });
+    }
   };
 
   const handlePreferredSkills = () => {
     const nextIndex = preferred.fields.length + 1;
-    const newId = `preferred_skills_id_${nextIndex}`;
-    preferred.append({ id: newId, value: "" });
+    const newId = `preferred_skills_${nextIndex}`;
+
+    const currentPreferredSkillValue = watch(`preferred_skills.${preferred.fields.length - 1}.value`);
+
+    if (preferred.fields.length !== 0 && (!currentPreferredSkillValue || currentPreferredSkillValue.trim() === '')) {
+      toast.warning("Please fill the Preferred Skills field")
+    } else {
+      return preferred.append({ id: newId, value: "" });
+    }
+  };
+
+  const handleQuickAddRequired = (value: string) => {
+    const currentRequiredValue = watch(`required_skills.${required.fields.length - 1}.value`);
+
+    if (!currentRequiredValue || currentRequiredValue.trim() === '') {
+      // If first benefit is empty, insert at index 1
+      return required.update(required.fields.length - 1, { id: `required_skills_${required.fields.length - 1}`, value: value });
+    } else {
+      const nextIndex = required.fields.length + 1;
+      const newId = `required_skills_${nextIndex}`;
+      return required.append({ id: newId, value: value });
+    }
+  };
+
+  const handleQuickAddPreferred = (value: string) => {
+    const currentPreferredValue = watch(`preferred_skills.${preferred.fields.length - 1}.value`);
+
+    if (!currentPreferredValue || currentPreferredValue.trim() === '') {
+      // If first benefit is empty, insert at index 1
+      return preferred.update(preferred.fields.length - 1, { id: `preferred_skills_${preferred.fields.length - 1}`, value: value });
+    } else {
+      const nextIndex = preferred.fields.length + 1;
+      const newId = `preferred_skills_${nextIndex}`;
+      return preferred.append({ id: newId, value: value });
+    }
   };
 
   const popularTechnicalSkills = [
@@ -41,12 +84,12 @@ export function SkillsSection({ form }: any) {
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-white/20 rounded-lg">
-              <Target className="h-5 w-5" />
+              <Target className="w-4 h-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <CardTitle className="text-xl font-bold flex items-center gap-2">
+              <CardTitle className="text-base sm:text-xl font-bold flex items-center gap-2">
                 Skills & Competencies
-                <Badge variant="secondary" className="ml-2 bg-white/20 text-white border-0 hover:bg-white/30">
+                <Badge variant="secondary" className="hidden sm:flex ml-2 bg-white/20 text-white border-0 hover:bg-white/30">
                   {required.fields.length + preferred.fields.length} total
                 </Badge>
               </CardTitle>
@@ -59,7 +102,7 @@ export function SkillsSection({ form }: any) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-6">
+      <CardContent className="p-4 sm:p-6">
         <Tabs defaultValue="required" className="space-y-6">
           {/* Enhanced Tabs List */}
           <TabsList className="grid w-full grid-cols-2 p-1 h-14 bg-amber-100/50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
@@ -93,10 +136,10 @@ export function SkillsSection({ form }: any) {
               {required.fields.map((field, i) => (
                 <div
                   key={field.id}
-                  className="flex gap-3 group transition-all duration-200 hover:bg-red-50/50 dark:hover:bg-red-900/10 p-4 rounded-xl border border-transparent hover:border-red-200 dark:hover:border-red-800"
+                  className="flex gap-3 group transition-all duration-200 hover:bg-red-50/50 dark:hover:bg-red-900/10 sm:p-4 rounded-xl border border-transparent hover:border-red-200 dark:hover:border-red-800"
                 >
                   {/* Skill Number and Indicator */}
-                  <div className="flex flex-col items-center pt-1">
+                  <div className="hidden sm:flex flex-col items-center pt-1">
                     <div className="w-8 h-8 rounded-full bg-red-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
                       {i + 1}
                     </div>
@@ -113,9 +156,9 @@ export function SkillsSection({ form }: any) {
                       <Input
                         {...register(`required_skills.${i}.value`)}
                         placeholder='e.g., "Proficiency in Microsoft Word, Excel, and PowerPoint"'
-                        className="pl-10 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
+                        className="sm:pl-10 focus:ring-2 focus:ring-red-500 focus:border-red-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
                       />
-                      <Target className="h-5 w-5 text-red-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      <Target className="hidden sm:flex h-5 w-5 text-red-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {errors.required_skills?.[i]?.value && (
                       <p className="text-sm text-red-500 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mt-2">
@@ -130,7 +173,7 @@ export function SkillsSection({ form }: any) {
                     variant="outline"
                     size="icon"
                     onClick={() => required.remove(i)}
-                    className="h-10 w-10 mt-7 border-red-200 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 hover:scale-105 flex-shrink-0"
+                    className="h-10 w-10 mt-8 border-red-200 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 hover:scale-105 flex-shrink-0"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -151,6 +194,28 @@ export function SkillsSection({ form }: any) {
               )}
             </div>
 
+            {/* Add Required Skill Button */}
+            <Button
+              type="button"
+              onClick={handleRequiredSkills}
+              variant="outline"
+              className="w-full border-dashed border-2 border-red-300 dark:border-red-700 hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200 group py-6 rounded-xl"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-red-500 text-white rounded-lg group-hover:scale-110 transition-transform duration-200">
+                  <Plus className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-700 dark:text-gray-300">
+                    Add Custom Required Skill
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Click to add required skill
+                  </div>
+                </div>
+              </div>
+            </Button>
+
             {/* Quick Add Technical Skills */}
             <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-4">
               <div className="flex items-start gap-3 mb-3">
@@ -170,7 +235,7 @@ export function SkillsSection({ form }: any) {
                     key={skill}
                     type="button"
                     className="text-xs bg-white dark:bg-gray-800 border border-orange-200 dark:border-orange-700 px-3 py-2 rounded-lg cursor-pointer hover:bg-orange-500 hover:text-white hover:border-orange-500 dark:hover:bg-orange-600 transition-all duration-200 hover:scale-105 shadow-sm"
-                    onClick={() => required.append({ id: `required_skill_${Date.now()}`, value: skill })}
+                    onClick={() => handleQuickAddRequired(skill)}
                   >
                     {skill}
                   </button>
@@ -178,27 +243,6 @@ export function SkillsSection({ form }: any) {
               </div>
             </div>
 
-            {/* Add Required Skill Button */}
-            <Button
-              type="button"
-              onClick={handleRequiredSkills}
-              variant="outline"
-              className="w-full border-dashed border-2 border-red-300 dark:border-red-700 hover:border-red-500 hover:bg-red-50 dark:hover:bg-red-950/20 transition-all duration-200 group py-6 rounded-xl"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-red-500 text-white rounded-lg group-hover:scale-110 transition-transform duration-200">
-                  <Plus className="h-4 w-4" />
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-700 dark:text-gray-300">
-                    Add Custom Required Skill
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Click to add a must-have skill not listed above
-                  </div>
-                </div>
-              </div>
-            </Button>
           </TabsContent>
 
           {/* Preferred Skills Tab */}
@@ -208,10 +252,10 @@ export function SkillsSection({ form }: any) {
               {preferred.fields.map((field, i) => (
                 <div
                   key={field.id}
-                  className="flex gap-3 group transition-all duration-200 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 p-4 rounded-xl border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
+                  className="flex gap-3 group transition-all duration-200 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 sm:p-4 rounded-xl border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
                 >
                   {/* Skill Number and Indicator */}
-                  <div className="flex flex-col items-center pt-1">
+                  <div className="hidden sm:flex flex-col items-center pt-1">
                     <div className="w-8 h-8 rounded-full bg-blue-500 text-white flex items-center justify-center text-sm font-bold shadow-lg">
                       {i + 1}
                     </div>
@@ -228,9 +272,9 @@ export function SkillsSection({ form }: any) {
                       <Input
                         {...register(`preferred_skills.${i}.value`)}
                         placeholder='e.g., "Experience using Learning Management Systems (LMS) such as Moodle or Google Classroom"'
-                        className="pl-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
+                        className="sm:pl-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
                       />
-                      <Star className="h-5 w-5 text-blue-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                      <Star className="hidden sm:flex h-5 w-5 text-blue-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                     </div>
                     {errors.preferred_skills?.[i]?.value && (
                       <p className="text-sm text-red-500 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mt-2">
@@ -245,7 +289,7 @@ export function SkillsSection({ form }: any) {
                     variant="outline"
                     size="icon"
                     onClick={() => preferred.remove(i)}
-                    className="h-10 w-10 mt-7 border-red-200 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 hover:scale-105 flex-shrink-0"
+                    className="h-10 w-10 mt-8 border-red-200 text-red-500 hover:bg-red-500 hover:text-white transition-all duration-200 hover:scale-105 flex-shrink-0"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>
@@ -266,6 +310,29 @@ export function SkillsSection({ form }: any) {
               )}
             </div>
 
+
+            {/* Add Preferred Skill Button */}
+            <Button
+              type="button"
+              onClick={handlePreferredSkills}
+              variant="outline"
+              className="w-full border-dashed border-2 border-blue-300 dark:border-blue-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all duration-200 group py-6 rounded-xl"
+            >
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-blue-500 text-white rounded-lg group-hover:scale-110 transition-transform duration-200">
+                  <Plus className="h-4 w-4" />
+                </div>
+                <div className="text-left">
+                  <div className="font-semibold text-gray-700 dark:text-gray-300">
+                    Add Custom Preferred Skill
+                  </div>
+                  <div className="text-xs text-gray-500 dark:text-gray-400">
+                    Click to add a preferred skill
+                  </div>
+                </div>
+              </div>
+            </Button>
+
             {/* Quick Add Soft Skills */}
             <div className="bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800 rounded-xl p-4">
               <div className="flex items-start gap-3 mb-3">
@@ -285,7 +352,7 @@ export function SkillsSection({ form }: any) {
                     key={skill}
                     type="button"
                     className="text-xs bg-white dark:bg-gray-800 border border-cyan-200 dark:border-cyan-700 px-3 py-2 rounded-lg cursor-pointer hover:bg-cyan-500 hover:text-white hover:border-cyan-500 dark:hover:bg-cyan-600 transition-all duration-200 hover:scale-105 shadow-sm"
-                    onClick={() => preferred.append({ id: `preferred_skill_${Date.now()}`, value: skill })}
+                    onClick={() => handleQuickAddPreferred(skill)}
                   >
                     {skill}
                   </button>
@@ -293,27 +360,6 @@ export function SkillsSection({ form }: any) {
               </div>
             </div>
 
-            {/* Add Preferred Skill Button */}
-            <Button
-              type="button"
-              onClick={handlePreferredSkills}
-              variant="outline"
-              className="w-full border-dashed border-2 border-blue-300 dark:border-blue-700 hover:border-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/20 transition-all duration-200 group py-6 rounded-xl"
-            >
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-blue-500 text-white rounded-lg group-hover:scale-110 transition-transform duration-200">
-                  <Plus className="h-4 w-4" />
-                </div>
-                <div className="text-left">
-                  <div className="font-semibold text-gray-700 dark:text-gray-300">
-                    Add Custom Preferred Skill
-                  </div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">
-                    Click to add a bonus skill not listed above
-                  </div>
-                </div>
-              </div>
-            </Button>
           </TabsContent>
         </Tabs>
       </CardContent>

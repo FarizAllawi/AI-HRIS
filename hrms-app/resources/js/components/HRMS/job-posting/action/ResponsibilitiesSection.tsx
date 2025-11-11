@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Trash2, Plus, ClipboardList, Target, Lightbulb } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { toast } from 'sonner';
 
 export function ResponsibilitiesSection({ form }: any) {
-  const { control, register, formState: { errors } } = form;
+  const { control, register, watch, formState: { errors } } = form;
 
   const { fields, append, remove } = useFieldArray({
     control,
@@ -16,8 +17,17 @@ export function ResponsibilitiesSection({ form }: any) {
 
   const handleResponsibilities = () => {
     const nextIndex = fields.length + 1;
-    const newId = `responsibilities_id_${nextIndex}`;
-    append({ id: newId, value: "" });
+    const newId = `responsibilities_${nextIndex}`;
+    // Check if first benefit field is empty or undefined
+    const currentResponsibilitiesValue = watch(`responsibilities.${fields.length - 1}.value`);
+
+    if (fields.length !== 0 && (!currentResponsibilitiesValue || currentResponsibilitiesValue.trim() === '')) {
+      // If first benefit is empty, insert new benefit at index 1 (second position)
+      toast.warning("Please fill the Responsibilities")
+    } else {
+      // Otherwise, append to the end as normal
+      return append({ id: newId, value: "" });
+    }
   };
 
   return (
@@ -45,13 +55,13 @@ export function ResponsibilitiesSection({ form }: any) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-4 sm:p-6 space-y-6">
         {/* Responsibilities List */}
         <div className="space-y-4">
           {fields.map((field, i) => (
             <div
               key={field.id}
-              className="flex gap-3 group transition-all duration-200 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 p-4 rounded-xl border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
+              className="flex gap-3 group transition-all duration-200 hover:bg-blue-50/50 dark:hover:bg-blue-900/10 sm:p-4 rounded-xl border border-transparent hover:border-blue-200 dark:hover:border-blue-800"
             >
               {/* Responsibility Number and Indicator */}
               <div className="hidden sm:flex flex-col items-center pt-1">
@@ -71,9 +81,9 @@ export function ResponsibilitiesSection({ form }: any) {
                   <Input
                     {...register(`responsibilities.${i}.value`)}
                     placeholder='e.g., "Manage and organize administrative documents related to learning activities"'
-                    className="pl-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
+                    className="sm:pl-10 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-lg py-6 text-base"
                   />
-                  <ClipboardList className="h-5 w-5 text-blue-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
+                  <ClipboardList className="hidden sm:flex h-5 w-5 text-blue-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
                 </div>
                 {errors.responsibilities?.[i]?.value && (
                   <p className="text-sm text-red-500 flex items-center gap-1 bg-red-50 dark:bg-red-900/20 px-3 py-2 rounded-lg mt-2">
@@ -125,7 +135,7 @@ export function ResponsibilitiesSection({ form }: any) {
                 Add Responsibility
               </div>
               <div className="text-xs text-gray-500 dark:text-gray-400">
-                Click to add another duty or task for this role
+                Click to add another duty or task
               </div>
             </div>
           </div>

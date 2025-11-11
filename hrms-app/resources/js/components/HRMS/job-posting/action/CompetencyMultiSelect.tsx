@@ -140,11 +140,11 @@ export function CompetencyMultiSelect({
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
                 <Layers className="h-4 w-4 text-indigo-500" />
                 {selectedOptions.length > 0 ? (
-                  <span className="font-medium text-gray-700 dark:text-gray-300">
+                  <span className="font-medium text-wrap text-gray-700 dark:text-gray-300">
                     Mapped Competencies ({selectedOptions.length})
                   </span>
                 ) : (
-                  <span>Select competencies to map to this question...</span>
+                  <span className="text-wrap">Select competencies to map to this question...</span>
                 )}
               </div>
 
@@ -177,7 +177,7 @@ export function CompetencyMultiSelect({
                 </div>
               )}
             </div>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
+            <ChevronsUpDown className="sm:ml-2 h-4 w-4 shrink-0 opacity-50 group-hover:opacity-100 transition-opacity" />
           </Button>
         </PopoverTrigger>
 

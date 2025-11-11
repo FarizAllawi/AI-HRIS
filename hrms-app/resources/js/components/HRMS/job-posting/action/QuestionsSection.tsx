@@ -10,10 +10,24 @@ import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Plus, HelpCircle, Trash2, FileQuestion, Brain, Target, Scale } from "lucide-react";
+import { toast } from 'sonner';
+
 
 export function QuestionsSection({ form }: any) {
   const { control, register, watch, formState: { errors } } = form;
   const { fields, append, remove } = useFieldArray({ control, name: "questions" });
+
+  const handleAddQuestion = () => {
+    const nextIndex = fields.length + 1;
+
+    const currenQuestionValue = watch(`questions.${fields.length - 1}.question`);
+
+    if (fields.length !== 0 && (!currenQuestionValue || currenQuestionValue.trim() === '')) {
+      toast.warning("Please fill the Preferred Skills field")
+    } else {
+      return preferred.append({ id: newId, value: "" });
+    }
+  }
 
   return (
     <TooltipProvider>
@@ -23,16 +37,16 @@ export function QuestionsSection({ form }: any) {
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-white/20 rounded-lg">
-                <Brain className="h-5 w-5" />
+                <Brain className="w-4 h-4 sm:h-5 sm:w-5" />
               </div>
               <div>
-                <CardTitle className="text-xl font-bold flex items-center gap-2">
+                <CardTitle className="text-base sm:text-xl font-bold flex items-center gap-2">
                   Screening Questions
-                  <Badge variant="secondary" className="ml-2 bg-white/20 text-white border-0 hover:bg-white/30">
+                  <Badge variant="secondary" className="hidden sm:flex ml-2 bg-white/20 text-white border-0 hover:bg-white/30">
                     {fields.length} {fields.length === 1 ? 'question' : 'questions'}
                   </Badge>
                 </CardTitle>
-                <p className="text-sm text-indigo-100 mt-1">
+                <p className="text-xs sm:text-sm text-indigo-100 mt-1">
                   Define questions and their importance for AI candidate assessment
                 </p>
               </div>
@@ -41,7 +55,7 @@ export function QuestionsSection({ form }: any) {
           </div>
         </CardHeader>
 
-        <CardContent className="p-6 space-y-6">
+        <CardContent className="p-4 sm:p-6 space-y-6">
           {fields.map((field, i) => {
             const currentWeight = watch(`questions.${i}.weight`) || 0.2;
             const getWeightColor = (weight: number) => {
@@ -52,7 +66,7 @@ export function QuestionsSection({ form }: any) {
 
             return (
               <Card key={field.id} className="border border-indigo-100 dark:border-indigo-800 rounded-xl shadow-sm hover:shadow-md transition-all duration-200 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm overflow-hidden">
-                <CardContent className="p-6 space-y-6">
+                <CardContent className="p-4 sm:p-6 space-y-6">
                   {/* Question Header */}
                   <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     <div className="flex items-center gap-3">

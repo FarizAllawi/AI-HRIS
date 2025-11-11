@@ -42,7 +42,7 @@ export function JobOverviewSection({ form, serverErrors }: any) {
         </div>
       </CardHeader>
 
-      <CardContent className="p-6 space-y-6">
+      <CardContent className="p-4 sm:p-6 space-y-6">
         {/* Job Title */}
         <div className="space-y-3">
           <Label className="flex items-center gap-2 text-sm font-semibold text-gray-700 dark:text-gray-300">

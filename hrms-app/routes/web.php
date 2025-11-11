@@ -35,7 +35,7 @@ Route::get('/', function () {
 Route::prefix('HRMS')->group(function() {
     Route::middleware(['auth', 'verified', 'role:hrms-user'])->group(function () {
         Route::get('dashboard', function () {
-            return Inertia::render('HRMS/dashboard');
+            return redirect()->route('job-posting.index'); // Redirect to job-posting route
         })->name('dashboard');
     });
 });
