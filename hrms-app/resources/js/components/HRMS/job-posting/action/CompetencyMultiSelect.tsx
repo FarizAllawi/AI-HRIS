@@ -134,7 +134,7 @@ export function CompetencyMultiSelect({
             variant="outline"
             role="combobox"
             aria-expanded={open}
-            className="w-full min-h-[70px] justify-between text-left hover:border-indigo-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-xl p-4 group"
+            className="w-full h-auto justify-between text-left hover:border-indigo-500 transition-all duration-200 bg-white dark:bg-gray-800 border-gray-300 dark:border-gray-600 rounded-xl p-4 group"
           >
             <div className="flex flex-col items-start gap-3 flex-1">
               <div className="flex items-center gap-2 text-sm text-gray-500 dark:text-gray-400">
@@ -149,7 +149,7 @@ export function CompetencyMultiSelect({
               </div>
 
               {selectedOptions.length > 0 ? (
-                <div className="flex flex-wrap gap-2 w-full">
+                <div className="flex flex-wrap gap-2 w-full h-auto">
                   {selectedOptions.map((opt) => (
                     <Badge
                       key={opt.id}

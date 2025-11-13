@@ -187,9 +187,24 @@ class JobPostingRepository extends BaseRepository implements JobPostingRepositor
 
     public function updateStatus(string $id, string $status): ?Model
     {
+        // Add comprehensive validation
+        if (empty($id) || !is_string($id)) {
+            throw new \InvalidArgumentException('Job posting ID must be a non-empty string. Received: ' . gettype($id));
+        }
+
+        if (empty($status) || !is_string($status)) {
+            throw new \InvalidArgumentException('Status must be a non-empty string.');
+        }
+
+        // Validate UUID format
+        if (!preg_match('/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i', $id)) {
+            throw new \InvalidArgumentException('Invalid job posting ID format: ' . $id);
+        }
+
         return DB::transaction(function () use ($id, $status) {
             $jobPosting = $this->model->lockForUpdate()->findOrFail($id);
             $jobPosting->update(['status' => $status]);
+
             return $jobPosting;
         });
     }

@@ -18,14 +18,22 @@ export function QuestionsSection({ form }: any) {
   const { fields, append, remove } = useFieldArray({ control, name: "questions" });
 
   const handleAddQuestion = () => {
-    const nextIndex = fields.length + 1;
+    const currentQuestionValue = watch(`questions.${fields.length - 1}.question`);
+    const currentMappedCompetency = watch(`questions.${fields.length - 1}.mapped_competencies`);
 
-    const currenQuestionValue = watch(`questions.${fields.length - 1}.question`);
-
-    if (fields.length !== 0 && (!currenQuestionValue || currenQuestionValue.trim() === '')) {
-      toast.warning("Please fill the Preferred Skills field")
+    if (fields.length !== 0 && (
+      (!currentQuestionValue || currentQuestionValue.trim() === '') &&
+      (!currentMappedCompetency || currentMappedCompetency.length === 0)
+    )) {
+      toast.warning("Please fill the current question form before add new one")
     } else {
-      return preferred.append({ id: newId, value: "" });
+      append({
+        id: null,
+        question: "",
+        description: "",
+        weight: 0.2,
+        mapped_competencies: []
+      })
     }
   }
 
@@ -255,13 +263,7 @@ export function QuestionsSection({ form }: any) {
           {/* Add Question Button */}
           <Button
             type="button"
-            onClick={() => append({
-              id: null,
-              question: "",
-              description: "",
-              weight: 0.2,
-              mapped_competencies: []
-            })}
+            onClick={handleAddQuestion}
             variant="outline"
             className="w-full border-dashed border-2 border-indigo-300 dark:border-indigo-700 hover:border-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-950/20 transition-all duration-200 group py-6 rounded-xl"
           >

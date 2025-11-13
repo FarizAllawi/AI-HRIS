@@ -116,10 +116,18 @@ class JobPostingController extends Controller
     /**
      * Archive the specified resource.
      */
-    public function archived(JobPosting $jobPosting)
+    public function archive(JobPosting $jobPosting)
     {
-        $this->jobPosting->updateStatus($jobPosting->id, 'archived');
-        return Redirect::route('job-posting.index');
+        try {
+            $this->jobPosting->updateStatus($jobPosting['id'], 'archived');
+            return Redirect::route('job-posting.index');
+        } catch (\Exception $e) {
+            Log::error('Failed to archive job posting', [
+                'job_posting_id' => $jobPosting['id'],
+                'message' => $e->getMessage(),
+            ]);
+            return back()->withErrors(['general' => 'Failed to archive job posting.']);
+        }
     }
 
     /**
@@ -127,8 +135,16 @@ class JobPostingController extends Controller
      */
     public function unpublish(JobPosting $jobPosting)
     {
-        $this->jobPosting->updateStatus($jobPosting->id, 'unpublish');
-        return Redirect::route('job-posting.index');
+        try {
+            $this->jobPosting->updateStatus($jobPosting['id'], 'unpublish');
+            return Redirect::route('job-posting.index');
+        } catch (\Exception $e) {
+            Log::error('Failed to unpublish job posting', [
+                'job_posting_id' => $jobPosting['id'],
+                'message' => $e->getMessage(),
+            ]);
+            return back()->withErrors(['general' => 'Failed to unpublish job posting.']);
+        }
     }
 
     /**
@@ -136,8 +152,16 @@ class JobPostingController extends Controller
      */
     public function publish(JobPosting $jobPosting)
     {
-        $this->jobPosting->updateStatus($jobPosting->id, 'published');
-        return Redirect::route('job-posting.index');
+        try {
+            $this->jobPosting->updateStatus($jobPosting['id'], 'published');
+            return Redirect::route('job-posting.index');
+        } catch (\Exception $e) {
+            Log::error('Failed to publish job posting', [
+                'job_posting_id' => $jobPosting['id'],
+                'message' => $e->getMessage(),
+            ]);
+            return back()->withErrors(['general' => 'Failed to publish job posting.']);
+        }
     }
 
     /**
@@ -145,8 +169,16 @@ class JobPostingController extends Controller
      */
     public function unarchive(JobPosting $jobPosting)
     {
-        $this->jobPosting->updateStatus($jobPosting->id, 'draft');
-        return Redirect::route('job-posting.index');
+        try {
+            $this->jobPosting->updateStatus($jobPosting['id'], 'draft');
+            return Redirect::route('job-posting.index');
+        } catch (\Exception $e) {
+            Log::error('Failed to unarchive job posting', [
+                'job_posting_id' => $jobPosting['id'],
+                'message' => $e->getMessage(),
+            ]);
+            return back()->withErrors(['general' => 'Failed to unarchive job posting.']);
+        }
     }
 
     /**

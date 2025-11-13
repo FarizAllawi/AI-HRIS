@@ -91,7 +91,7 @@ export default function JobPostingDetail({
     }
   };
 
-  console.log("jobPostingDetail:", jobPosting);
+  // console.log("jobPostingDetail:", jobPosting);
   return (
     <AppLayout breadcrumbs={breadcrumbs}>
       <Head title={`Job Posting | ${isCreate ? 'Create' : 'Edit'}`} />

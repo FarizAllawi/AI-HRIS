@@ -56,7 +56,7 @@ export function JobPostingForm({
         Array.isArray(initialValues?.questions) &&
         initialValues.questions.length > 0
           ? initialValues.questions
-          : [{id: null, question: '', description: '', weight: 0, mapped_competencies: [] }],
+          : [{id: null, question: '', description: '', weight: 0.2, mapped_competencies: [] }],
     },
   });
 
@@ -66,12 +66,13 @@ export function JobPostingForm({
   >('draft');
 
   const handleFormSubmit = (data: JobPostingFormValues) => {
+    console.log("handleFormSubmit", data);
     onSubmit?.({ ...data, status: submitStatus });
     console.log("Submitted data:", { ...data, status: submitStatus });
   };
 
   const isValid = Object.keys(errors).length === 0;
-
+  console.log("errors:", errors);
   return (
     <form onSubmit={handleSubmit(handleFormSubmit)} className="w-full space-y-6">
       <div className="flex flex-col lg:flex-row gap-6">

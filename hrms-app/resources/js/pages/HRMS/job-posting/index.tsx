@@ -163,7 +163,7 @@ export default function JobPostingIndex({
   const handleArchive = (jobPosting: JobPosting) => {
     toasts.actionStarted.archiving(jobPosting.title);
     router.put(
-      `/HRMS/job-posting/${jobPosting.id}/archived`,
+      `/HRMS/job-posting/${jobPosting.id}/archive`,
       {},
       {
         onSuccess: () => {

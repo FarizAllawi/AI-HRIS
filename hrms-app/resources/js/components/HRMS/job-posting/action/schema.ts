@@ -4,7 +4,7 @@ export const questionSchema = z.object({
   id: z.string().optional().nullable(),
   question: z.string().min(1, "Question is required"),
   description: z.string().optional(),
-  weight: z.number().min(0.15, "Weight must be at least 0.15").max(0.5, "Weight cannot exceed 0.5"),
+  weight: z.coerce.number().min(0.15, "Weight must be at least 0.15").max(0.5, "Weight cannot exceed 0.5"),
   mapped_competencies: z.array(z.string().min(1, "At least one competency must be selected")).optional(),
 });
 
