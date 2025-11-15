@@ -1,4 +1,4 @@
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, Field,  ConfigDict
 from typing import List, Dict, Optional, Any
 from datetime import datetime
 from uuid import UUID
@@ -41,13 +41,15 @@ class JobPostingSchema(BaseModel):
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
-    class Config:
-        orm_mode = True
-        json_encoders = {
+    # Pydantic V2 configuration
+    model_config = ConfigDict(
+        from_attributes=True,  # replaces orm_mode
+        json_encoders={
             UUID: str,  # ✅ convert UUIDs to strings automatically
-            JsonArrayItemSchema: lambda v: v.dict(),
-            QuestionItem: lambda v: v.dict(),
+            JsonArrayItemSchema: lambda v: v.model_dump(),  # use model_dump() instead of dict()
+            QuestionItem: lambda v: v.model_dump(),  # use model_dump() instead of dict()
         }
+    )
 
 class JobPostingQuestionCreate(BaseModel):
     id: UUID
@@ -69,6 +71,7 @@ class JobPostingResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True  # For Pydantic v2 (replaces orm_mode)
-        # orm_mode = True  # Uncomment this if using Pydantic v1
+    # Pydantic V2 configuration
+    model_config = ConfigDict(
+        from_attributes=True  # replaces orm_mode
+    )

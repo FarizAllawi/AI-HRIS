@@ -11,17 +11,20 @@ class Settings(BaseSettings):
     API_PORT: int = 8100
     DEBUG: bool = True
 
-    GATEWAY_BASE_URL: str = "http://localhost:8000"
+    GATEWAY_BASE_URL: str = os.getenv("GATEWAY_BASE_URL", "http://localhost:8000")
 
     # OAuth
-    OAUTH_PUBLIC_KEY: str = "/keys/oauth_public.key"
+    OAUTH_CLIENT_ID: str = os.getenv("OAUTH_CLIENT_ID", "")
+    OAUTH_CLIENT_SECRET: str = os.getenv("OAUTH_CLIENT_SECRET", "")
+    OAUTH_PUBLIC_KEY: str = os.path.join(BASE_DIR, "keys/oauth-public.key")
+    OAUTH_TOKEN_SCOPE: str = os.getenv("OAUTH_TOKEN_SCOPE", "ai-service:*")
+    OAUTH_TOKEN_URL: str = GATEWAY_BASE_URL + "/oauth/token" # Will be set in __init__ or post-init
     OAUTH_EXPECTED_AUDIENCES: str = ""  # Comma-separated list of acceptable 'aud' values (optional)
+    OAUTH_TOKEN_FETCH_TIMEOUT: int = 10
+    OAUTH_TOKEN_MAX_RETRIES: int = 3
+    OAUTH_TOKEN_BACKOFF_BASE: float = 0.5
 
     # Machine-to-machine (client_credentials) settings
-    API_CLIENT_ID: str = os.getenv("API_CLIENT_ID", "supersecretkey")
-    API_CLIENT_SECRET: str = os.getenv("API_CLIENT_SECRET", "supersecretkey")
-    OAUTH_TOKEN_URL: str = GATEWAY_BASE_URL + "/oauth/token"
-    API_TOKEN_SCOPE: str = "ai-service:*"
     TOKEN_CACHE_BUFFER: int = 30  # seconds to subtract from token expiry when caching
 
     # CORS
@@ -30,22 +33,21 @@ class Settings(BaseSettings):
     # Database
     # Default to a local sqlite file for development (supports embedding JSON storage).
     # Override with DATABASE_URL in .env for production (e.g. postgresql://...)
-    DATABASE_URL: str = f"sqlite:///{os.path.join(BASE_DIR, 'data/dev.db')}"
-    print("DATABASE_URL", DATABASE_URL)
+    DATABASE_URL: str = os.getenv("DATABASE_URL", f"sqlite:///{os.path.join(BASE_DIR, 'data/dev.db')}")
 
     # Path where vector index files will be stored (used by local dev vector search)
-    VECTOR_INDEX_PATH: str = "./data/embeddings/embeddings_hnsw.bin"
+    VECTOR_INDEX_PATH: str = os.getenv("VECTOR_INDEX_PATH", os.path.join(BASE_DIR, "data/embeddings/embeddings_hnsw.bin"))
 
     # Redis
-    REDIS_URL: str = "redis://localhost:6379/0"
+    REDIS_URL: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
 
     # Celery
-    CELERY_BROKER_URL: str = "redis://localhost:6379/0"
-    CELERY_RESULT_BACKEND: str = "redis://localhost:6379/0"
+    CELERY_BROKER_URL: str = os.getenv("CELERY_BROKER_URL", "redis://localhost:6379/0")
+    CELERY_RESULT_BACKEND: str = os.getenv("CELERY_RESULT_BACKEND", "redis://localhost:6379/0")
 
     # Model Settings
     MODEL_NAME: str = "indobenchmark/indobert-base-p1"
-    MODEL_PATH: str = "./data/models"
+    MODEL_PATH: str = os.getenv("MODEL_PATH", os.path.join(BASE_DIR, "data/models/indobert-base-p1"))
     MAX_SEQ_LENGTH: int = 512
     EMBEDDING_DIM: int = 768
 
@@ -62,10 +64,5 @@ class Settings(BaseSettings):
 
     # Cache Settings
     EMBEDDING_CACHE_TTL: int = 86400 * 30  # 30 days
-
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
-
 
 settings = Settings()

@@ -1,0 +1,6 @@
+- labels:
+    service: "screening-server"
+    environment: "production"
+    team: "infrastructure"
+  targets:
+    - "node-exporter:9100"

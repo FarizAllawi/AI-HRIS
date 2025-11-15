@@ -1,83 +1,135 @@
-# Python
+# Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
+
+# C extensions
 *.so
-.Python
+
+# Distribution / packaging
+dist/
 build/
 develop-eggs/
-dist/
-downloads/
-eggs/
+*.egg-info/
 .eggs/
-lib/
-lib64/
-parts/
 sdist/
 var/
 wheels/
-*.egg-info/
-.installed.cfg
 *.egg
-MANIFEST
 
-# Virtual Environment
-venv/
+# PyInstaller
+*.manifest
+*.spec
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# pyenv
+.python-version
+
+# celery beat schedule file
+celerybeat-schedule
+
+# SageMath parsed files
+*.sage.py
+
+# Environments
+.env
+.venv
 env/
+venv/
 ENV/
 env.bak/
 venv.bak/
 
-# Environment variables
-.env
-.env.local
-.env.*.local
+# Spyder project settings
+.spyderproject
+.spyproject
 
-# IDEs
+# Rope project settings
+.ropeproject
+
+# mkdocs documentation
+/site
+
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# Data directories
+data/
+uploads/
+keys/
+logs/
+
+# Model files (large files)
+*.pkl
+*.joblib
+*.h5
+*.hdf5
+*.model
+*.bin
+
+# ML model cache
+data/models/
+
+# IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
+
+# OS
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# Testing
-.pytest_cache/
-.coverage
-htmlcov/
-.tox/
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
 
-# Data and models
-data/models/*
-!data/models/.gitkeep
-data/embeddings/*
-!data/embeddings/.gitkeep
-data/replay_buffer/*
-!data/replay_buffer/.gitkeep
+# Certificate files
+*.pem
+*.crt
+*.key
 
-# Uploads
-uploads/*
-!uploads/.gitkeep
-
-# Logs
-*.log
-logs/
-
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Celery
-celerybeat-schedule
-celerybeat.pid
+# Backup files
+*.bak
+*.backup
 
 # Docker
-.dockerignore
+!.dockerignore
 
-# Jupyter
-.ipynb_checkpoints/
-*.ipynb
+# Local configuration
+local.yml
+docker-compose.override.yml
 
-# Keys
-/keys/*.key
+# Log files
+*.log

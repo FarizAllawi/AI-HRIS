@@ -8,17 +8,37 @@ services:
     container_name: fastapi-dev
     ports:
       - "8100:8100"
+    env_file:
+      - .env
     environment:
-      - ENV=development
+      GATEWAY_BASE_URL: http://192.168.247.37:8000
+      OAUTH_CLIENT_ID: 019a8469-f263-7353-aa3a-bd7684162890
+      OAUTH_CLIENT_SECRET: RT7BTFF9tgZEq3vhThRQ0pt5ZvwIcA8dw2RjCgXh
+      OAUTH_TOKEN_SCOPE: "ai-service:*"
+      # Use redis-server consistently
+      REDIS_URL: redis://redis-server:6379/0
+      CELERY_BROKER_URL: redis://redis-server:6379/0
+      CELERY_RESULT_BACKEND: redis://redis-server:6379/0
     volumes:
-      - ./app:/app
-    command: >
-      uvicorn app.main:app 
-      --host 0.0.0.0 
-      --port 8100 
-      --reload 
-      --log-level=info
-    restart: unless-stopped
+      - ./data:/app/data
+      - ./keys:/app/keys
+      - ./uploads:/app/uploads
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - .venv/
+            - data/
+            - uploads/
+            - keys/
+        - action: rebuild
+          path: ./pyproject.toml
+    depends_on:
+      - redis
+    networks:
+      - backend
 
   # Celery Worker
   celery-worker:
@@ -27,18 +47,32 @@ services:
       dockerfile: Dockerfile
       target: celery
     container_name: screening-celery
+    env_file:
+      - .env
     environment:
       PYTHONUNBUFFERED: 1
       PYTHONDONTWRITEBYTECODE: 1
       PYTHONPATH: /app
-      DATABASE_URL: sqlite:///data/dev.db
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      # Use redis-server consistently
+      REDIS_URL: redis://redis-server:6379/0
+      CELERY_BROKER_URL: redis://redis-server:6379/0
+      CELERY_RESULT_BACKEND: redis://redis-server:6379/0
     volumes:
-      - ./app:/app/app
       - ./data:/app/data
+      - ./keys:/app/keys
       - ./uploads:/app/uploads
+    develop:
+      watch:
+        - action: sync
+          path: .
+          target: /app
+          ignore:
+            - .venv/
+            - data/
+            - uploads/
+            - keys/
+        - action: rebuild
+          path: ./pyproject.toml
     depends_on:
       - redis
     networks:
@@ -52,13 +86,12 @@ services:
       dockerfile: Dockerfile
       target: flower
     container_name: screening-flower
-    command: >
-      celery -A app.celery_app flower --port=5555
     ports:
       - "5555:5555"
     environment:
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      # Use redis-server consistently
+      CELERY_BROKER_URL: redis://redis-server:6379/0
+      CELERY_RESULT_BACKEND: redis://redis-server:6379/0
     depends_on:
       - redis
       - celery-worker
@@ -69,7 +102,7 @@ services:
   # Redis
   redis:
     image: redis:alpine
-    container_name: fastapi-redis
+    container_name: redis-server
     ports:
       - "6379:6379"
     volumes:

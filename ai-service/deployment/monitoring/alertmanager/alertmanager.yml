@@ -1,0 +1,188 @@
+global:
+  smtp_smarthost: 'smtp.gmail.com:587'
+  smtp_from: 'alerts@ai-screening-production.com'
+  smtp_auth_username: 'alerts@company.com'
+  smtp_auth_password: '${SMTP_PASSWORD}'
+  smtp_require_tls: true
+
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+  pagerduty_url: 'https://events.pagerduty.com/v2/enqueue'
+
+# Custom templates
+templates:
+  - '/etc/alertmanager/templates/*.tmpl'
+
+# Route tree
+route:
+  receiver: 'default-receiver'
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 30s
+  repeat_interval: 1h
+
+  routes:
+    # Critical alerts go to on-call and Slack
+    - receiver: 'critical-alerts'
+      group_wait: 5s
+      group_interval: 15s
+      repeat_interval: 10m
+      matchers:
+        - severity = critical
+
+    # Warning alerts go to Slack and email
+    - receiver: 'warning-alerts'
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 2h
+      matchers:
+        - severity = warning
+
+    # Database alerts go to DBA team
+    - receiver: 'database-alerts'
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 1h
+      matchers:
+        - team = database
+
+    # Infrastructure alerts
+    - receiver: 'infrastructure-alerts'
+      group_wait: 10s
+      group_interval: 30s
+      repeat_interval: 1h
+      matchers:
+        - team = infrastructure
+
+# Inhibition rules
+inhibit_rules:
+  # If a critical alert is firing, inhibit warnings for same service
+  - source_matchers:
+      - severity = critical
+    target_matchers:
+      - severity = warning
+    equal: ['alertname', 'cluster', 'service']
+
+  # If the cluster is on fire, don't alert for individual services
+  - source_matchers:
+      - alertname = ClusterUnreachable
+    target_matchers:
+      - severity =~ critical|warning
+    equal: ['cluster']
+
+# Receivers
+receivers:
+  # Default receiver (catch-all)
+  - name: 'default-receiver'
+    email_configs:
+      - to: 'devops@company.com'
+        subject: '[DEFAULT] {{ .GroupLabels.alertname }}'
+        body: |
+          {{ range .Alerts }}
+            *Alert:* {{ .Annotations.summary }}
+            *Description:* {{ .Annotations.description }}
+            *Details:*
+            {{ range .Labels.SortedPairs }} • {{ .Name }}: {{ .Value }}
+            {{ end }}
+            *Runbook:* {{ .Annotations.runbook_url }}
+          {{ end }}
+
+  # Critical alerts receiver
+  - name: 'critical-alerts'
+    email_configs:
+      - to: 'oncall@company.com'
+        subject: '[CRITICAL] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        body: |
+          {{ range .Alerts }}
+            *CRITICAL ALERT*
+            *Service:* {{ .Labels.service }}
+            *Summary:* {{ .Annotations.summary }}
+            *Description:* {{ .Annotations.description }}
+            *Time:* {{ .StartsAt }}
+            {{ if .GeneratorURL }}*Link:* {{ .GeneratorURL }}{{ end }}
+          {{ end }}
+
+    slack_configs:
+      - channel: '#alerts-critical'
+        title: '🚨 {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        text: |-
+          {{ range .Alerts }}
+            *{{ .Annotations.summary }}*
+            {{ .Annotations.description }}
+            {{ range .Labels.SortedPairs }}• *{{ .Name }}:* `{{ .Value }}`
+            {{ end }}
+            {{ if .Annotations.runbook_url }}<{{ .Annotations.runbook_url }}|View Runbook>{{ end }}
+          {{ end }}
+        color: 'danger'
+        send_resolved: true
+
+    pagerduty_configs:
+      - routing_key: '${PAGERDUTY_KEY}'
+        description: '{{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        details:
+          summary: '{{ .Annotations.summary }}'
+          description: '{{ .Annotations.description }}'
+          severity: 'critical'
+
+  # Warning alerts receiver
+  - name: 'warning-alerts'
+    email_configs:
+      - to: 'developers@company.com'
+        subject: '[WARNING] {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        body: |
+          {{ range .Alerts }}
+            *WARNING ALERT*
+            *Service:* {{ .Labels.service }}
+            *Summary:* {{ .Annotations.summary }}
+            *Description:* {{ .Annotations.description }}
+            *Time:* {{ .StartsAt }}
+          {{ end }}
+
+    slack_configs:
+      - channel: '#alerts-warning'
+        title: '⚠️ {{ .GroupLabels.alertname }} - {{ .GroupLabels.service }}'
+        text: |-
+          {{ range .Alerts }}
+            *{{ .Annotations.summary }}*
+            {{ .Annotations.description }}
+          {{ end }}
+        color: 'warning'
+        send_resolved: true
+
+  # Database alerts receiver
+  - name: 'database-alerts'
+    email_configs:
+      - to: 'dba@company.com'
+        subject: '[DATABASE] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#database-alerts'
+        title: '🗄️ {{ .GroupLabels.alertname }}'
+        color: '#0080FF'
+
+  # Infrastructure alerts receiver
+  - name: 'infrastructure-alerts'
+    email_configs:
+      - to: 'infrastructure@company.com'
+        subject: '[INFRA] {{ .GroupLabels.alertname }}'
+
+    slack_configs:
+      - channel: '#infrastructure-alerts'
+        title: '🖥️ {{ .GroupLabels.alertname }}'
+        color: '#FF6B00'
+
+  # Webhook receiver for custom integrations
+  - name: 'webhook-receiver'
+    webhook_configs:
+      - url: 'http://web:8100/api/alerts'
+        send_resolved: true
+        max_alerts: 100
+
+# Timeout configuration
+time_intervals:
+  - name: 'office-hours'
+    time_intervals:
+      - weekdays: ['monday:friday']
+        times:
+          - start_time: '09:00'
+            end_time: '17:00'
+    location: 'America/New_York'

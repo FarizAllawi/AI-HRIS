@@ -21,7 +21,7 @@ def get_public_key():
     This allows the background refresher to update the file while the app
     continues to verify tokens using the latest key without restarting.
     """
-    key_path = os.getenv("OAUTH_PUBLIC_KEY", "keys/oauth-public.key")
+    key_path = settings.OAUTH_PUBLIC_KEY
 
     if not os.path.exists(key_path):
         raise RuntimeError(f"❌ oauth public key not found at {key_path}")

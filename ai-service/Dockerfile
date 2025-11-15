@@ -1,6 +1,3 @@
-# ================================
-# 🏗️ Base Stage - Build dependencies
-# ================================
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS base
 
 # Setup a non-root user
@@ -23,8 +20,9 @@ ENV UV_LINK_MODE=copy
 ENV UV_TOOL_BIN_DIR=/usr/local/bin
 
 # Copy project metadata and sync dependencies
-COPY pyproject.toml uv.lock ./
 RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
     uv sync --locked --no-install-project --no-dev
 
 # Copy the rest of the source
@@ -32,15 +30,20 @@ COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked --no-dev
 
+# Creating required directories with proper permissions
+RUN mkdir -p /app/uploads /app/keys /app/data /app/logs && \
+    chown -R nonroot:nonroot /app/data /app/uploads /app/keys /app/logs && \
+    chmod 755 /app/uploads /app/data /app/keys /app/logs
+
+
 # Add virtualenv to PATH
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Use non-root user
-USER nonroot
-
-# Default entrypoint (can be overridden by each stage)
+# Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
 
+# Use non-root user
+USER nonroot
 
 # ================================
 # 🚀 Stage 1 - FastAPI (Uvicorn)
@@ -51,7 +54,7 @@ FROM base AS web
 EXPOSE 8100
 
 # Command for running FastAPI
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100", "--log-level", "info"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100", "--log-level", "info", "--reload"]
 
 
 # ================================
@@ -60,7 +63,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100", "--log-le
 FROM base AS celery
 
 # Command for running Celery worker
-CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info"]
 
 
 # ================================

@@ -1,21 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from typing import List, Dict
+from typing import List, Dict, cast
 from collections import defaultdict
 from uuid import UUID
 
 from app.core.database import get_db
-from app.models import Applicant, JobPosting, ApplicantAnswer
+from app.models import Applicant, ApplicantAnswer
 from app.schemas.screening import BatchScreening
 from app.tasks.screening import screen_applicant_batch_async
 import os
-import shutil
+
+# Type hint for Celery task
+from celery import Task
+from typing import Any
+
+# Cast the function to proper type
+screen_applicant_task = cast(Task, screen_applicant_batch_async)
 
 router = APIRouter()
 
-UPLOAD_DIR = "uploads"
-os.makedirs(UPLOAD_DIR, exist_ok=True)
-
+UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 
 @router.post("/applicant/batch")
 def screening_batch(
@@ -70,7 +74,7 @@ def screening_batch(
     for job_posting_id, applicants in applicants_by_job.items():
         if applicants:
             applicant_ids = [a.id for a in applicants]
-            task = screen_applicant_batch_async.delay(job_posting_id, applicant_ids)
+            task = screen_applicant_task.delay(job_posting_id, applicant_ids)
             task_ids.append({
                 "job_posting_id": str(job_posting_id),
                 "task_id": task.id,

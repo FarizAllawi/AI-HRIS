@@ -9,7 +9,7 @@
 ### 2. Database Migrate and Generate Passport Key Locally
 ```bash
   php artisan migrate #1. Migrate database
-  php artisan passport:install #2. Generate passport key
+  php artisan passport:keys #2. Generate passport key
 ```
 NOTE: 
 ```aiignore

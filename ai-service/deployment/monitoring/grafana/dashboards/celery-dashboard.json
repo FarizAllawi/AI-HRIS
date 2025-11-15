@@ -1,0 +1,358 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "Celery - Task Queue",
+    "tags": ["celery", "queue", "tasks", "production"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Active Workers",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 0, "y": 0},
+        "targets": [
+          {
+            "expr": "celery_workers",
+            "legendFormat": "Active Workers",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "custom": {"displayMode": "lcd"},
+            "decimals": 0,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "green", "value": 2}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 2,
+        "title": "Task Rate",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 6, "y": 0},
+        "targets": [
+          {
+            "expr": "rate(celery_tasks_total[5m])",
+            "legendFormat": "Tasks/s",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {"displayMode": "lcd"},
+            "decimals": 0,
+            "unit": "ops"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "title": "Failure Rate",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 12, "y": 0},
+        "targets": [
+          {
+            "expr": "(rate(celery_tasks_failed_total[5m]) / rate(celery_tasks_total[5m])) * 100",
+            "legendFormat": "Failure Rate",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "custom": {"displayMode": "lcd"},
+            "decimals": 1,
+            "unit": "percent",
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 1},
+                {"color": "red", "value": 5}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 4,
+        "title": "Active Tasks",
+        "type": "stat",
+        "gridPos": {"h": 8, "w": 6, "x": 18, "y": 0},
+        "targets": [
+          {
+            "expr": "celery_tasks_active",
+            "legendFormat": "Active Tasks",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "custom": {"displayMode": "lcd"},
+            "decimals": 0,
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 100},
+                {"color": "red", "value": 500}
+              ]
+            }
+          }
+        }
+      },
+      {
+        "id": 5,
+        "title": "Task Execution Rate",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+        "targets": [
+          {
+            "expr": "rate(celery_tasks_total[5m])",
+            "legendFormat": "Total Tasks/s",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(celery_tasks_succeeded_total[5m])",
+            "legendFormat": "Succeeded/s",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(celery_tasks_failed_total[5m])",
+            "legendFormat": "Failed/s",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 2
+            },
+            "unit": "ops",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 6,
+        "title": "Task States",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+        "targets": [
+          {
+            "expr": "celery_tasks_active",
+            "legendFormat": "Active",
+            "refId": "A"
+          },
+          {
+            "expr": "celery_tasks_reserved",
+            "legendFormat": "Reserved",
+            "refId": "B"
+          },
+          {
+            "expr": "celery_tasks_scheduled",
+            "legendFormat": "Scheduled",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 2
+            },
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 7,
+        "title": "Task Types Breakdown",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+        "targets": [
+          {
+            "expr": "rate(celery_tasks_total{task_name=~\"screening.*\"}[5m])",
+            "legendFormat": "Screening Tasks",
+            "refId": "A"
+          },
+          {
+            "expr": "rate(celery_tasks_total{task_name=~\"jd.*\"}[5m])",
+            "legendFormat": "JD Processing",
+            "refId": "B"
+          },
+          {
+            "expr": "rate(celery_tasks_total{task_name=~\"embedding.*\"}[5m])",
+            "legendFormat": "Embedding Tasks",
+            "refId": "C"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 2
+            },
+            "unit": "ops",
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 8,
+        "title": "Queue Lengths",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+        "targets": [
+          {
+            "expr": "celery_tasks_active",
+            "legendFormat": "Active Queue",
+            "refId": "A"
+          },
+          {
+            "expr": "celery_tasks_reserved",
+            "legendFormat": "Reserved Queue",
+            "refId": "B"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 2
+            },
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 9,
+        "title": "Task Duration (95th percentile)",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 24},
+        "targets": [
+          {
+            "expr": "histogram_quantile(0.95, rate(celery_task_duration_seconds_bucket[5m]))",
+            "legendFormat": "p95 Duration",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 2
+            },
+            "unit": "s",
+            "decimals": 2
+          }
+        }
+      },
+      {
+        "id": 10,
+        "title": "Worker Concurrency",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 24},
+        "targets": [
+          {
+            "expr": "celery_worker_concurrency",
+            "legendFormat": "Worker Concurrency",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 2
+            },
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 11,
+        "title": "Task Failure Reasons",
+        "type": "piechart",
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 32},
+        "targets": [
+          {
+            "expr": "celery_tasks_failed_total",
+            "legendFormat": "{{error_type}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "displayMode": "table",
+              "pieType": "pie"
+            },
+            "decimals": 0
+          }
+        }
+      },
+      {
+        "id": 12,
+        "title": "Worker Load",
+        "type": "timeseries",
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 32},
+        "targets": [
+          {
+            "expr": "celery_worker_load",
+            "legendFormat": "{{hostname}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "drawStyle": "line",
+              "lineInterpolation": "linear",
+              "barAlignment": 0,
+              "lineWidth": 1
+            },
+            "decimals": 2
+          }
+        }
+      }
+    ],
+    "time": {
+      "from": "now-1h",
+      "to": "now"
+    },
+    "timepicker": {},
+    "refresh": "10s",
+    "schemaVersion": 37,
+    "version": 1,
+    "uid": "celery-dashboard"
+  }
+}

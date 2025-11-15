@@ -1,0 +1,72 @@
+# Docker ignore file
+# Exclude unnecessary files from Docker builds
+
+# Python
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+.env
+.venv
+venv/
+ENV/
+env/
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Testing
+.coverage
+.pytest_cache
+htmlcov/
+.tox/
+.nox/
+
+# Documentation
+docs/_build/
+site/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+*.egg
+
+# Logs
+logs/
+*.log
+
+# Data directories (mounted as volumes)
+data/
+uploads/
+keys/
+
+# Notebooks
+notebooks/
+*.ipynb
+
+# Git
+.git/
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Docker
+Dockerfile
+docker-compose.yml
+docker-compose.prod.yml
+.dockerignore
+
+# Deployment
+deployment/
+scripts/
+
+# Temporary files
+tmp/
+temp/
