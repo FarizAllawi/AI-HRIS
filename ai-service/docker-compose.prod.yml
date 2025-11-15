@@ -1,5 +1,9 @@
+version: "3.9"
+
 services:
-  # PostgreSQL - Production Ready
+  # ============================================================
+  # POSTGRES (Production Ready)
+  # ============================================================
   postgres:
     image: postgres:16-alpine
     container_name: fastapi-postgres
@@ -9,16 +13,14 @@ services:
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       POSTGRES_DB: ${DB_NAME:-screening_db}
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
-      # Production optimizations
-      POSTGRES_MAX_CONNECTIONS: "100"
-      POSTGRES_SHARED_BUFFERS: "256MB"
-      POSTGRES_EFFECTIVE_CACHE_SIZE: "1GB"
     ports:
-      - "5432:5432"  # Consider removing in production or using different port
+      - "5432:5432"
     volumes:
-      - ./data/postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+      - ./deployment/postgres-config/init:/docker-entrypoint-initdb.d
       - ./deployment/postgres-config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
-      - ./deployment/postgres-config/pg_hba.conf:/var/lib/postgresql/data/pg_hba.conf:ro
+      - ./deployment/postgres-config/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
+
     command: >
       postgres -c config_file=/etc/postgresql/postgresql.conf
     networks:
@@ -30,14 +32,10 @@ services:
       retries: 10
       start_period: 30s
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 2G
-        reservations:
-          memory: 512M
 
-  # Redis - Production Ready
+  # ============================================================
+  # REDIS (Production Ready)
+  # ============================================================
   redis:
     image: redis:7-alpine
     container_name: fastapi-redis
@@ -47,26 +45,22 @@ services:
       --maxmemory 512mb
       --maxmemory-policy allkeys-lru
     ports:
-      - "6379:6379"  # Consider removing in production
+      - "6379:6379"
     volumes:
-      - ./data/redis_data:/data
+      - redis_data:/data
       - ./deployment/redis-config/redis.conf:/usr/local/etc/redis/redis.conf:ro
-    networks:
-      - backend
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 3s
       retries: 5
+    networks:
+      - backend
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-        reservations:
-          memory: 256M
 
-  # FastAPI App - Production Ready
+  # ============================================================
+  # FASTAPI APP (Production)
+  # ============================================================
   web:
     build:
       context: .
@@ -75,46 +69,35 @@ services:
     container_name: fastapi-web-prod
     env_file: .env
     environment:
-      # Use environment variables from .env file
-      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD}@fastapi-postgres:5432/${DB_NAME:-screening_db}
-      REDIS_URL: redis://fastapi-redis:6379/0
-      CELERY_BROKER_URL: redis://fastapi-redis:6379/0
-      CELERY_RESULT_BACKEND: redis://fastapi-redis:6379/0
+      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-screening_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
 
-      # OAuth - Use env vars
-      GATEWAY_BASE_URL: ${GATEWAY_BASE_URL}
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
-      OAUTH_TOKEN_SCOPE: ${OAUTH_TOKEN_SCOPE:-"ai-service:*"}
-
-      # Production settings
       PYTHONPATH: /app
       PYTHONUNBUFFERED: 1
       ENVIRONMENT: production
       LOG_LEVEL: INFO
+
     ports:
       - "8100:8100"
+
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-    networks:
-      - backend
+
     volumes:
       - app_data:/app/data
       - app_uploads:/app/uploads
       - app_keys:/app/keys
-      - ./logs:/app/logs  # Log persistence
+      - app_logs:/app/logs
+
+    networks:
+      - backend
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 1G
-          cpus: "1.0"
-        reservations:
-          memory: 512M
-          cpus: "0.5"
+
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8100/health"]
       interval: 30s
@@ -122,7 +105,9 @@ services:
       retries: 3
       start_period: 40s
 
-  # Celery Worker - Production Ready
+  # ============================================================
+  # CELERY WORKER
+  # ============================================================
   celery-worker:
     build:
       context: .
@@ -131,52 +116,37 @@ services:
     container_name: screening-celery-worker-prod
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD}@fastapi-postgres:5432/${DB_NAME:-screening_db}
-      REDIS_URL: redis://fastapi-redis:6379/0
-      CELERY_BROKER_URL: redis://fastapi-redis:6379/0
-      CELERY_RESULT_BACKEND: redis://fastapi-redis:6379/0
+      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-screening_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
 
-      # OAuth
-      GATEWAY_BASE_URL: ${GATEWAY_BASE_URL}
-      OAUTH_CLIENT_ID: ${OAUTH_CLIENT_ID}
-      OAUTH_CLIENT_SECRET: ${OAUTH_CLIENT_SECRET}
-      OAUTH_TOKEN_SCOPE: ${OAUTH_TOKEN_SCOPE:-"ai-service:*"}
-
-      # Production settings
       PYTHONPATH: /app
       PYTHONUNBUFFERED: 1
       ENVIRONMENT: production
       LOG_LEVEL: INFO
-      CELERY_WORKER_MAX_TASKS_PER_CHILD: 1000  # Prevent memory leaks
+
+      CELERY_WORKER_MAX_TASKS_PER_CHILD: 1000
       CELERY_WORKER_PREFETCH_MULTIPLIER: 1
+
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+    volumes:
+      - app_data:/app/data
+      - app_keys:/app/keys
+      - app_logs:/app/logs
+
     networks:
       - backend
-    volumes:
-      - ./data:/app/data
-      - ./keys:/app/keys
-      - ./logs:/app/logs
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 2G  # More memory for ML tasks
-          cpus: "2.0"
-        reservations:
-          memory: 1G
-          cpus: "1.0"
-    command: >
-      celery -A app.celery worker
-      --loglevel=info
-      --concurrency=4
-      --max-tasks-per-child=1000
-      --prefetch-multiplier=1
 
-  # Celery Beat - Production Ready
+  # ============================================================
+  # CELERY BEAT
+  # ============================================================
   celery-beat:
     build:
       context: .
@@ -185,38 +155,34 @@ services:
     container_name: screening-celery-beat-prod
     env_file: .env
     environment:
-      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD}@fastapi-postgres:5432/${DB_NAME:-screening_db}
-      REDIS_URL: redis://fastapi-redis:6379/0
-      CELERY_BROKER_URL: redis://fastapi-redis:6379/0
-      CELERY_RESULT_BACKEND: redis://fastapi-redis:6379/0
+      DATABASE_URL: postgresql://${DB_USER:-admin}:${DB_PASSWORD}@postgres:5432/${DB_NAME:-screening_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
 
-      # Production settings
       PYTHONPATH: /app
       PYTHONUNBUFFERED: 1
       ENVIRONMENT: production
       LOG_LEVEL: INFO
-    volumes:
-      - ./data:/app/data
-      - ./keys:/app/keys
-      - ./logs:/app/logs
+
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+
+    volumes:
+      - app_data:/app/data
+      - app_keys:/app/keys
+      - app_logs:/app/logs
+
     networks:
       - backend
     restart: unless-stopped
-    deploy:
-      resources:
-        limits:
-          memory: 512M
-          cpus: "0.5"
-        reservations:
-          memory: 256M
-          cpus: "0.25"
 
-  # Flower Monitor - Production Ready
+  # ============================================================
+  # FLOWER (Celery Monitoring)
+  # ============================================================
   flower:
     build:
       context: .
@@ -225,33 +191,43 @@ services:
     container_name: flower-monitor-prod
     env_file: .env
     environment:
-      CELERY_BROKER_URL: redis://fastapi-redis:6379/0  # Fixed hostname
-      CELERY_RESULT_BACKEND: redis://fastapi-redis:6379/0
-      # Security for Flower
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
       FLOWER_BASIC_AUTH: ${FLOWER_USER:-admin}:${FLOWER_PASSWORD}
+
     volumes:
-      - ./logs:/app/logs
+      - app_logs:/app/logs
+
     depends_on:
       redis:
         condition: service_healthy
       celery-worker:
         condition: service_started
+
     ports:
       - "5555:5555"
+
     networks:
       - backend
     restart: unless-stopped
 
+# ============================================================
+# NETWORKS & VOLUMES
+# ============================================================
 networks:
   backend:
     driver: bridge
 
 volumes:
-  ./data/postgres_data:
+  postgres_data:
     driver: local
-  ./data/redis_data:
+  redis_data:
     driver: local
-  ./keys:
+  app_data:
     driver: local
-  ./logs:
+  app_uploads:
+    driver: local
+  app_keys:
+    driver: local
+  app_logs:
     driver: local

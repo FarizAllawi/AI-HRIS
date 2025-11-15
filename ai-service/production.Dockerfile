@@ -74,7 +74,7 @@ CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100", "--log-le
 # ================================
 FROM runtime AS worker
 
-CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info", "--concurrency=2"]
+CMD ["celery", "-A", "app.celery_app", "worker", "--loglevel=info", "--concurrency=2", "--max-tasks-per-child=1000", "--prefetch-multiplier=1"]
 
 
 # ================================
