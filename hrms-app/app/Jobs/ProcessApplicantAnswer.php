@@ -81,7 +81,7 @@ class ProcessApplicantAnswer implements ShouldQueue
 
         // 🔐 Get machine-to-machine token (client_credentials) and send request
         try {
-            $url = env('AI_SERVICE_URL', 'http://localhost:8100');
+            $url = env('AI_SERVICE_BASE_URL', 'http://localhost:8100');
 
             $token = $this->fetchAiServiceToken();
 
