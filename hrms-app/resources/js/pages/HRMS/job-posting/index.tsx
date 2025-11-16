@@ -378,7 +378,7 @@ export default function JobPostingIndex({
 
           {/* Content */}
           <div className="w-full">
-            {viewMode === 'table' ? (
+            { jobPostings.length > 0 && viewMode === 'table' ? (
               <div className="hidden lg:block overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
                 <JobPostingTable
                   jobPostings={filteredJobPostings}
@@ -390,7 +390,7 @@ export default function JobPostingIndex({
                   onUnpublish={handleUnpublish}
                 />
               </div>
-            ) : (
+            ) : jobPostings.length > 0 && viewMode === 'card' ? (
               <div className="space-y-4">
                 <JobPostingCardView
                   jobPostings={filteredJobPostings}
@@ -402,10 +402,7 @@ export default function JobPostingIndex({
                   onUnpublish={handleUnpublish}
                 />
               </div>
-            )}
-
-            {/* Empty State */}
-            {filteredJobPostings.length === 0 && (
+            ) : (
               <div className="text-center py-16 px-4 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-2xl bg-gray-50/50 dark:bg-gray-800/20">
                 <Briefcase className="h-16 w-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
                 <h3 className="text-xl font-bold text-gray-700 dark:text-gray-300 mb-2">
