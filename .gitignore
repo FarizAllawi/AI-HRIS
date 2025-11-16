@@ -15,9 +15,6 @@ __pycache__/
 *.pyd
 .Python
 
-# CSV data files
-*.csv
-
 # OS
 .DS_Store
 Thumbs.db
