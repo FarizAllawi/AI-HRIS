@@ -91,7 +91,7 @@ class SyncJobPostingExternalApi implements ShouldQueue
 
     private function sendToExternalAPI(array $payload, string $action, string $jobPostingId): void
     {
-        $url = env('AI_SERVICE_BASE_URL', 'http://localhost:8100').'/job-posting';
+        $url = config('services.ai-service.base_url').'/job-posting';
 
         // Prepare headers and include Authorization if available
         $headers = [
