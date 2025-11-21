@@ -1,5 +1,6 @@
 /.phpunit.cache
-/.pnpm-store
+.pnpm-store
+pnpm-debug.log*
 /bootstrap/ssr
 /node_modules
 /public/build
