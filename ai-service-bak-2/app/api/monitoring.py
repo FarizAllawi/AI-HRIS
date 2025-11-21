@@ -1,2 +1,0 @@
-# GET /jobs/{job_id}/drift: summary of input drift vs. neighbors (JD distribution shift, answer length, vocab shift).
-# GET /metrics: SLA stats (latency, error rate), agreement with HR on recent batches.

@@ -1,8 +1,0 @@
-/venv
-/app/uploads
-.env
-/.fleet
-/.idea
-/.nova
-/.vscode
-/.zed
