@@ -12,12 +12,12 @@ export default function PublicNavbar() {
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
-              <span className="text-xl font-bold text-white">T</span>
+            <div className="flex w-8 h-8 sm:h-10 sm:w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-600 to-indigo-600">
+              <span className="text-sm sm:text-xl font-bold text-white">T</span>
             </div>
             <div>
-              <h1 className="text-xl font-bold text-gray-900 dark:text-white">Trilogi University</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-300">Career Opportunities</p>
+              <h1 className="text-base sm:text-xl font-bold text-gray-900 dark:text-white">Trilogi University</h1>
+              <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-300">Career Opportunities</p>
             </div>
           </Link>
 
@@ -42,11 +42,11 @@ export default function PublicNavbar() {
               )}
               </>
             ) : (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center sm:space-x-2">
                 <Button variant="ghost" asChild>
-                  <Link href={login()}>Sign In</Link>
+                  <Link href={login()} className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 sm:bg-none sm:flex px-2 py-1 sm:px-4 sm:py-2 font-medium text-white transition-colors sm:hover-none hover:from-blue-700 hover:to-indigo-700">Sign In</Link>
                 </Button>
-                <Link href={register()}  className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 px-4 py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700">Apply Now</Link>
+                <Link href={register()}  className="rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hidden sm:flex px-2 py-1 sm:px-4 sm:py-2 font-medium text-white transition-colors hover:from-blue-700 hover:to-indigo-700">Apply Now</Link>
               </div>
             )}
           </div>

@@ -32,7 +32,7 @@ RUN apk add --no-cache \
     nginx \
     shadow \
     su-exec \
-    # PHP Core & FPM
+     # PHP Core & FPM
     php84 \
     php84-fpm \
     php84-cli \
@@ -40,7 +40,7 @@ RUN apk add --no-cache \
     php84-opcache \
     php84-phar \
     php84-common \
-    # PHP Extensions
+    # PHP Extensions (FIX: Added iconv, sodium, simplexml)
     php84-session \
     php84-tokenizer \
     php84-ctype \
@@ -54,6 +54,7 @@ RUN apk add --no-cache \
     php84-mysqli \
     php84-pdo_mysql \
     php84-pgsql \
+    php84-pdo_pgsql \
     php84-sqlite3 \
     php84-xml \
     php84-xmlreader \
@@ -68,6 +69,9 @@ RUN apk add --no-cache \
     php84-pecl-memcached \
     php84-pecl-pcov \
     php84-pecl-imagick \
+    php84-iconv \
+    php84-sodium \
+    php84-simplexml \
     # Database Clients
     sqlite \
     "postgresql${POSTGRES_VERSION}-client" \
@@ -93,7 +97,6 @@ RUN mkdir -p /var/log/nginx /var/lib/nginx /run/nginx /run/php \
 # Copy Configuration Files (Common)
 COPY docker/php-8.4/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY docker/php-8.4/php.ini /etc/php84/conf.d/99-custom.ini
-COPY docker/php-8.4/fpm-pool.conf /etc/php84/php-fpm.d/www.conf
 
 # ==============================================================================
 # STAGE 2: DEVELOPMENT (Local Dev / Sail Replacement)
@@ -110,6 +113,9 @@ RUN apk add --no-cache \
     nodejs \
     npm \
     && npm install -g pnpm
+
+# Configure PHP-FPM Pool
+COPY docker/php-8.4/fpm-pool.dev.conf /etc/php84/php-fpm.d/www.conf
 
 # Configure Xdebug
 COPY docker/php-8.4/xdebug.ini /etc/php84/conf.d/xdebug.ini
@@ -152,6 +158,10 @@ CMD ["php", "artisan", "test"]
 # STAGE 4: PRODUCTION (Lean & Secure)
 # ==============================================================================
 FROM base AS prod
+
+
+# Configure PHP-FPM Pool
+COPY docker/php-8.4/fpm-pool.prod.conf /etc/php84/php-fpm.d/www.conf
 
 # --- NGINX PROD CONFIG ---
 COPY docker/php-8.4/nginx/nginx.prod.conf /etc/nginx/http.d/default.conf

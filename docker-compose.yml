@@ -22,8 +22,10 @@ services:
         - '${DB_DATABASE}'
         - '-U'
         - '${DB_USERNAME}'
+      interval: 5s
       retries: 3
       timeout: 5s
+      start_period: 10s
 
   redis:
     image: 'redis:alpine'
@@ -39,7 +41,9 @@ services:
         - redis-cli
         - ping
       retries: 3
+      interval: 5s
       timeout: 5s
+      start_period: 10s
 
 networks:
   ai-hris-app:

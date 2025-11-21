@@ -24,14 +24,14 @@ export default function Welcome() {
           <div className="mx-auto max-w-7xl px-4 py-20 sm:px-6 lg:px-8 lg:py-32">
             <div className="grid items-center gap-12 lg:grid-cols-2">
               <div className="text-center lg:text-left">
-                <h1 className="text-4xl leading-tight font-bold text-gray-900 lg:text-6xl dark:text-white">
+                <h1 className="text-3xl sm:text-4xl leading-tight font-bold text-gray-900 lg:text-6xl dark:text-white">
                   Shape the Future of
                   <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
                     {' '}
                     Education
                   </span>
                 </h1>
-                <p className="mt-6 text-xl leading-relaxed text-gray-600 dark:text-gray-300">
+                <p className="mt-6 text-sm sm:text-xl leading-relaxed text-gray-600 dark:text-gray-300">
                   Join Trilogi University's dynamic team and help us create
                   transformative educational experiences. Discover exciting
                   career opportunities where innovation meets excellence.
@@ -143,10 +143,10 @@ export default function Welcome() {
         <section className="bg-white/50 py-20 dark:bg-gray-800/50">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mb-16 text-center">
-              <h2 className="text-3xl font-bold text-gray-900 lg:text-4xl dark:text-white">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 lg:text-4xl dark:text-white">
                 Why Choose Trilogi University?
               </h2>
-              <p className="mx-auto mt-4 max-w-3xl text-xl text-gray-600 dark:text-gray-300">
+              <p className="mx-auto mt-4 max-w-3xl text-base sm:text-xl text-gray-600 dark:text-gray-300">
                 Be part of an institution that values innovation, excellence,
                 and the transformative power of education.
               </p>
@@ -236,16 +236,16 @@ export default function Welcome() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="grid items-center gap-16 lg:grid-cols-2">
               <div>
-                <h2 className="mb-6 text-3xl font-bold text-gray-900 lg:text-4xl dark:text-white">
+                <h2 className="mb-6 text-2xl sm:text-3xl font-bold text-gray-900 lg:text-4xl dark:text-white">
                   About Trilogi University
                 </h2>
-                <p className="mb-6 text-lg text-gray-600 dark:text-gray-300">
+                <p className="mb-6 text-base sm:text-lg text-gray-600 dark:text-gray-300">
                   Trilogi University has been at the forefront of higher
                   education excellence for over three decades. Our commitment to
                   academic rigor, innovation, and student success has made us a
                   leader in educational transformation.
                 </p>
-                <p className="mb-8 text-lg text-gray-600 dark:text-gray-300">
+                <p className="mb-8 text-base sm:text-lg text-gray-600 dark:text-gray-300">
                   We foster an environment where faculty, staff, and students
                   collaborate to push boundaries, challenge conventions, and
                   create solutions for tomorrow's challenges.

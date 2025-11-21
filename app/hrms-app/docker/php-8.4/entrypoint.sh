@@ -38,10 +38,26 @@ else
 fi
 
 # -------------------------------------------------------
-# 3. ENVIRONMENT CONFIGURATION (FIX: Added defensive defaults for DB variables)
+# 3. ENVIRONMENT CONFIGURATION (FIX: Ensure .env exists before configuration)
 # -------------------------------------------------------
 echo "Adjusting .env with environment variables..."
+
+# Check if .env file exists. If not, create it from .env.example
+if [ ! -f .env ] && [ -f .env.example ]; then
+    echo "Creating .env from .env.example..."
+    cp .env.example .env
+elif [ ! -f .env ] && [ ! -f .env.example ]; then
+    # Fallback for empty project
+    echo ".env and .env.example not found. Creating minimal .env"
+    echo "APP_NAME=Laravel HRIS" > .env
+    echo "APP_ENV=local" >> .env
+fi
+
 if [ -f .env ]; then
+    # FIX: Ensure no Windows line endings interfere with configuration
+    echo "Removing Windows carriage returns from .env..."
+    sed -i 's/\r$//' .env
+
     # Use environment variables, falling back to defaults if they are empty.
     # The default DB_PORT is now 5432 for Postgres.
     sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=${DB_CONNECTION:-pgsql}|" .env
@@ -61,17 +77,28 @@ fi
 # 4. PERMISSIONS (Fix storage/cache)
 # -------------------------------------------------------
 echo "Setting ownership and permissions..."
-mkdir -p /var/www/html/storage/logs
-touch /var/www/html/storage/logs/laravel.log
-
 # Ensure directories exist
 mkdir -p /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Set ownership to the correct user (sail or nobody)
-chown -R $RUN_AS:$RUN_AS /var/www/html
+# IMPORTANT: Do NOT run chown -R on the entire /var/www/html as this can fail
+# on mounted node_modules/vendor if they were created on the host by a different UID.
+# 1. Set ownership for writable directories recursively (Must succeed)
+chown -R $RUN_AS:$RUN_AS /var/www/html/storage
+chown -R $RUN_AS:$RUN_AS /var/www/html/bootstrap/cache
 
-# Set directory permissions
+# 2. Set ownership for the top-level application directory (non-recursive)
+# This ensures application files are owned by $RUN_AS without touching sub-dependencies.
+# Using '|| true' allows the script to continue if chown fails on some host-mounted files.
+chown $RUN_AS:$RUN_AS /var/www/html || true
+chown $RUN_AS:$RUN_AS /var/www/html/* || true
+chown $RUN_AS:$RUN_AS /var/www/html/.* || true
+
+# Set directory permissions for writable folders
 chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Fix log file permissions if it was created as root before
+touch /var/www/html/storage/logs/laravel.log
+chown $RUN_AS:$RUN_AS /var/www/html/storage/logs/laravel.log
 
 # -------------------------------------------------------
 # 5. DEPENDENCY CHECKS (Composer & Node)
@@ -131,6 +158,7 @@ fi
 
 # Run Migrations (Optional: Wrap in try block or ensure DB is ready)
 echo "Running Migrations..."
+su-exec $RUN_AS php artisan key:generate
 su-exec $RUN_AS php artisan migrate --force || echo "Migration failed or DB not ready, skipping..."
 
 if [ "$APP_ENV" = "production" ]; then
@@ -147,7 +175,43 @@ else
 fi
 
 # -------------------------------------------------------
-# 7. EXECUTE CMD (Supervisord)
+# 7. VITE ASSET MANAGEMENT
+# -------------------------------------------------------
+cd /var/www/html
+
+if [ -f "package.json" ]; then
+
+    # Determine package manager preference
+    PACKAGE_MANAGER="npm"
+    if [ -f "pnpm-lock.yaml" ]; then
+        PACKAGE_MANAGER="pnpm"
+    elif [ -f "yarn.lock" ] && command -v yarn &> /dev/null; then
+        PACKAGE_MANAGER="yarn"
+    fi
+    echo "Detected package manager: $PACKAGE_MANAGER"
+
+    if [ "$APP_ENV" = "local" ]; then
+        # 7.A: Development Mode: Start the Vite HMR server in the background
+        echo "Starting Vite development server (via '$PACKAGE_MANAGER run dev') in the background..."
+
+        # We run the command using the determined package manager
+        # Run in background (&) so the script can continue to Supervisord.
+        su-exec $RUN_AS $PACKAGE_MANAGER run dev &
+
+    elif [ "$APP_ENV" = "production" ]; then
+        # 7.B: Production Mode: Ensure assets are built
+        if [ ! -f "public/build/manifest.json" ]; then
+            echo "Manifest not found. Building production assets (via '$PACKAGE_MANAGER run build')..."
+            # Run the command in the foreground to ensure completion before starting supervisor
+            su-exec $RUN_AS $PACKAGE_MANAGER run build
+        else
+            echo "Production assets already built (manifest.json found). Skipping build."
+        fi
+    fi
+fi
+
+# -------------------------------------------------------
+# 8. EXECUTE CMD (Supervisord)
 # -------------------------------------------------------
 echo "Starting Supervisor..."
 exec "$@"

@@ -29,7 +29,7 @@ services:
     volumes:
       - '.:/var/www/html'
     depends_on:
-      mailpit:
+      selenium:
         condition: service_healthy
       # Ensure these match the service names in your ROOT docker-compose.yml
       # If pgsql/redis are defined in the root, these depends_on will work
@@ -39,16 +39,16 @@ services:
       redis:
         condition: service_healthy
 
-  mailpit:
-    image: 'axllent/mailpit:latest'
-    ports:
-      - '${FORWARD_MAILPIT_PORT:-1025}:1025'
-      - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+  selenium:
+    image: selenium/standalone-chromium
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - '/dev/shm:/dev/shm'
     networks:
       - ai-hris-app
     healthcheck:
-      # Mailpit image is Alpine based, so we use wget to check the dashboard port
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025/"]
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
       interval: 5s
       timeout: 5s
       retries: 3
