@@ -81,6 +81,7 @@ RUN apk add --no-cache \
     libcap \
     bind-tools \
     nano \
+    acl \
     && rm -rf /var/cache/apk/*
 
 # 2. System Configuration
