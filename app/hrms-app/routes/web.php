@@ -32,6 +32,7 @@ Route::get('/', function () {
     return Inertia::render('welcome');
 })->name('home');
 
+
 Route::prefix('HRMS')->group(function() {
     Route::middleware(['auth', 'verified', 'role:hrms-user'])->group(function () {
         Route::get('dashboard', function () {
