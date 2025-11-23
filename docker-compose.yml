@@ -51,7 +51,3 @@ networks:
 volumes:
   ai-hris-psql:
   ai-hris-redis:
-
-include:
-  - app/hrms-app/docker-compose.yml
-  # - app/ai-service/docker-compose.yml

@@ -194,34 +194,22 @@ fi
 # -------------------------------------------------------
 cd /var/www/html
 
+# -------------------------------------------------------
+# 7. VITE (MODIFIED FOR DEVCONTAINER)
+# -------------------------------------------------------
 if [ -f "package.json" ]; then
-
-    # Determine package manager preference
     PACKAGE_MANAGER="npm"
-    if [ -f "pnpm-lock.yaml" ]; then
-        PACKAGE_MANAGER="pnpm"
-    elif [ -f "yarn.lock" ] && command -v yarn &> /dev/null; then
-        PACKAGE_MANAGER="yarn"
-    fi
-    echo "Detected package manager: $PACKAGE_MANAGER"
+    [ -f "pnpm-lock.yaml" ] && PACKAGE_MANAGER="pnpm"
 
+    # !!! CHANGE HERE !!!
+    # If we are in the DevContainer, DO NOT start Vite automatically.
+    # We want to start it manually in the VS Code terminal.
     if [ "$APP_ENV" = "local" ]; then
-        # 7.A: Development Mode: Start the Vite HMR server in the background
-        echo "Starting Vite development server (via '$PACKAGE_MANAGER run dev') in the background..."
-
-        # We run the command using the determined package manager
-        # Run in background (&) so the script can continue to Supervisord.
-        su-exec $RUN_AS $PACKAGE_MANAGER run dev &
-
+        echo "👉 Open a terminal and run '$PACKAGE_MANAGER run dev' to start the frontend."
     elif [ "$APP_ENV" = "production" ]; then
-        # 7.B: Production Mode: Ensure assets are built
-        if [ ! -f "public/build/manifest.json" ]; then
-            echo "Manifest not found. Building production assets (via '$PACKAGE_MANAGER run build')..."
-            # Run the command in the foreground to ensure completion before starting supervisor
+         if [ ! -f "public/build/manifest.json" ]; then
             su-exec $RUN_AS $PACKAGE_MANAGER run build
-        else
-            echo "Production assets already built (manifest.json found). Skipping build."
-        fi
+         fi
     fi
 fi
 
