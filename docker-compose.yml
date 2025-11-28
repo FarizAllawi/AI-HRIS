@@ -1,5 +1,5 @@
 # THIS COMPOSE FILE USED FOR PRODUCTION ONLY
 include:
-  - config/compose.prod.yml
-  - app/ai-service/docker-compose.prod.yml
-  - app/hrms-app/docker-compose.prod.yml
+  - config/compose.yml
+  - app/ai-service/docker/compose.yml
+  - app/hrms-app/docker/compose.yml

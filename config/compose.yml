@@ -14,24 +14,23 @@ services:
   # ============================================================
   postgres:
     image: postgres:18-alpine
-    env_file: 
+    env_file:
       - .env
     environment:
-      POSTGRES_USER: ${DB_USER:-admin}
+      POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
       # POSTGRES_DB has been removed. The database names (screening_db and hrms_db)
       # are now created by the init_dbs.sh script located in the mounted volume.
       POSTGRES_INITDB_ARGS: "--encoding=UTF8 --lc-collate=C --lc-ctype=C"
+      PGDATA: "/data"
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
-      - ./postgres-config/init:/docker-entrypoint-initdb.d # This volume ensures init_dbs.sh runs
-      - ./postgres-config/postgresql.conf:/etc/postgresql/postgresql.conf:ro
-      - ./postgres-config/pg_hba.conf:/etc/postgresql/pg_hba.conf:ro
-
-    command: >
-      postgres -c config_file=/etc/postgresql/postgresql.conf
+      - ../docker/postgres_data:/data
+      - ../docker/wal_archives:/mnt/server/archive # For Replication if needed
+      - ./postgresql/init:/docker-entrypoint-initdb.d # This volume ensures init_dbs.sh runs
+      - ./postgresql/:/config/
+    command: "postgres -c config_file=/config/postgresql.conf"
     networks:
       - ai-hrms-app
     healthcheck:
@@ -57,8 +56,8 @@ services:
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
-      - ./redis-config/redis.conf:/usr/local/etc/redis/redis.conf:ro
+      - ../docker/redis_data:/data
+      - ./redis/redis.conf:/usr/local/etc/redis/redis.conf:ro
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s

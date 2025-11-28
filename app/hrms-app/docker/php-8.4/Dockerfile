@@ -82,6 +82,7 @@ RUN apk add --no-cache \
     bind-tools \
     nano \
     acl \
+    rsync \
     && rm -rf /var/cache/apk/*
 
 # 2. System Configuration

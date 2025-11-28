@@ -39,7 +39,12 @@ if [ ! -f /var/www/html/composer.json ]; then
 
   echo "Moving installation to project root..."
   # Copy all files (including hidden ones) from temp to root
-  su-exec $RUN_AS cp -a /tmp/laravel-temp/. /var/www/html/
+  su-exec $RUN_AS rsync -av \
+    --exclude='.pnpm-store' \
+    --exclude='.git' \
+    --exclude='.gitignore' \
+    --exclude='README.md' \
+    /tmp/laravel-temp/ /var/www/html/
 
   # Cleanup temp dir
   rm -rf /tmp/laravel-temp
@@ -71,14 +76,31 @@ if [ -f .env ]; then
     # Use environment variables, falling back to defaults if they are empty.
     # The default DB_PORT is now 5432 for Postgres.
     sed -i "s|^DB_CONNECTION=.*|DB_CONNECTION=${DB_CONNECTION:-pgsql}|" .env
-    sed -i "s|^#* *DB_HOST=.*|DB_HOST=${DB_HOST:-pgsql}|" .env
+    sed -i "s|^#* *DB_HOST=.*|DB_HOST=${DB_HOST:-postgres}|" .env
     sed -i "s|^#* *DB_PORT=.*|DB_PORT=${DB_PORT:-5432}|" .env
-    sed -i "s|^#* *DB_DATABASE=.*|DB_DATABASE=${DB_DATABASE:-laravel_example}|" .env
-    sed -i "s|^#* *DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME:-laravel_example}|" .env
+    sed -i "s|^#* *DB_DATABASE=.*|DB_DATABASE=${DB_DATABASE:-laravel_db}|" .env
+    sed -i "s|^#* *DB_USERNAME=.*|DB_USERNAME=${DB_USERNAME:-postgres}|" .env
     sed -i "s|^#* *DB_PASSWORD=.*|DB_PASSWORD=${DB_PASSWORD:-secret}|" .env
+
+    # The default Redis
+    sed -i "s|^REDIS_CLIENT=.*|REDIS_CLIENT=${REDIS_CLIENT:-phpredis}|" .env
+    sed -i "s|^REDIS_HOST=.*|REDIS_HOST=${REDIS_HOST:-redis}|" .env
+    sed -i "s|^REDIS_PASSWORD=.*|REDIS_PASSWORD=${REDIS_PASSWORD:-null}|" .env
+    sed -i "s|^REDIS_PORT=.*|REDIS_PORT=${REDIS_PORT:-6379}|" .env
+
+    # Mailhog / Mailpit settings
+    sed -i "s|^MAIL_MAILER=.*|MAIL_MAILER=${MAIL_MAILER:-smtp}|" .env
+    sed -i "s|^MAIL_HOST=.*|MAIL_HOST=${MAIL_HOST:-mailpit}|" .env
+    sed -i "s|^MAIL_PORT=.*|MAIL_PORT=${MAIL_PORT:-1025}|" .env
+    sed -i "s|^MAIL_USERNAME=.*|MAIL_USERNAME=${MAIL_USERNAME:-null}|" .env
+    sed -i "s|^MAIL_PASSWORD=.*|MAIL_PASSWORD=${MAIL_PASSWORD:-null}|" .env
+    sed -i "s|^MAIL_ENCRYPTION=.*|MAIL_ENCRYPTION=${MAIL_ENCRYPTION:-null}|" .env
+    sed -i "s|^MAIL_FROM_ADDRESS=.*|MAIL_FROM_ADDRESS=${MAIL_FROM_ADDRESS:-hello@example.com}|" .env
 
     # Check
     cat .env | grep DB_
+    cat .env | grep REDIS_
+    cat .env | grep MAIL_
 else
     echo ".env file not found, skipping DB configuration replacement."
 fi
@@ -194,22 +216,38 @@ fi
 # -------------------------------------------------------
 cd /var/www/html
 
-# -------------------------------------------------------
-# 7. VITE (MODIFIED FOR DEVCONTAINER)
-# -------------------------------------------------------
 if [ -f "package.json" ]; then
-    PACKAGE_MANAGER="npm"
-    [ -f "pnpm-lock.yaml" ] && PACKAGE_MANAGER="pnpm"
 
-    # !!! CHANGE HERE !!!
-    # If we are in the DevContainer, DO NOT start Vite automatically.
-    # We want to start it manually in the VS Code terminal.
+    # Determine package manager preference
+    PACKAGE_MANAGER="npm"
+    if [ -f "pnpm-lock.yaml" ]; then
+        PACKAGE_MANAGER="pnpm"
+    elif [ -f "yarn.lock" ] && command -v yarn &> /dev/null; then
+        PACKAGE_MANAGER="yarn"
+    fi
+    echo "Detected package manager: $PACKAGE_MANAGER"
+
     if [ "$APP_ENV" = "local" ]; then
+        # 7.A: Development Mode: Start the Vite HMR server in the background
+        # echo "Starting Vite development server (via '$PACKAGE_MANAGER run dev') in the background..."
+
+        # We run the command using the determined package manager
+        # Run in background (&) so the script can continue to Supervisord.
+        # su-exec $RUN_AS $PACKAGE_MANAGER run dev &
+
+        # !!! CHANGE HERE !!!
+        # We want to start it manually in the terminal. So the error logs are visible.
         echo "👉 Open a terminal and run '$PACKAGE_MANAGER run dev' to start the frontend."
+
     elif [ "$APP_ENV" = "production" ]; then
-         if [ ! -f "public/build/manifest.json" ]; then
+        # 7.B: Production Mode: Ensure assets are built
+        if [ ! -f "public/build/manifest.json" ]; then
+            echo "Manifest not found. Building production assets (via '$PACKAGE_MANAGER run build')..."
+            # Run the command in the foreground to ensure completion before starting supervisor
             su-exec $RUN_AS $PACKAGE_MANAGER run build
-         fi
+        else
+            echo "Production assets already built (manifest.json found). Skipping build."
+        fi
     fi
 fi
 
