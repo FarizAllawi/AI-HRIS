@@ -1,6 +1,0 @@
-- labels:
-    service: "redis-cache"
-    environment: "production"
-    team: "infrastructure"
-  targets:
-    - "redis-exporter:9121"

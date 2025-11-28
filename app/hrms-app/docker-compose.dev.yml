@@ -1,0 +1,20 @@
+# LARAVEL DEVELOPMENT TOOLS
+services:
+
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    ports:
+      - '${FORWARD_MAILPIT_PORT:-1025}:1025'
+      - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+    networks:
+      - ai-hrms-app
+    healthcheck:
+      # Mailpit image is Alpine based, so we use wget to check the dashboard port
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025/"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+include:
+  - ../../config/compose.yml # Include pgsql and redis services
+  - docker/compose.yml # Include hrms-app service

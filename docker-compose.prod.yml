@@ -1,4 +1,0 @@
-
-include:
-  -app/ai-service/docker-compose.prod.yml
-  -app/hrms-app/docker-compose.prod.yml

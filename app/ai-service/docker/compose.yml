@@ -1,0 +1,42 @@
+# THIS COMPOSE FILE ONLY CREATE SERVICE ai-service
+# MUST BE INCLUDED IN OTHER COMPOSE FILE:
+#  - ai-service/docker-compose.dev.yml
+#  - ai-service/docker-compose.test.yml
+
+services:
+  fastapi-dev:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      target: development
+    command: uvicorn \
+      app.main:app \
+      --host 0.0.0.0 \
+      --port 8000 \
+      --reload
+    ports:
+      - '8000:8000'
+    env_file:
+      - ../env
+      - ../../../config/.env
+    volumes:
+      - ../data:/app/data
+      - ../keys:/app/keys
+    develop:
+      watch:
+        - action: sync
+          path: ..
+          target: /app
+          ignore:
+            - .venv
+        - action: rebuild
+          path: ./pyproject.toml
+    depends_on:
+      hrms-app:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-hrms-app

@@ -1,53 +1,5 @@
-services:
-  pgsql:
-    image: 'postgres:18-alpine'
-    ports:
-      - '${FORWARD_DB_PORT:-5432}:5432'
-    environment:
-      PGPASSWORD: '${DB_PASSWORD:-secret}'
-      POSTGRES_DB: '${DB_DATABASE}'
-      POSTGRES_USER: '${DB_USERNAME}'
-      POSTGRES_PASSWORD: '${DB_PASSWORD:-secret}'
-    volumes:
-      - 'ai-hris-psql:/var/lib/postgresql/data'
-      - './docker/pgsql/create-testing-database.sql:/docker-entrypoint-initdb.d/10-create-testing-database.sql'
-    networks:
-      - ai-hris-app
-    healthcheck:
-      test:
-        - CMD
-        - pg_isready
-        - '-q'
-        - '-d'
-        - '${DB_DATABASE}'
-        - '-U'
-        - '${DB_USERNAME}'
-      interval: 5s
-      retries: 3
-      timeout: 5s
-      start_period: 10s
-
-  redis:
-    image: 'redis:alpine'
-    ports:
-      - '${FORWARD_REDIS_PORT:-6379}:6379'
-    volumes:
-      - 'ai-hris-redis:/data'
-    networks:
-      - ai-hris-app
-    healthcheck:
-      test:
-        - CMD
-        - redis-cli
-        - ping
-      retries: 3
-      interval: 5s
-      timeout: 5s
-      start_period: 10s
-
-networks:
-  ai-hris-app:
-    driver: bridge
-volumes:
-  ai-hris-psql:
-  ai-hris-redis:
+# THIS COMPOSE FILE USED FOR PRODUCTION ONLY
+include:
+  - config/compose.prod.yml
+  - app/ai-service/docker-compose.prod.yml
+  - app/hrms-app/docker-compose.prod.yml

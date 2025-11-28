@@ -3,7 +3,7 @@
 # ==============================================================================
 ARG ALPINE_VERSION=3.22
 ARG WWWGROUP=1000
-ARG WWWUSER=1000
+ARG WWWUSER=1337
 ARG NODE_VERSION=22
 ARG POSTGRES_VERSION=17
 
@@ -96,8 +96,8 @@ RUN mkdir -p /var/log/nginx /var/lib/nginx /run/nginx /run/php \
     && chmod -R 777 /var/log/nginx /var/lib/nginx /run/nginx /run/php
 
 # Copy Configuration Files (Common)
-COPY docker/php-8.4/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY docker/php-8.4/php.ini /etc/php84/conf.d/99-custom.ini
+COPY php-8.4/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY php-8.4/php.ini /etc/php84/conf.d/99-custom.ini
 
 # ==============================================================================
 # STAGE 2: DEVELOPMENT (Local Dev / Sail Replacement)
@@ -116,13 +116,13 @@ RUN apk add --no-cache \
     && npm install -g pnpm
 
 # Configure PHP-FPM Pool
-COPY docker/php-8.4/fpm-pool.dev.conf /etc/php84/php-fpm.d/www.conf
+COPY php-8.4/fpm-pool.dev.conf /etc/php84/php-fpm.d/www.conf
 
 # Configure Xdebug
-COPY docker/php-8.4/xdebug.ini /etc/php84/conf.d/xdebug.ini
+COPY php-8.4/xdebug.ini /etc/php84/conf.d/xdebug.ini
 
 # --- NGINX DEV CONFIG ---
-COPY docker/php-8.4/nginx/nginx.dev.conf /etc/nginx/http.d/default.conf
+COPY php-8.4/nginx/nginx.dev.conf /etc/nginx/http.d/default.conf
 # ------------------------
 
 # Setup the "sail" user
@@ -130,7 +130,7 @@ RUN addgroup -g ${WWWGROUP} sail || true \
     && adduser -D -u ${WWWUSER} -G sail -s /bin/bash sail \
     && chown -R sail:sail /var/www/html
 
-COPY docker/php-8.4/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY php-8.4/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Copy Code & Install Dev Dependencies
@@ -149,7 +149,7 @@ FROM dev AS test
 
 USER root
 # --- NGINX TEST CONFIG ---
-COPY docker/php-8.4/nginx/nginx.test.conf /etc/nginx/http.d/default.conf
+COPY php-8.4/nginx/nginx.test.conf /etc/nginx/http.d/default.conf
 # -------------------------
 
 USER sail
@@ -162,10 +162,10 @@ FROM base AS prod
 
 
 # Configure PHP-FPM Pool
-COPY docker/php-8.4/fpm-pool.prod.conf /etc/php84/php-fpm.d/www.conf
+COPY php-8.4/fpm-pool.prod.conf /etc/php84/php-fpm.d/www.conf
 
 # --- NGINX PROD CONFIG ---
-COPY docker/php-8.4/nginx/nginx.prod.conf /etc/nginx/http.d/default.conf
+COPY php-8.4/nginx/nginx.prod.conf /etc/nginx/http.d/default.conf
 # -------------------------
 
 # Copy Application Code

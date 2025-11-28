@@ -1,44 +1,4 @@
 services:
-  hrms-app:
-    build:
-      context: .
-      dockerfile: docker/php-8.4/Dockerfile
-      target: dev
-      args:
-        WWWGROUP: '${WWWGROUP}'
-    extra_hosts:
-      - 'host.docker.internal:host-gateway'
-    ports:
-      - '${APP_PORT:-80}:80'
-      - '${VITE_PORT:-5173}:${VITE_PORT:-5173}'
-    environment:
-      WWWUSER: '${WWWUSER}'
-      WWWGROUP: '${WWWGROUP}'
-      LARAVEL_SAIL: 1
-      XDEBUG_MODE: '${XDEBUG_MODE:-off}'
-      XDEBUG_CONFIG: '${XDEBUG_CONFIG:-client_host=host.docker.internal}'
-      IGNITION_LOCAL_SITES_PATH: '${PWD}'
-      DB_CONNECTION: '${DB_CONNECTION}'
-      DB_HOST: '${DB_HOST}'
-      DB_PORT: '${DB_PORT}'
-      DB_DATABASE: '${DB_DATABASE}'
-      DB_USERNAME: '${DB_USERNAME}'
-      DB_PASSWORD: '${DB_PASSWORD}'
-    networks:
-      - ai-hris-app
-    volumes:
-      - '.:/var/www/html'
-    depends_on:
-      selenium:
-        condition: service_healthy
-      # Ensure these match the service names in your ROOT docker-compose.yml
-      # If pgsql/redis are defined in the root, these depends_on will work
-      # because they share the same network and project context.
-      pgsql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-
   selenium:
     image: selenium/standalone-chromium
     extra_hosts:
@@ -52,3 +12,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 3
+
+include:
+  - ../../docker-compose.yml
+  - docker-compose.yml

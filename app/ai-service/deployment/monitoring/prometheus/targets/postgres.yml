@@ -1,6 +1,0 @@
-- labels:
-    service: "postgres-db"
-    environment: "production"
-    team: "database"
-  targets:
-    - "postgres-exporter:9187"
