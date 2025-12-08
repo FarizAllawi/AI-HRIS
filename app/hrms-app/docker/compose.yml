@@ -35,6 +35,8 @@ services:
       DB_PASSWORD: '${DB_PASSWORD}'
     networks:
       - ai-hrms-app
+    volumes:
+      - ../../docker/shared:/var/www/storage/shared
     depends_on:
       # Ensure these match the service names in root docker/compose.yml
       # If pgsql/redis are defined in the root, these depends_on will work

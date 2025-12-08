@@ -22,6 +22,7 @@ services:
         WWWUSER: '${WWWUSER:-1337}'
     volumes:
       - '.:/var/www/html'
+      - ../../docker/shared:/var/www/html/storage/shared
     extends:
       file: docker/compose.yml
       service: hrms-app
