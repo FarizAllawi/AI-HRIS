@@ -7,7 +7,7 @@ services:
   fastapi-dev:
     build:
       context: .
-      dockerfile: docker/Dockerfile
+      dockerfile: docker/python-3.12/Dockerfile
       target: development
     command: uvicorn \
       app.main:app \
