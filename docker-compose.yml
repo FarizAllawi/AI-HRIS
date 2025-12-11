@@ -2,4 +2,4 @@
 include:
   - config/compose.yml
   - app/hrms-app/compose.yml
-  # - app/ai-service/docker/compose.yml
+  - app/ai-service/compose.yml
