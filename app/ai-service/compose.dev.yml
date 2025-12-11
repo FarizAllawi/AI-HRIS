@@ -25,6 +25,7 @@ services:
     volumes:
       - ./data:/app/data
       - ./keys:/app/keys
+      - ./logs:/app/logs
       - ../../docker/shared:/app/shared
     develop:
       watch:

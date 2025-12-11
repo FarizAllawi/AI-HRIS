@@ -6,7 +6,7 @@ HRMS_APP_URL="${HRMS_APP_URL:-http://hrms-app:80}"
 HEALTH_ENDPOINT="${HRMS_APP_URL}/health"
 PASSPORT_ENV_FILE="${PASSPORT_ENV_FILE:-/app/shared/ai-service_passport.env}"
 ENV_FILE="${ENV_FILE:-/app/.env}"
-MAX_RETRIES=300
+MAX_RETRIES=1000
 RETRY_INTERVAL=60
 
 # Colors for output
