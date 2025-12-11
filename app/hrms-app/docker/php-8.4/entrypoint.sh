@@ -217,18 +217,8 @@ if [ -f .env ]; then
         fi
     fi
 
-    if [ "$PRODUCTION_MODE" -eq 1 ]; then
-        if [ "${MIGRATE_ON_START:-0}" = "1" ]; then
-            echo "Production: MIGRATE_ON_START=1 — running migrations."
-            su-exec $RUN_AS php artisan migrate --force || echo "Migration failed or DB not ready, skipping..."
-        else
-            echo "Production: MIGRATE_ON_START not enabled — skipping migrations."
-        fi
-    else
-        echo "Non-production: running migrations."
-        su-exec $RUN_AS php artisan migrate --force || echo "Migration failed or DB not ready, skipping..."
-    fi
-
+    echo "Running Database  migrations."
+    su-exec $RUN_AS php artisan migrate --force || echo "Migration failed or DB not ready, skipping..."
     echo "Ensuring Passport keys..."
     su-exec $RUN_AS php artisan passport:keys --force || echo "Passport key generation failed, continuing..."
 else
@@ -353,9 +343,9 @@ EOF
                     echo "${env_var_name}_CLIENT_ID=$client_id" >> "$LARAVEL_ENV"
                     echo "${env_var_name}_CLIENT_SECRET=$client_secret" >> "$LARAVEL_ENV"
 
-                    export "${env_var_name}_CLIENT_ID"="$CLIENT_ID"
-                    export "${env_var_name}_CLIENT_SECRET"="$CLIENT_SECRET"
-
+                    echo "export ${env_var_name}_CLIENT_ID=\"$client_id\"" >> /etc/profile.d/00-custom-env.sh
+                    echo "export ${env_var_name}_CLIENT_SECRET=\"$client_secret\"" >> /etc/profile.d/00-custom-env.sh
+                    chmod +x /etc/profile.d/00-custom-env.sh
                     echo "   Updated credentials in Laravel .env as ${env_var_name}_CLIENT_ID and ${env_var_name}_CLIENT_SECRET"
                 fi
                 return 0
@@ -474,8 +464,6 @@ EOF
             generate_client_and_save "$CLIENT_NAME" "$CONFIG_FILE"
             continue
         fi
-
-
     done
 fi
 # -------------------------------------------------------
@@ -512,6 +500,29 @@ fi
 # 8. EXECUTE CMD (Supervisord)
 # -------------------------------------------------------
 echo "Starting Supervisor..."
+
+# Source the environment variables for the current shell
+if [ -f /etc/profile.d/00-custom-env.sh ]; then
+   . /etc/profile.d/00-custom-env.sh
+fi
+
+# =========================================================
+# === TEMPORARY LOGGING MODIFICATION ===
+# =========================================================
+# Log the critical variables BEFORE execution to confirm they are loaded.
+echo "--- ENVIRONMENT VARIABLE CHECK (BEFORE EXEC) ---"
+if [ -n "$AI_SERVICE_CLIENT_ID" ]; then
+    echo "✅ AI_SERVICE_CLIENT_ID is set: $AI_SERVICE_CLIENT_ID"
+else
+    echo "❌ AI_SERVICE_CLIENT_ID is NOT set or empty."
+fi
+if [ -n "$AI_SERVICE_CLIENT_SECRET" ]; then
+    echo "✅ AI_SERVICE_CLIENT_SECRET is set (first 5 chars): ${AI_SERVICE_CLIENT_SECRET:0:5}..."
+else
+    echo "❌ AI_SERVICE_CLIENT_SECRET is NOT set or empty."
+fi
+echo "------------------------------------------------"
+# =========================================================
 
 # Check if the command involves supervisord
 if echo "$@" | grep -q "/usr/bin/supervisord"; then
