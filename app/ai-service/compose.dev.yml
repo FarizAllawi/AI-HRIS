@@ -5,9 +5,10 @@ services:
       dockerfile: docker/python-3.12/Dockerfile
       target: development
     command: >
-      uvicorn app.main:app --host 0.0.0.0 --port 8000 --log-level debug --reload
+      supervisord -c /app/docker/python-3.12/supervisord.conf
     ports:
-      - '8000:8000'
+      - '8100:8100'
+      - '5555:5555'
     env_file:
       - .env
       - ../../config/.env
@@ -20,6 +21,7 @@ services:
       PYTHONPATH: /app
       PYTHONUNBUFFERED: 1
       ENVIRONMENT: ${ENVIRONMENT:-local}
+      LOG_LEVEL: debug
     volumes:
       - ./data:/app/data
       - ./keys:/app/keys

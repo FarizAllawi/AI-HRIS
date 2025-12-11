@@ -6,14 +6,14 @@ HRMS_APP_URL="${HRMS_APP_URL:-http://hrms-app:80}"
 HEALTH_ENDPOINT="${HRMS_APP_URL}/health"
 PASSPORT_ENV_FILE="${PASSPORT_ENV_FILE:-/app/shared/ai-service_passport.env}"
 ENV_FILE="${ENV_FILE:-/app/.env}"
-MAX_RETRIES=1000
+MAX_RETRIES=300
 RETRY_INTERVAL=60
 
 # Colors for output
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m' # No Color
+export GREEN='\033[0;32m'
+export YELLOW='\033[1;33m'
+export RED='\033[0;31m'
+export NC='\033[0m' # No Color
 
 log() {
     echo -e "${GREEN}[$(date +'%Y-%m-%d %H:%M:%S')] $1${NC}"
@@ -30,11 +30,8 @@ error() {
 # Wait for hrms-app health endpoint
 wait_for_hrms_app() {
     log "Waiting for hrms-app to be healthy..."
-
     local retries=0
-    # We are using HRMS_APP_URL to construct HEALTH_ENDPOINT above:
-    # HEALTH_ENDPOINT="${HRMS_APP_URL}/health"
-    # So here, we are correctly using it via $HEALTH_ENDPOINT in the curl command.
+
     while [ $retries -lt $MAX_RETRIES ]; do
         if curl -s -f --max-time 5 "$HEALTH_ENDPOINT" > /dev/null 2>&1; then
             log "hrms-app is healthy at $HEALTH_ENDPOINT!"
@@ -55,14 +52,12 @@ wait_for_hrms_app() {
 # Read OAuth credentials from passport.env and update .env
 update_oauth_credentials() {
     log "Reading OAuth credentials from passport.env..."
-
     if [ ! -f "$PASSPORT_ENV_FILE" ]; then
         error "Passport env file not found: $PASSPORT_ENV_FILE"
         return 1
     fi
 
     # Source the passport.env file to read CLIENT_ID and CLIENT_SECRET
-    # Handle the escaped backslash in CLIENT_SECRET
     CLIENT_ID=$(grep "^CLIENT_ID=" "$PASSPORT_ENV_FILE" | cut -d '=' -f2- | tr -d '\r\n')
     CLIENT_SECRET=$(grep "^CLIENT_SECRET=" "$PASSPORT_ENV_FILE" | cut -d '=' -f2- | sed 's/\\\//\//g' | tr -d '\r\n')
 
@@ -80,12 +75,13 @@ update_oauth_credentials() {
         log "Created .env file"
     fi
 
-    # Remove existing OAUTH_CLIENT_ID and OAUTH_CLIENT_SECRET lines if they exist
-    # Use a temporary file to avoid backup file creation
-    if grep -q "^OAUTH_CLIENT_ID=" "$ENV_FILE" 2>/dev/null || grep -q "^OAUTH_CLIENT_SECRET=" "$ENV_FILE" 2>/dev/null || grep -q "^# OAuth credentials (auto-generated from passport.env)" "$ENV_FILE" 2>/dev/null; then
+    # Remove existing OAuth related lines
+    if grep -q "^OAUTH_CLIENT_ID=" "$ENV_FILE" 2>/dev/null ||
+       grep -q "^OAUTH_CLIENT_SECRET=" "$ENV_FILE" 2>/dev/null ||
+       grep -q "^# OAuth credentials" "$ENV_FILE" 2>/dev/null; then
         grep -v "^OAUTH_CLIENT_ID=" "$ENV_FILE" 2>/dev/null | \
         grep -v "^OAUTH_CLIENT_SECRET=" | \
-        grep -v "^# OAuth credentials (auto-generated from passport.env)" > "${ENV_FILE}.tmp" || true
+        grep -v "^# OAuth credentials" > "${ENV_FILE}.tmp" || true
         mv "${ENV_FILE}.tmp" "$ENV_FILE"
     fi
 
@@ -95,12 +91,15 @@ update_oauth_credentials() {
     fi
 
     # Append new OAuth credentials
-    # Use printf to safely handle special characters like $ in CLIENT_SECRET
     {
         echo "# OAuth credentials (auto-generated from passport.env)"
-        printf "OAUTH_CLIENT_ID=%s\n" "$CLIENT_ID"
-        printf "OAUTH_CLIENT_SECRET=%s\n" "$CLIENT_SECRET"
+        echo "OAUTH_CLIENT_ID=$CLIENT_ID"
+        echo "OAUTH_CLIENT_SECRET=$CLIENT_SECRET"
     } >> "$ENV_FILE"
+
+    # Export to process environment so the app sees them immediately
+    export OAUTH_CLIENT_ID="$CLIENT_ID"
+    export OAUTH_CLIENT_SECRET="$CLIENT_SECRET"
 
     log "OAuth credentials updated successfully"
 }

@@ -33,6 +33,9 @@ COPY . /app
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --locked
 
+# Install supervisor for multi-process management
+RUN apt-get update && apt-get install -y supervisor && rm -rf /var/lib/apt/lists/*
+
 # Setup User and Directories
 RUN groupadd --system --gid 999 nonroot \
  && useradd --system --gid 999 --uid 999 --create-home nonroot
@@ -49,7 +52,7 @@ RUN chmod +x /app/entrypoint.sh && \
 # Environment Setup
 ENV PATH="/app/.venv/bin:$PATH"
 ENTRYPOINT ["/app/entrypoint.sh"]
-USER nonroot
+USER root
 
 
 # ==========================================
@@ -72,6 +75,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y \
     libpq5 \
     curl \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Create Non-root user
@@ -93,6 +97,6 @@ RUN chmod +x /app/entrypoint.sh
 # 6. Final Config
 ENV PATH="/app/.venv/bin:$PATH"
 ENTRYPOINT ["/app/entrypoint.sh"]
-USER nonroot
+USER root
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100"]
+CMD ["supervisord", "-c", "/app/docker/python-3.12/supervisord.conf"]

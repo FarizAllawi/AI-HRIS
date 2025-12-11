@@ -18,6 +18,7 @@ WORKDIR /var/www/html
 # Re-declare ARGs needed in this stage
 ARG POSTGRES_VERSION
 
+
 ENV TZ=UTC
 
 # 1. Install System Dependencies
@@ -83,6 +84,9 @@ RUN apk add --no-cache \
     nano \
     acl \
     rsync \
+    nodejs \
+    npm \
+    && npm install -g pnpm \
     && rm -rf /var/cache/apk/*
 
 # 2. System Configuration
@@ -97,8 +101,12 @@ RUN mkdir -p /var/log/nginx /var/lib/nginx /run/nginx /run/php \
     && chmod -R 777 /var/log/nginx /var/lib/nginx /run/nginx /run/php
 
 # Copy Configuration Files (Common)
-COPY php-8.4/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
-COPY php-8.4/php.ini /etc/php84/conf.d/99-custom.ini
+COPY docker/php-8.4/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+COPY docker/php-8.4/php.ini /etc/php84/conf.d/99-custom.ini
+
+# Make entrypoint available to all stages
+COPY docker/php-8.4/entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # ==============================================================================
 # STAGE 2: DEVELOPMENT (Local Dev / Sail Replacement)
@@ -111,19 +119,16 @@ ARG NODE_VERSION
 
 # Install Node.js & Dev Tools
 RUN apk add --no-cache \
-    php84-xdebug \
-    nodejs \
-    npm \
-    && npm install -g pnpm
+    php84-xdebug
 
 # Configure PHP-FPM Pool
-COPY php-8.4/fpm-pool.dev.conf /etc/php84/php-fpm.d/www.conf
+COPY docker/php-8.4/fpm-pool.dev.conf /etc/php84/php-fpm.d/www.conf
 
 # Configure Xdebug
-COPY php-8.4/xdebug.ini /etc/php84/conf.d/xdebug.ini
+COPY docker/php-8.4/xdebug.ini /etc/php84/conf.d/xdebug.ini
 
 # --- NGINX DEV CONFIG ---
-COPY php-8.4/nginx/nginx.dev.conf /etc/nginx/http.d/default.conf
+COPY docker/php-8.4/nginx/nginx.dev.conf /etc/nginx/http.d/default.conf
 # ------------------------
 
 # Setup the "sail" user
@@ -131,7 +136,7 @@ RUN addgroup -g ${WWWGROUP} sail || true \
     && adduser -D -u ${WWWUSER} -G sail -s /bin/bash sail \
     && chown -R sail:sail /var/www/html
 
-COPY php-8.4/entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY docker/php-8.4/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 # Copy Code & Install Dev Dependencies
@@ -150,7 +155,7 @@ FROM dev AS test
 
 USER root
 # --- NGINX TEST CONFIG ---
-COPY php-8.4/nginx/nginx.test.conf /etc/nginx/http.d/default.conf
+COPY docker/php-8.4/nginx/nginx.test.conf /etc/nginx/http.d/default.conf
 # -------------------------
 
 USER sail
@@ -163,18 +168,29 @@ FROM base AS prod
 
 
 # Configure PHP-FPM Pool
-COPY php-8.4/fpm-pool.prod.conf /etc/php84/php-fpm.d/www.conf
+COPY docker/php-8.4/fpm-pool.prod.conf /etc/php84/php-fpm.d/www.conf
 
 # --- NGINX PROD CONFIG ---
-COPY php-8.4/nginx/nginx.prod.conf /etc/nginx/http.d/default.conf
+COPY docker/php-8.4/nginx/nginx.prod.conf /etc/nginx/http.d/default.conf
 # -------------------------
 
-# Copy Application Code
-COPY --chown=nobody:nobody . /var/www/html
+# Copy Application Code as root (entrypoint will adjust ownership)
+COPY . /var/www/html
 
-# Install Production Dependencies Only
-USER nobody
-RUN composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist
+# Ensure vendor directory exists and is writable by the runtime user before running composer.
+# Create vendor, set ownership to nobody, run composer (as nobody if su-exec available),
+# then ensure ownership is consistent.
+RUN mkdir -p /var/www/html/vendor \
+    && chown -R nobody:nobody /var/www/html \
+    && if command -v su-exec >/dev/null 2>&1; then \
+         su-exec nobody composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist ; \
+       else \
+         composer install --no-dev --optimize-autoloader --no-interaction --prefer-dist ; \
+       fi \
+    && chown -R nobody:nobody /var/www/html
 
 EXPOSE 80
+
+# Use the shared entrypoint so prod container can perform runtime setup and then drop privileges.
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
 CMD ["/usr/bin/supervisord", "-c", "/etc/supervisor/conf.d/supervisord.conf"]

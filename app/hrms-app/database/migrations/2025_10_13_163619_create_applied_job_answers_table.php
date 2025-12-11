@@ -15,7 +15,7 @@ return new class extends Migration
             $table->uuid('id')->primary();
             $table->foreignUuid('job_posting_question_id')->constrained('job_posting_questions')->onDelete('cascade');
             $table->foreignUuid('applied_job_id')->constrained('applied_jobs')->onDelete('cascade');
-            $table->string('answer');
+            $table->text('answer');
             $table->double('ai_score')->nullable();
             $table->double('hr_score')->nullable();
             $table->text('ai_score_meta')->nullable();
