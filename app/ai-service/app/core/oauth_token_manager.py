@@ -139,19 +139,55 @@ class OAuthTokenManager:
         if not settings.OAUTH_CLIENT_ID or not settings.OAUTH_CLIENT_SECRET:
             raise TokenCacheError("AI client credentials not configured (OAUTH_CLIENT_ID / OAUTH_CLIENT_SECRET)")
 
+        # Build request data with scope if configured
         data = {
             "grant_type": "client_credentials",
             "client_id": settings.OAUTH_CLIENT_ID,
             "client_secret": settings.OAUTH_CLIENT_SECRET,
-            "scope": settings.OAUTH_TOKEN_SCOPE,
+        }
+
+        # Add scope if configured (optional for client_credentials)
+        oauth_scope = getattr(settings, 'OAUTH_TOKEN_SCOPE', None)
+        if oauth_scope:
+            data["scope"] = oauth_scope
+
+        # Set headers to request JSON response and proper content type
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/x-www-form-urlencoded",
         }
 
         resp = requests.post(
             settings.OAUTH_TOKEN_URL,
             data=data,
+            headers=headers,
             timeout=self._timeout,
         )
-        resp.raise_for_status()
+
+        # Check for errors and log detailed response
+        if not resp.ok:
+            error_detail = f"Status: {resp.status_code}"
+            try:
+                # Try to parse as JSON first
+                error_body = resp.json()
+                error_detail += f", Response: {error_body}"
+            except:
+                # If not JSON, try to extract error from HTML
+                response_text = resp.text
+                # Try to find error message in HTML (common Laravel error patterns)
+                import re
+                error_match = re.search(r'<div[^>]*class="[^"]*exception[^"]*"[^>]*>.*?<div[^>]*class="[^"]*message[^"]*"[^>]*>(.*?)</div>', response_text, re.DOTALL | re.IGNORECASE)
+                if error_match:
+                    error_msg = error_match.group(1).strip()[:200]
+                    error_detail += f", Error: {error_msg}"
+                else:
+                    # Fallback to first 500 chars
+                    error_detail += f", Response body: {response_text[:500]}"
+            print(f"❌ OAuth token request failed: {error_detail}")
+            print(f"   URL: {settings.OAUTH_TOKEN_URL}")
+            print(f"   Client ID: {settings.OAUTH_CLIENT_ID[:20]}...")
+            resp.raise_for_status()
+
         print("🔐 Fetched new OAuth token")
         print("Response:", resp.json())
         return resp.json()

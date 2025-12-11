@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from pydantic import computed_field
 from typing import List
 import os
 
@@ -16,13 +17,18 @@ class Settings(BaseSettings):
     # OAuth
     OAUTH_CLIENT_ID: str = os.getenv("OAUTH_CLIENT_ID", "")
     OAUTH_CLIENT_SECRET: str = os.getenv("OAUTH_CLIENT_SECRET", "")
+    OAUTH_TOKEN_SCOPE: str = os.getenv("OAUTH_TOKEN_SCOPE", "ai-service:*")  # OAuth scope for client_credentials
     OAUTH_PUBLIC_KEY: str = os.path.join(BASE_DIR, "keys/oauth-public.key")
-    OAUTH_TOKEN_SCOPE: str = os.getenv("OAUTH_TOKEN_SCOPE", "ai-service:*")
-    OAUTH_TOKEN_URL: str = GATEWAY_BASE_URL + "/oauth/token" # Will be set in __init__ or post-init
     OAUTH_EXPECTED_AUDIENCES: str = ""  # Comma-separated list of acceptable 'aud' values (optional)
     OAUTH_TOKEN_FETCH_TIMEOUT: int = 10
     OAUTH_TOKEN_MAX_RETRIES: int = 3
     OAUTH_TOKEN_BACKOFF_BASE: float = 0.5
+
+    @computed_field
+    @property
+    def OAUTH_TOKEN_URL(self) -> str:
+        """Compute OAUTH_TOKEN_URL dynamically from GATEWAY_BASE_URL"""
+        return f"{self.GATEWAY_BASE_URL}/oauth/token"
 
     # Machine-to-machine (client_credentials) settings
     TOKEN_CACHE_BUFFER: int = 30  # seconds to subtract from token expiry when caching

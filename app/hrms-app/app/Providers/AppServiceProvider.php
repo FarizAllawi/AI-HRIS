@@ -24,6 +24,9 @@ class AppServiceProvider extends ServiceProvider
     {
         JsonResource::withoutWrapping();
 
+        // Passport routes are automatically registered in Passport v13+
+        // No need to call Passport::routes() as it doesn't exist in this version
+
         Passport::tokensCan([
             'ai-service:*' => 'AI Service Scopes',
         ]);

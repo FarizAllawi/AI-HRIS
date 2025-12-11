@@ -4,12 +4,13 @@
 FROM ghcr.io/astral-sh/uv:python3.12-bookworm-slim AS builder-base
 WORKDIR /app
 
-# 1. Install system build dependencies (GCC, Postgre headers)
+# 1. Install system build dependencies (GCC, Postgre headers, curl for health checks)
 RUN apt-get update && apt-get install -y \
     postgresql-client \
     libpq-dev \
     gcc \
     g++ \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Set UV environment variables
@@ -36,14 +37,18 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 RUN groupadd --system --gid 999 nonroot \
  && useradd --system --gid 999 --uid 999 --create-home nonroot
 
-RUN mkdir -p /app/uploads /app/keys /app/data /app/logs && \
-    chown -R nonroot:nonroot /app /app/data /app/uploads /app/keys /app/logs && \
-    chmod 755 /app/uploads /app/data /app/keys /app/logs
+RUN mkdir -p /app/uploads /app/keys /app/data /app/logs /app/shared && \
+    chown -R nonroot:nonroot /app /app/data /app/uploads /app/keys /app/logs /app/shared && \
+    chmod 755 /app/uploads /app/data /app/keys /app/logs /app/shared
+
+# Copy and setup entrypoint
+COPY docker/python-3.12/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh && \
+    chown nonroot:nonroot /app/entrypoint.sh
 
 # Environment Setup
 ENV PATH="/app/.venv/bin:$PATH"
-# Reset ENTRYPOINT so we dont have add uv to call command
-ENTRYPOINT []
+ENTRYPOINT ["/app/entrypoint.sh"]
 USER nonroot
 
 
@@ -63,9 +68,10 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 FROM python:3.12-slim-bookworm AS production
 WORKDIR /app
 
-# 1. Install Runtime Libraries (No compilers)
+# 1. Install Runtime Libraries (No compilers, but curl for health checks)
 RUN apt-get update && apt-get install -y \
     libpq5 \
+    curl \
     && rm -rf /var/lib/apt/lists/*
 
 # 2. Create Non-root user
@@ -76,12 +82,17 @@ RUN groupadd --system --gid 999 nonroot \
 COPY --from=builder-prod --chown=nonroot:nonroot /app/.venv /app/.venv
 
 # 4. Setup Directories
-RUN mkdir -p /app/uploads /app/keys /app/logs && \
-    chown -R nonroot:nonroot /app/uploads /app/keys /app/logs && \
-    chmod 755 /app/uploads /app/keys /app/logs
+RUN mkdir -p /app/uploads /app/keys /app/logs /app/shared && \
+    chown -R nonroot:nonroot /app/uploads /app/keys /app/logs /app/shared && \
+    chmod 755 /app/uploads /app/keys /app/logs /app/shared
 
-# 5. Final Config
+# 5. Copy and setup entrypoint
+COPY --from=builder-prod --chown=nonroot:nonroot /app/docker/python-3.12/entrypoint.sh /app/entrypoint.sh
+RUN chmod +x /app/entrypoint.sh
+
+# 6. Final Config
 ENV PATH="/app/.venv/bin:$PATH"
+ENTRYPOINT ["/app/entrypoint.sh"]
 USER nonroot
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8100"]
