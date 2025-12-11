@@ -221,6 +221,8 @@ if [ -f .env ]; then
     su-exec $RUN_AS php artisan migrate --force || echo "Migration failed or DB not ready, skipping..."
     echo "Ensuring Passport keys..."
     su-exec $RUN_AS php artisan passport:keys --force || echo "Passport key generation failed, continuing..."
+    echo "Seeding Default user..."
+    su-exec $RUN_AS php artisan db:seed --force || echo "Seeding default user failed, continuing..."
 else
     echo ".env file not found, skipping migrations and key generation."
 fi

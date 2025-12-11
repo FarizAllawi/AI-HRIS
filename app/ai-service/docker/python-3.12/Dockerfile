@@ -69,7 +69,6 @@ RUN --mount=type=cache,target=/root/.cache/uv \
 # 🚀 PRODUCTION RUNTIME (Final Image)
 # ==========================================
 FROM python:3.12-slim-bookworm AS production
-WORKDIR /app
 
 # 1. Install Runtime Libraries (No compilers, but curl for health checks)
 RUN apt-get update && apt-get install -y \
@@ -85,14 +84,26 @@ RUN groupadd --system --gid 999 nonroot \
 # 3. COPY only the .venv from builder-prod (no source code needed with --no-editable)
 COPY --from=builder-prod --chown=nonroot:nonroot /app/.venv /app/.venv
 
+WORKDIR /app
+COPY docker /app/docker
+
 # 4. Setup Directories
-RUN mkdir -p /app/uploads /app/keys /app/logs /app/shared && \
-    chown -R nonroot:nonroot /app/uploads /app/keys /app/logs /app/shared && \
-    chmod 755 /app/uploads /app/keys /app/logs /app/shared
+RUN mkdir -p /var/log /app/logs /app/data/huggingface && \
+    touch /var/log/supervisord.log && \
+    touch /app/logs/supervisord.log && \
+    touch /app/logs/fastapi.log /app/logs/worker.log /app/logs/beat.log /app/logs/flower.log && \
+    chown -R nonroot:nonroot /var/log/supervisord.log /app/logs/ /app/data/huggingface && \
+    chmod -R 755 /var/log/supervisord.log /app/logs/ /app/data/huggingface
 
 # 5. Copy and setup entrypoint
 COPY --from=builder-prod --chown=nonroot:nonroot /app/docker/python-3.12/entrypoint.sh /app/entrypoint.sh
+COPY --from=builder-prod --chown=nonroot:nonroot /app /app
+COPY --from=builder-prod --chown=nonroot:nonroot /app/.venv /app/.venv
+
 RUN chmod +x /app/entrypoint.sh
+
+RUN chmod +x /app/entrypoint.sh && \
+    chown nonroot:nonroot /app/entrypoint.sh
 
 # 6. Final Config
 ENV PATH="/app/.venv/bin:$PATH"
