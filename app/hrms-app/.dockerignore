@@ -1,0 +1,27 @@
+# VCS and system files
+.git
+.gitignore
+.svn
+.hg
+.idea
+.vscode
+.DS_Store
+Thumbs.db
+
+# Environment file (sensitive, should be managed via Docker secrets/env vars or separate volume mounts in dev)
+.env
+
+# Vendor and Node modules (better to install inside the container to ensure compatibility)
+vendor
+node_modules
+
+# Laravel-specific directories where files are written during development
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+
+# Docker-specific files if they are in the root
+Dockerfile
+docker-compose*.yml
+.dockerignore

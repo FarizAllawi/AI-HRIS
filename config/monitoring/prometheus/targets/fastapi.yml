@@ -1,0 +1,6 @@
+- labels:
+    service: "ai-screening-api"
+    environment: "production"
+    team: "backend"
+  targets:
+    - "web:8100"
