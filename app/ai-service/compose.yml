@@ -1,0 +1,40 @@
+services:
+  ai-service:
+    build:
+      context: .
+      dockerfile: docker/python-3.12/Dockerfile
+      target: production
+    container_name: ai-service-prod
+    command: >
+      supervisord -c /app/docker/python-3.12/supervisord.conf
+    env_file:
+      - .env
+      - ../../config/.env
+    environment:
+      DATABASE_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:-secret}@${DB_HOST:-postgres}:${DB_PORT:-5432}/${DB_NAME:-screening_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: 1
+      ENVIRONMENT: production
+      LOG_LEVEL: INFO
+    ports:
+      - "8100:8100"
+      - "5555:5555"
+    volumes:
+      - ../../docker/shared:/app/shared
+    depends_on:
+      hrms-app:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-hrms-app
+    restart: unless-stopped
+
+networks:
+  ai-hrms-app:
+    driver: bridge

@@ -1,0 +1,55 @@
+services:
+  ai-service:
+    build:
+      context: .
+      dockerfile: docker/python-3.12/Dockerfile
+      target: development
+    command: >
+      supervisord -c /app/docker/python-3.12/supervisord.conf
+    ports:
+      - '8100:8100'
+      - '5555:5555'
+    env_file:
+      - .env
+      - ../../config/.env
+    environment:
+      GATEWAY_BASE_URL: http://hrms-app:80
+      DATABASE_URL: postgresql://${DB_USERNAME:-postgres}:${DB_PASSWORD:-secret}@${DB_HOST:-postgres}:${DB_PORT:-5432}/${DB_NAME:-screening_db}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
+      PYTHONPATH: /app
+      PYTHONUNBUFFERED: 1
+      ENVIRONMENT: ${ENVIRONMENT:-local}
+      LOG_LEVEL: debug
+    volumes:
+      - ./data:/app/data
+      - ./keys:/app/keys
+      - ./logs:/app/logs
+      - ../../docker/shared:/app/shared
+    develop:
+      watch:
+        - action: sync
+          path: ..
+          target: /app
+          ignore:
+            - .venv
+        - action: rebuild
+          path: ./pyproject.toml
+    depends_on:
+      hrms-app:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - ai-hrms-app
+
+networks:
+  ai-hrms-app:
+    driver: bridge
+
+include:
+  - ../../config/compose.yml # Postgres & Redis Service
+  - ../hrms-app/compose.yml # HRMS APP Service

@@ -1,0 +1,5 @@
+# THIS COMPOSE FILE USED FOR PRODUCTION ONLY
+include:
+  - config/compose.yml
+  - app/hrms-app/compose.yml
+  - app/ai-service/compose.yml

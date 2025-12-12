@@ -1,0 +1,465 @@
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import { IconDotsVertical, IconExternalLink } from '@tabler/icons-react';
+import { useMemo, useState } from 'react';
+// removed unused tooltip imports
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Input } from '@/components/ui/input';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { useIsMobile } from '@/hooks/use-mobile';
+import type {
+  EmployeeRecord,
+  EmployeeTableHandlers,
+  EmploymentStatus,
+} from './types';
+import { formatDate, getStatusBadge, initials } from './utils';
+
+type Props = {
+  items: EmployeeRecord[];
+} & EmployeeTableHandlers;
+
+export function EmployeeTable({ items, onEdit, onView, onTerminate }: Props) {
+  const isMobile = useIsMobile();
+  const [query, setQuery] = useState('');
+  const [department, setDepartment] = useState<string | 'all'>('all');
+  const [status, setStatus] = useState<EmploymentStatus | 'all'>('all');
+  const [location, setLocation] = useState<string | 'all'>('all');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  const departments = useMemo(
+    () => Array.from(new Set(items.map((i) => i.department))).sort(),
+    [items],
+  );
+  const locations = useMemo(
+    () => Array.from(new Set(items.map((i) => i.location))).sort(),
+    [items],
+  );
+
+  const filteredItems = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return items.filter((it) => {
+      const matchQuery =
+        q === '' ||
+        it.fullName.toLowerCase().includes(q) ||
+        it.id.toLowerCase().includes(q) ||
+        it.jobTitle.toLowerCase().includes(q);
+      const matchDept =
+        department === 'all' ? true : it.department === department;
+      const matchStatus = status === 'all' ? true : it.status === status;
+      const matchLoc = location === 'all' ? true : it.location === location;
+      return matchQuery && matchDept && matchStatus && matchLoc;
+    });
+  }, [items, query, department, status, location]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const safePage = Math.min(page, totalPages);
+  const startIndex = (safePage - 1) * pageSize;
+  const pagedItems = filteredItems.slice(startIndex, startIndex + pageSize);
+
+  const resetToFirstPage = () => setPage(1);
+
+  if (isMobile) {
+    return (
+      <div className="space-y-3">
+        <div className="flex flex-col gap-3 border-b p-3">
+          <div className="flex w-full gap-2 md:max-w-md">
+            <Input
+              placeholder="Search name, ID, or role..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                resetToFirstPage();
+              }}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={department}
+              onValueChange={(v) => {
+                setDepartment(v as typeof department);
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Depts</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v as EmploymentStatus | 'all');
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="on_leave">On Leave</SelectItem>
+                <SelectItem value="probation">Probation</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="terminated">Terminated</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={location}
+              onValueChange={(v) => {
+                setLocation(v as typeof location);
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {locations.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        {pagedItems.length === 0 ? (
+          <div className="p-4 text-center text-muted-foreground">
+            No employees found.
+          </div>
+        ) : (
+          pagedItems.map((it) => (
+            <div key={it.id} className="rounded-lg border p-3">
+              <div className="flex items-center gap-3">
+                <Avatar>
+                  <AvatarFallback>{initials(it.fullName)}</AvatarFallback>
+                </Avatar>
+                <div className="flex min-w-0 flex-col">
+                  <div className="truncate font-medium">{it.fullName}</div>
+                  <div className="text-xs text-muted-foreground">
+                    {it.jobTitle} • {it.department}
+                  </div>
+                </div>
+                <div className="ml-auto">{getStatusBadge(it.status)}</div>
+              </div>
+              <div className="mt-3 grid grid-cols-2 gap-2 text-xs text-muted-foreground">
+                <div>
+                  <span className="font-medium text-foreground">ID:</span>{' '}
+                  {it.id}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Location:</span>{' '}
+                  {it.location}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">
+                    Hire Date:
+                  </span>{' '}
+                  {formatDate(it.dateOfHire)}
+                </div>
+                <div>
+                  <span className="font-medium text-foreground">Manager:</span>{' '}
+                  {it.managerName ?? '–'}
+                </div>
+              </div>
+              <div className="mt-3">
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button size="sm" variant="outline">
+                      Actions
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => onView?.(it)}>
+                      View
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onEdit?.(it)}>
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => onTerminate?.(it)}>
+                      Terminate
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </div>
+          ))
+        )}
+        <div className="flex items-center justify-between gap-2 border-t p-3 text-sm">
+          <div className="text-muted-foreground">
+            Page {safePage} of {totalPages}
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={safePage <= 1}
+            >
+              Previous
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+              disabled={safePage >= totalPages}
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-md border">
+      <div className="flex flex-col gap-3 border-b p-3">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex w-full gap-2 md:max-w-md">
+            <Input
+              placeholder="Search name, ID, or role..."
+              value={query}
+              onChange={(e) => {
+                setQuery(e.target.value);
+                resetToFirstPage();
+              }}
+            />
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <Select
+              value={department}
+              onValueChange={(v) => {
+                setDepartment(v as typeof department);
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Department" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={status}
+              onValueChange={(v) => {
+                setStatus(v as EmploymentStatus | 'all');
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="on_leave">On Leave</SelectItem>
+                <SelectItem value="probation">Probation</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+                <SelectItem value="terminated">Terminated</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select
+              value={location}
+              onValueChange={(v) => {
+                setLocation(v as typeof location);
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Location" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Locations</SelectItem>
+                {locations.map((d) => (
+                  <SelectItem key={d} value={d}>
+                    {d}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={String(pageSize)}
+              onValueChange={(v) => {
+                setPageSize(Number(v));
+                resetToFirstPage();
+              }}
+            >
+              <SelectTrigger className="w-[110px]">
+                <SelectValue placeholder="Rows" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="10">10 / page</SelectItem>
+                <SelectItem value="20">20 / page</SelectItem>
+                <SelectItem value="50">50 / page</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        <div className="text-xs text-muted-foreground">
+          Showing {filteredItems.length === 0 ? 0 : startIndex + 1}‑
+          {Math.min(startIndex + pageSize, filteredItems.length)} of{' '}
+          {filteredItems.length}
+        </div>
+      </div>
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Employee</TableHead>
+            <TableHead>Role</TableHead>
+            <TableHead>Location</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Date of Hire</TableHead>
+            <TableHead>Manager</TableHead>
+            <TableHead>Contact</TableHead>
+            <TableHead className="text-center">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {pagedItems.length === 0 ? (
+            <TableRow>
+              <TableCell colSpan={8} className="h-24 text-center">
+                No employees found.
+              </TableCell>
+            </TableRow>
+          ) : (
+            pagedItems.map((it) => (
+              <TableRow key={it.id}>
+                <TableCell>
+                  <div className="flex items-center gap-3">
+                    <Avatar>
+                      <AvatarFallback>{initials(it.fullName)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex min-w-0 flex-col">
+                      {it.contactEmail ? (
+                        <a
+                          href={`mailto:${it.contactEmail}`}
+                          className="truncate hover:underline"
+                        >
+                          {it.fullName}
+                          <IconExternalLink className="ml-1 inline size-3 align-[-2px]" />
+                        </a>
+                      ) : (
+                        <span className="truncate font-medium">
+                          {it.fullName}
+                        </span>
+                      )}
+                      <span className="text-xs text-muted-foreground">
+                        {it.id}
+                      </span>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    <span className="font-medium">{it.jobTitle}</span>
+                    <span className="text-xs text-muted-foreground">
+                      {it.department}
+                    </span>
+                  </div>
+                </TableCell>
+                <TableCell>{it.location}</TableCell>
+                <TableCell>{getStatusBadge(it.status)}</TableCell>
+                <TableCell>{formatDate(it.dateOfHire)}</TableCell>
+                <TableCell>{it.managerName ?? '–'}</TableCell>
+                <TableCell>
+                  <div className="flex flex-col">
+                    {it.contactEmail ? <span>{it.contactEmail}</span> : null}
+                    {it.contactPhone ? (
+                      <span className="text-xs text-muted-foreground">
+                        {it.contactPhone}
+                      </span>
+                    ) : null}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex justify-center">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button size="sm" variant="outline">
+                          <IconDotsVertical className="size-4" />
+                          <span className="sr-only">Open actions</span>
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => onView?.(it)}>
+                          View
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onEdit?.(it)}>
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => onTerminate?.(it)}>
+                          Terminate
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))
+          )}
+        </TableBody>
+      </Table>
+      <div className="flex items-center justify-between gap-2 border-t p-3 text-sm">
+        <div className="text-muted-foreground">
+          Page {safePage} of {totalPages}
+        </div>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={safePage <= 1}
+          >
+            Previous
+          </Button>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={safePage >= totalPages}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export default EmployeeTable;

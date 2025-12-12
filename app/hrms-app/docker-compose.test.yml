@@ -1,0 +1,18 @@
+services:
+  selenium:
+    image: selenium/standalone-chromium
+    extra_hosts:
+      - 'host.docker.internal:host-gateway'
+    volumes:
+      - '/dev/shm:/dev/shm'
+    networks:
+      - ai-hris-app
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4444/wd/hub/status"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+include:
+  - ../../docker-compose.yml
+  - docker-compose.yml

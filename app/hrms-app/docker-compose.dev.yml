@@ -1,0 +1,35 @@
+services:
+  mailpit:
+    image: 'axllent/mailpit:latest'
+    ports:
+      - '${FORWARD_MAILPIT_PORT:-1025}:1025'
+      - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
+    networks:
+      - ai-hrms-app
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8025/"]
+      interval: 5s
+      timeout: 5s
+      retries: 3
+
+  hrms-app:
+    build:
+      context: ./docker
+      dockerfile: php-8.4/Dockerfile
+      target: dev
+      args:
+        WWWGROUP: '${WWWGROUP:-1000}'
+        WWWUSER: '${WWWUSER:-1337}'
+    volumes:
+      - '.:/var/www/html'
+      - ../../../docker/shared:/var/www/html/storage/shared
+    extends:
+      file: compose.yml
+      service: hrms-app
+
+networks:
+  ai-hrms-app:
+    driver: bridge
+
+include:
+  - ../../config/compose.yml
